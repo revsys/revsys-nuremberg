@@ -20,6 +20,10 @@ echo "Setting up solr index (slow)"
 $DOCKER_COMPOSE cp solr_conf/ solr:/opt/solr-8.11.2/solr_conf
 $DOCKER_COMPOSE_EXEC solr cp -r /opt/solr-8.11.2/solr_conf $SOLR_HOME
 
+$DOCKER_COMPOSE_EXEC solr solr status
+sleep 5
+$DOCKER_COMPOSE_EXEC solr solr status
+
 http_code=`curl -sS -o /dev/null -w '%{http_code}' "$SOLR_URL/admin/cores?action=reload&core=$SOLR_CORE"`
 if [[ $http_code == 200 ]]
 then
