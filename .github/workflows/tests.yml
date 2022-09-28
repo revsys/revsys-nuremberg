@@ -1,0 +1,40 @@
+name: Run Tests
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 4
+      fail-fast: false
+
+    steps:
+        - name: Checkout code
+          uses: actions/checkout@v3
+
+        - name: Invoke docker compose
+          run: docker compose up -d --build
+
+        - name: Setup data storages
+          run: bash init.sh
+
+        - name: Run unit tests
+          run: docker compose exec -T web pytest
+
+        # - name: Run browser tests
+        #   run: docker compose exec -T web pytest nuremberg/documents/browser_tests.py
+
+        - name: Get logs on failure
+          run: docker compose logs
+          if: failure()
+
+        - name: Down images
+          run: docker compose down
+          if: always()
