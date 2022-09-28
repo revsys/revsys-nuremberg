@@ -11,6 +11,7 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     strategy:
       max-parallel: 4
       fail-fast: false
@@ -23,6 +24,8 @@ jobs:
           run: docker compose up -d --build
 
         - name: Setup data storages
+          env:
+            SOLR_RESTORE_SNAPSHOPT: 1
           run: bash init.sh
 
         - name: Run unit tests
