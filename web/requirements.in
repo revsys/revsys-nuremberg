@@ -5,38 +5,38 @@
 # to update requirements.txt
 
 # LTS through 2024
-Django~=3.2.14
+Django
 
 # DB
-dj-database-url==0.5.0
+dj-database-url
 psycopg2
 
 # Search
-lxml>=4.9.1
-django-haystack==3.0.0
-pysolr==3.9.0
-requests==2.25.1
+lxml
+django-haystack
+pysolr
+requests
 
 # Assets
-django_compressor~=2.4.0
-django-static-precompiler~=2.0.0
+django_compressor
+django-static-precompiler
 
 # Serving images not hosted locally
-django-proxy==1.2.1
+django-proxy
 
 # Web Server (non-development)
-gunicorn==20.0.4
-whitenoise~=5.2.0
+gunicorn
+whitenoise
 
 # Development
-pip-tools==5.5.0
+pip-tools
 
 # testing
-pytest >= 7.1.2
-coverage==5.5
-django_coverage_plugin==1.8.0
-pyquery==1.4.3
-pytest-django==4.1.0
-pytest-cov==2.11.1
-pytest-instafail==0.4.2
+pytest
+coverage
+django_coverage_plugin
+pyquery
+pytest-django
+pytest-cov
+pytest-instafail
 selenium
