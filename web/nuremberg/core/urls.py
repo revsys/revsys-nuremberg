@@ -1,17 +1,16 @@
 from django.conf import settings
-from django.conf.urls import include, url, re_path
 from django.contrib import admin
-from proxy.views import proxy_view
-from django.views.generic.base import RedirectView
 from django.http import HttpResponse
+from django.urls import include, re_path
 from django.views.decorators.csrf import csrf_exempt
+from django.views.generic.base import RedirectView
 from proxy.views import proxy_view
 
 @csrf_exempt
 def proxied(base_url):
     def proxy_handler(request, path):
-    	remoteurl = base_url + path
-    	return proxy_view(request, remoteurl)
+        remoteurl = base_url + path
+        return proxy_view(request, remoteurl)
     return proxy_handler
 
 urlpatterns = [
