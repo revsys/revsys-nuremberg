@@ -9,8 +9,8 @@ TEMPLATES[0]['OPTIONS']['debug'] = True
 
 # disable cache during tests
 CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
-    }
+    'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}
 }
-DOCUMENTS_URL = DOCUMENTS_PRINTING_URL = 'https://nuremberg.law.harvard.edu/proxy_image/'
+DOCUMENTS_URL = (
+    DOCUMENTS_PRINTING_URL
+) = 'https://nuremberg.law.harvard.edu/proxy_image/'

@@ -1,4 +1,5 @@
 from django.http import HttpResponseForbidden
+
 bots = ["Baiduspider"]
 
 
@@ -16,6 +17,8 @@ class BlockCrawlerMiddleware:
                     request.is_crawler = True
 
         if request.is_crawler and request.path.startswith("/search/"):
-            return HttpResponseForbidden('This address is removed from crawling. Check robots.txt')
+            return HttpResponseForbidden(
+                'This address is removed from crawling. Check robots.txt'
+            )
 
         return self.get_response(request)

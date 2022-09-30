@@ -3,6 +3,7 @@ from haystack.inputs import AutoQuery, Raw
 import re
 from collections import deque
 
+
 class EmptyFacetsSearchForm(SearchForm):
     """
     This reimplementation of FacetedSearchForm enables two additional features:
@@ -10,6 +11,7 @@ class EmptyFacetsSearchForm(SearchForm):
     - filtering by missing facet values (like Date: Unknown)
     - date_year range filtering like 1940-1945, as a search filter
     """
+
     applied_filters = []
     date_range = [None, None]
 
@@ -18,9 +20,16 @@ class EmptyFacetsSearchForm(SearchForm):
         self.selected_facets = kwargs.pop('selected_facets')
         super().__init__(*args, **kwargs)
         if 'year_min' in self.data and 'year_max' in self.data:
-            self.selected_facets = [f for f in self.selected_facets if not f.startswith('date_year')]
-            self.selected_facets.append('date_year:{}-{}'.format(self.data['year_min'], self.data['year_max']))
-
+            self.selected_facets = [
+                f
+                for f in self.selected_facets
+                if not f.startswith('date_year')
+            ]
+            self.selected_facets.append(
+                'date_year:{}-{}'.format(
+                    self.data['year_min'], self.data['year_max']
+                )
+            )
 
     def search(self):
         sqs = super().search()
@@ -39,15 +48,24 @@ class EmptyFacetsSearchForm(SearchForm):
 
             if field == 'date_year' and '-' in value:
                 self.date_range = value.split('-', 1)
-                sqs = sqs.narrow(u'date_year_exact:[%s TO %s]' % (sqs.query.clean(self.date_range[0]), sqs.query.clean(self.date_range[1])))
+                sqs = sqs.narrow(
+                    u'date_year_exact:[%s TO %s]'
+                    % (
+                        sqs.query.clean(self.date_range[0]),
+                        sqs.query.clean(self.date_range[1]),
+                    )
+                )
                 # sqs = sqs.filter(date_year__range=self.date_range)
             else:
                 if value == 'None':
                     sqs = sqs.narrow(u'-%s_exact:[* TO *]' % (field))
                 elif value:
-                    sqs = sqs.narrow(u'%s_exact:"%s"' % (field, sqs.query.clean(value)))
+                    sqs = sqs.narrow(
+                        u'%s_exact:"%s"' % (field, sqs.query.clean(value))
+                    )
 
         return sqs
+
 
 class FieldedSearchForm(SearchForm):
     """
@@ -125,8 +143,9 @@ class FieldedSearchForm(SearchForm):
         sqs = self.searchqueryset
 
         if self.transcript_id:
-            sqs = sqs.filter(material_type='Transcript', transcript_id=self.transcript_id) \
-            .order_by(sort)
+            sqs = sqs.filter(
+                material_type='Transcript', transcript_id=self.transcript_id
+            ).order_by(sort)
             # we use snippets to count "occurrences" of a match in transcript search results
             highlight_snippets = 10
         else:
@@ -136,18 +155,22 @@ class FieldedSearchForm(SearchForm):
                 sort = sort[1:] + ' desc'
             else:
                 sort += ' asc'
-            sqs = sqs.group_by('grouping_key', {
-                'group.sort': sort + ', seq_number asc',
-                'group.limit': 3,
-                'sort': sort,
-            })
+            sqs = sqs.group_by(
+                'grouping_key',
+                {
+                    'group.sort': sort + ', seq_number asc',
+                    'group.limit': 3,
+                    'sort': sort,
+                },
+            )
             highlight_snippets = 3
 
         if not self.is_valid() or not 'q' in self.cleaned_data:
             return sqs
 
-        (self.auto_query, self.field_queries) = self.parse_query_keywords(self.cleaned_data['q'])
-
+        (self.auto_query, self.field_queries) = self.parse_query_keywords(
+            self.cleaned_data['q']
+        )
 
         self.highlight_query = ''
 
@@ -158,19 +181,23 @@ class FieldedSearchForm(SearchForm):
             sqs = self.apply_field_query(sqs, field_query)
 
         if self.highlight_query:
-            sqs = sqs.highlight(**{
-                'hl.snippets': highlight_snippets,
-                'hl.fragsize':150,
-                'hl.q': 'material_type:transcripts AND highlight:({})'.format(AutoQuery(self.highlight_query).prepare(sqs.query)),
-                'hl.fl':'highlight',
-                'hl.requireFieldMatch':'true',
-                'hl.simple.pre':'<mark>',
-                'hl.simple.post':'</mark>'
-            })
+            sqs = sqs.highlight(
+                **{
+                    'hl.snippets': highlight_snippets,
+                    'hl.fragsize': 150,
+                    'hl.q': 'material_type:transcripts AND highlight:({})'.format(
+                        AutoQuery(self.highlight_query).prepare(sqs.query)
+                    ),
+                    'hl.fl': 'highlight',
+                    'hl.requireFieldMatch': 'true',
+                    'hl.simple.pre': '<mark>',
+                    'hl.simple.post': '</mark>',
+                }
+            )
 
         return sqs
 
-    def parse_query_phrases(self, full_query): # pragma: no cover
+    def parse_query_phrases(self, full_query):  # pragma: no cover
         """
         Parser that extracts unmarked phrase queries for fields, eg: date:January 2
         """
@@ -186,7 +213,10 @@ class FieldedSearchForm(SearchForm):
         Parser that extracts single field keyword queries, () keyword groups or "" exact matches
         e.g. date:(January 2)
         """
-        sections = re.split(r'((?:\-?\w+)\s*\:\s*(?:"[^"]+"|\([^:]+\)|[\w\-\+\.\|]+))', full_query)
+        sections = re.split(
+            r'((?:\-?\w+)\s*\:\s*(?:"[^"]+"|\([^:]+\)|[\w\-\+\.\|]+))',
+            full_query,
+        )
         auto_query = sections[0]
         field_queries = []
         for query in sections[1:]:
@@ -211,7 +241,6 @@ class FieldedSearchForm(SearchForm):
         else:
             exclude = False
 
-
         field_key = self.search_fields.get(field)
         if field_key == True:
             field_key = field
@@ -222,14 +251,26 @@ class FieldedSearchForm(SearchForm):
             values = re.split(r'[|]', value)
             query_list = []
             for value in values:
-                if re.match(r'^\s*"?(none|unknown)"?\s*$', value, re.IGNORECASE):
-                    query_list.append('(-{}: [* TO *] AND *:*)'.format(field_key))
+                if re.match(
+                    r'^\s*"?(none|unknown)"?\s*$', value, re.IGNORECASE
+                ):
+                    query_list.append(
+                        '(-{}: [* TO *] AND *:*)'.format(field_key)
+                    )
                 else:
                     # to enable snippets for exhibit codes we must add them to the highlight query
-                    if field_key in ('exhibit_codes', 'evidence_codes', 'text'):
+                    if field_key in (
+                        'exhibit_codes',
+                        'evidence_codes',
+                        'text',
+                    ):
                         self.highlight_query += ' ' + value
                     # NOTE: field_key is whitelisted above
-                    query_list.append('{}:({})'.format(field_key, AutoQuery(value).prepare(sqs.query)))
+                    query_list.append(
+                        '{}:({})'.format(
+                            field_key, AutoQuery(value).prepare(sqs.query)
+                        )
+                    )
             raw_query = '({})'.format(' OR '.join(query_list))
             if exclude:
                 field_query.append('excluded')
@@ -241,6 +282,7 @@ class FieldedSearchForm(SearchForm):
             field_query.append('ignored')
 
         return sqs
+
 
 class DocumentSearchForm(EmptyFacetsSearchForm, FieldedSearchForm):
     pass

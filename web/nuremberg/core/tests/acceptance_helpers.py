@@ -1,4 +1,5 @@
 import pytest
+
 pytestmark = pytest.mark.django_db
 
 import re
@@ -9,30 +10,42 @@ from django.urls import reverse as url
 from django.http import QueryDict
 from urllib.parse import urlencode, urlparse
 
+
 def go_to(url, expected_status=200, follow_redirects=True):
     response = client.get(url, follow=follow_redirects)
-    assert response.status_code == expected_status, \
-        "Got status code {} for URL (expected {}): {}".format(response.status_code, expected_status, url)
+    assert (
+        response.status_code == expected_status
+    ), "Got status code {} for URL (expected {}): {}".format(
+        response.status_code, expected_status, url
+    )
     page = PyQuery(response.content)
     page.pathname = response.request['PATH_INFO']
     page.querystring = response.request['QUERY_STRING']
     return page
 
+
 def follow_link(element):
     a_tag = element.closest('a')
-    assert len(a_tag) >= 1, \
-        "Can't find any A tag enclosing element: {}".format(element.outerHtml() or '[empty selection]')
+    assert (
+        len(a_tag) >= 1
+    ), "Can't find any A tag enclosing element: {}".format(
+        element.outerHtml() or '[empty selection]'
+    )
     href = element.attr('href')
-    assert href, \
-        "Element has no `href` attribute: {}.".format(a_tag.outerHtml() or '[empty selection]')
+    assert href, "Element has no `href` attribute: {}.".format(
+        a_tag.outerHtml() or '[empty selection]'
+    )
     return go_to(a_tag.absolute_url(href))
+
 
 class PyQuery(pyquery.PyQuery):
     """
     Simple PyQuery subclass that can "follow" links correctly.
     """
+
     pathname = None
     querystring = None
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if 'parent' in kwargs:
@@ -43,7 +56,9 @@ class PyQuery(pyquery.PyQuery):
         """
         Filter the selection to elements containing `text`.
         """
-        return self.filter(lambda n, el: text.lower() in PyQuery(el).text().lower())
+        return self.filter(
+            lambda n, el: text.lower() in PyQuery(el).text().lower()
+        )
 
     def with_regex(self, rx):
         """
@@ -71,7 +86,7 @@ class PyQuery(pyquery.PyQuery):
                         values.appendlist(el.name, el.value or '')
                 else:
                     values.appendlist(el.name, el.value or '')
-        #overwrite the querydict
+        # overwrite the querydict
         if isinstance(params, QueryDict):
             values.update(params)
         else:
@@ -89,11 +104,13 @@ class PyQuery(pyquery.PyQuery):
         name = self.attr('name')
         if len(self) and self[0].tag == 'option':
             name = self.closest('select').attr('name')
-        assert name, \
-            "Element has no `name` attribute: {}.".format(self.outerHtml() or '[empty selection]')
+        assert name, "Element has no `name` attribute: {}.".format(
+            self.outerHtml() or '[empty selection]'
+        )
         return self.closest('form').submit_url({name: val or self.val()})
 
     def nth(self, n):
         return PyQuery(self[n])
+
 
 client = Client()

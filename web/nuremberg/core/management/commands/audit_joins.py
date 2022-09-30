@@ -10,12 +10,19 @@ class Command(BaseCommand):
         parser.add_argument('transcript', type=int, help='transcript to audit')
         parser.add_argument('from_seq', type=int, help='seq range start')
         parser.add_argument('to_seq', type=int, help='seq range end')
-        parser.add_argument('-a', action='store_true', default=False, help='Log allowed paragraph breaks as well as joins.')
-
+        parser.add_argument(
+            '-a',
+            action='store_true',
+            default=False,
+            help='Log allowed paragraph breaks as well as joins.',
+        )
 
     def handle(self, *args, **options):
         transcript = Transcript.objects.get(id=options['transcript'])
-        pages = transcript.pages.filter(seq_number__gte=options['from_seq'], seq_number__lte=options['to_seq'])
+        pages = transcript.pages.filter(
+            seq_number__gte=options['from_seq'],
+            seq_number__lte=options['to_seq'],
+        )
         joiner = TranscriptPageJoiner(pages)
         joiner.audit = True
 

@@ -1,5 +1,6 @@
 from nuremberg.core.tests.acceptance_helpers import *
 
+
 def test_landing_page():
     response = client.get('/')
     page = PyQuery(response.content)
