@@ -1,10 +1,15 @@
 from django.http import Http404
 from django.shortcuts import render, redirect
-from haystack.generic_views import SearchView, FacetedSearchView, FacetedSearchMixin
+from haystack.generic_views import (
+    SearchView,
+    FacetedSearchView,
+    FacetedSearchMixin,
+)
 from nuremberg.documents.models import Document
 from .forms import DocumentSearchForm
 from .lib.digg_paginator import DiggPaginator
 from .lib.solr_grouping_backend import GroupedSearchQuerySet
+
 
 class Search(FacetedSearchView):
     """
@@ -16,6 +21,7 @@ class Search(FacetedSearchView):
 
     See `forms.py` for the faceting and fielded search logic itself.
     """
+
     load_all = False
     queryset = GroupedSearchQuerySet()
 
@@ -59,19 +65,22 @@ class Search(FacetedSearchView):
         # override SearchView to give a blank search by default
         # TODO: this seems unnecessary
         self.queryset = form.search()
-        context = self.get_context_data(**{
-            self.form_name: form,
-            'object_list': self.get_queryset()
-        })
+        context = self.get_context_data(
+            **{self.form_name: form, 'object_list': self.get_queryset()}
+        )
         return self.render_to_response(context)
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs.update({
-            'sort_results': self.request.GET.get(self.sort_field, self.default_sort),
-            'selected_facets': self.request.GET.getlist(self.filter_field),
-            'facet_to_label': self.facet_to_label
-        })
+        kwargs.update(
+            {
+                'sort_results': self.request.GET.get(
+                    self.sort_field, self.default_sort
+                ),
+                'selected_facets': self.request.GET.getlist(self.filter_field),
+                'facet_to_label': self.facet_to_label,
+            }
+        )
         return kwargs
 
     def get_queryset(self):
@@ -98,11 +107,9 @@ class Search(FacetedSearchView):
                     pass
                     # sort missing into the other facet values
                     # counts.sort(key=lambda field: field[1], reverse=True)
-                labeled_facets.append({
-                    'field': field,
-                    'label': label,
-                    'counts': counts
-                })
+                labeled_facets.append(
+                    {'field': field, 'label': label, 'counts': counts}
+                )
             context.update({'labeled_facets': labeled_facets})
 
         if context['form']:
@@ -118,4 +125,6 @@ class Search(FacetedSearchView):
         return context
 
     def get_paginator(self, *args, **kwargs):
-        return self.paginator_class(*args, body=self.context_pages, tail=self.edge_pages, **kwargs)
+        return self.paginator_class(
+            *args, body=self.context_pages, tail=self.edge_pages, **kwargs
+        )

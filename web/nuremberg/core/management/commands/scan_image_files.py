@@ -3,13 +3,24 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from io import BytesIO, SEEK_CUR
 
 from django.core.management.base import BaseCommand
-from nuremberg.documents.models import Document, DocumentImage, DocumentImageType
+from nuremberg.documents.models import (
+    Document,
+    DocumentImage,
+    DocumentImageType,
+)
+
 
 class Command(BaseCommand):
     help = 'Populates the DocumentImage metadata for any missing images'
 
     def add_arguments(self, parser):
-        parser.add_argument('--ids', nargs='+', type=int, default=None, help='Document ids to scan for missing images (default is all documents)')
+        parser.add_argument(
+            '--ids',
+            nargs='+',
+            type=int,
+            default=None,
+            help='Document ids to scan for missing images (default is all documents)',
+        )
 
     def handle(self, *args, **options):
         documents = Document.objects
@@ -20,10 +31,14 @@ class Command(BaseCommand):
 
         with ThreadPoolExecutor(max_workers=10) as pool:
             for document in documents:
-                if document.image_count and document.images.count() < document.image_count:
+                if (
+                    document.image_count
+                    and document.images.count() < document.image_count
+                ):
                     pool.submit(populate_document, document)
                 else:
-                    print("skipping document",document.id)
+                    print("skipping document", document.id)
+
 
 def populate_document(document):
     print("Populating", document.id, document.image_count)
@@ -42,7 +57,9 @@ def populate_metadata(document, page_number):
 
     if old_image:
         if old_image.physical_page_number:
-            physical_page_number = re.sub(r'[^\d]', '', old_image.physical_page_number)
+            physical_page_number = re.sub(
+                r'[^\d]', '', old_image.physical_page_number
+            )
             if physical_page_number:
                 image.physical_page_number = int(physical_page_number)
 
@@ -50,16 +67,20 @@ def populate_metadata(document, page_number):
     else:
         image.image_type = DocumentImageType.objects.get(id=4)
 
-    image.url = "http://nuremberg.law.harvard.edu/imagedir/HLSL_NMT01/HLSL_NUR_{}.jpg".format(filename)
+    image.url = "http://nuremberg.law.harvard.edu/imagedir/HLSL_NMT01/HLSL_NUR_{}.jpg".format(
+        filename
+    )
     (image.width, image.height) = get_jpeg_size(image.url)
     image.scale = DocumentImage.SCREEN
     if not (image.width and image.height):
         image.url = None
     image.save()
 
-def get_jpeg_size(url, header_length=5000):
-    header = requests.get(url, headers={'Range': 'bytes=0-{}'.format(header_length)})
 
+def get_jpeg_size(url, header_length=5000):
+    header = requests.get(
+        url, headers={'Range': 'bytes=0-{}'.format(header_length)}
+    )
 
     data = BytesIO(header.content)
 
@@ -71,7 +92,7 @@ def get_jpeg_size(url, header_length=5000):
     while True:
         block_header = data.read(2)
         block_size = int.from_bytes(data.read(2), byteorder="big")
-        if block_header == b'\xFF\xc0': # found SOF0
+        if block_header == b'\xFF\xc0':  # found SOF0
             break
         if block_header == b'':
             if header_length and header_length < 50000:
@@ -79,9 +100,14 @@ def get_jpeg_size(url, header_length=5000):
             elif header_length:
                 return get_jpeg_size(url, '')
 
-            print("ran out of bytes in JPEG header", url, "after", len(header.content))
+            print(
+                "ran out of bytes in JPEG header",
+                url,
+                "after",
+                len(header.content),
+            )
             raise Exception("out of bytes")
-        data.seek(block_size - 2, SEEK_CUR) # size includes size bytes
+        data.seek(block_size - 2, SEEK_CUR)  # size includes size bytes
 
     data.read(1)
 
