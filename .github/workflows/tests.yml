@@ -38,6 +38,9 @@ jobs:
           run: docker compose logs
           if: failure()
 
+        - name: Check code style
+          uses: psf/black@stable
+
         - name: Down images
           run: docker compose down
           if: always()
