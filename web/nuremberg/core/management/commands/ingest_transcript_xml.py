@@ -7,27 +7,41 @@ from django.core.management.base import BaseCommand
 from nuremberg.documents.models import DocumentCase
 from nuremberg.transcripts.models import Transcript, TranscriptPage
 
+
 class Command(BaseCommand):
     help = 'Parses a transcript page XML file or files and creates the appropriate models'
 
-    filename_re = re.compile(r'^NRMB-(?P<case_label>[A-Z]+)(?P<case_number>\d{2})?-(?P<volume>\d{2})_(?P<vol_seq>\d{5})_[01]\.xml$')
+    filename_re = re.compile(
+        r'^NRMB-(?P<case_label>[A-Z]+)(?P<case_number>\d{2})?-(?P<volume>\d{2})_(?P<vol_seq>\d{5})_[01]\.xml$'
+    )
 
     def add_arguments(self, parser):
-        parser.add_argument('paths', nargs='+', type=str, help='XML files to ingest')
-        parser.add_argument('-d', action='store_true', default=False, help='Injest every XML file in the provided directories.')
-        parser.add_argument('-s', default=None, type=int, help='Skip N files before ingesting.')
+        parser.add_argument(
+            'paths', nargs='+', type=str, help='XML files to ingest'
+        )
+        parser.add_argument(
+            '-d',
+            action='store_true',
+            default=False,
+            help='Injest every XML file in the provided directories.',
+        )
+        parser.add_argument(
+            '-s', default=None, type=int, help='Skip N files before ingesting.'
+        )
 
     def handle(self, *args, **options):
         count = 0
         if options['d']:
             paths = []
             for dirname in options['paths']:
-                paths += [path.join(dirname, name) for name in listdir(dirname)]
+                paths += [
+                    path.join(dirname, name) for name in listdir(dirname)
+                ]
         else:
             paths = options['paths']
         if options['s']:
             print('Skipping', options['s'], 'files.')
-            paths = paths[options['s']:]
+            paths = paths[options['s'] :]
         print('Ingesting', len(paths), 'files.')
         for file_path in paths:
             if not path.exists(file_path):
@@ -46,31 +60,50 @@ class Command(BaseCommand):
             elif m.group('case_label') == 'IMT':
                 case_id = 1
             else:
-                print("I don't know a case called",m.group('case_label'))
+                print("I don't know a case called", m.group('case_label'))
                 continue
 
             case = DocumentCase.objects.get(pk=case_id)
             try:
                 transcript = case.transcript
             except Transcript.DoesNotExist:
-                transcript = Transcript.objects.create(case=case, title="Transcript for {}".format(case.short_name()))
+                transcript = Transcript.objects.create(
+                    case=case,
+                    title="Transcript for {}".format(case.short_name()),
+                )
                 print("Created transcript", transcript.title)
 
             volume_number = int(m.group('volume'))
 
-            volume = transcript.volumes.filter(volume_number=volume_number).first()
+            volume = transcript.volumes.filter(
+                volume_number=volume_number
+            ).first()
             if not volume:
                 volume = transcript.volumes.create(volume_number=volume_number)
-                print("Created transcript volume", transcript.title, volume.volume_number)
+                print(
+                    "Created transcript volume",
+                    transcript.title,
+                    volume.volume_number,
+                )
 
             volume_seq_number = int(m.group('vol_seq'))
-            page = volume.pages.filter(volume_seq_number=volume_seq_number).first()
+            page = volume.pages.filter(
+                volume_seq_number=volume_seq_number
+            ).first()
             with open(file_path, 'r') as file:
                 xml = file.read()
             if not page:
-                page = TranscriptPage( transcript=transcript, volume=volume, volume_seq_number=volume_seq_number)
+                page = TranscriptPage(
+                    transcript=transcript,
+                    volume=volume,
+                    volume_seq_number=volume_seq_number,
+                )
             page.xml = xml
-            page.image_url = "//s3.amazonaws.com/nuremberg-transcripts/{}".format(filename.replace('.xml', '.jpg'))
+            page.image_url = (
+                "//s3.amazonaws.com/nuremberg-transcripts/{}".format(
+                    filename.replace('.xml', '.jpg')
+                )
+            )
             try:
                 page.populate_from_xml()
             except Exception as e:
@@ -78,4 +111,5 @@ class Command(BaseCommand):
                 raise e
             page.save()
             count += 1
-            if count % 100 == 0: print('Created', count, 'pages.')
+            if count % 100 == 0:
+                print('Created', count, 'pages.')

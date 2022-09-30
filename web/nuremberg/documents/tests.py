@@ -1,13 +1,20 @@
 from nuremberg.core.tests.acceptance_helpers import *
 
+
 def document(document_id):
-    response = client.get(url('documents:show', kwargs={'document_id': document_id}))
+    response = client.get(
+        url('documents:show', kwargs={'document_id': document_id})
+    )
     return PyQuery(response.content)
+
 
 def test_document_1():
     page = document(1)
 
-    assert 'List of Case 1 files, prosecution and defense, in English' in page('h1').text()
+    assert (
+        'List of Case 1 files, prosecution and defense, in English'
+        in page('h1').text()
+    )
 
     images = page('.document-image')
     assert len(images) == 20
@@ -29,7 +36,10 @@ def test_document_1():
 def test_document_2():
     page = document(2)
 
-    assert 'Argument: prosecution closing argument against all defendants' in page('h1').text()
+    assert (
+        'Argument: prosecution closing argument against all defendants'
+        in page('h1').text()
+    )
 
     images = page('.document-image')
     assert len(images) == 78
@@ -45,10 +55,14 @@ def test_document_2():
     assert 'Source of Text: Case Files/English' in info
     assert 'HLSL Item No.: 2' in info
 
+
 def test_document_400():
     page = document(400)
 
-    assert 'Decree concerning the administration of Polish territories' in page('h1').text()
+    assert (
+        'Decree concerning the administration of Polish territories'
+        in page('h1').text()
+    )
 
     images = page('.document-image')
     assert len(images) == 3
@@ -69,7 +83,10 @@ def test_document_400():
 def test_document_3799():
     page = document(3799)
 
-    assert 'Journal and office records of Hans Frank, Governor General of Poland, 1939-1944' in page('h1').text()
+    assert (
+        'Journal and office records of Hans Frank, Governor General of Poland, 1939-1944'
+        in page('h1').text()
+    )
 
     images = page('.document-image img')
     assert len(images) == 492

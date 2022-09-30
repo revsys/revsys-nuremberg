@@ -30,6 +30,7 @@ whitenoise
 
 # Development
 pip-tools
+pre-commit
 
 # testing
 pytest

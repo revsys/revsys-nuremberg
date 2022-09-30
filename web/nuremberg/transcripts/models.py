@@ -11,13 +11,18 @@ from django.db import models
 from nuremberg.documents.models import DocumentCase, DocumentActivity
 from .xml import TranscriptPageJoiner
 
+
 class Transcript(models.Model):
-    case = models.OneToOneField(DocumentCase, related_name='transcript', on_delete=models.PROTECT)
+    case = models.OneToOneField(
+        DocumentCase, related_name='transcript', on_delete=models.PROTECT
+    )
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    activities = models.ManyToManyField(DocumentActivity, related_name='transcripts')
+    activities = models.ManyToManyField(
+        DocumentActivity, related_name='transcripts'
+    )
 
     def slug(self):
         return slugify(self.title)
@@ -44,22 +49,38 @@ class Transcript(models.Model):
     def get_seq_from_page_number(self, page_number, seq_number):
         # find the seq number for provided page number
         # we have to be a bit tricky because page numbers can repeat
-        page = self.pages.filter(page_number=page_number).extra(select={'distance': "ABS(seq_number - %s)"}, select_params=(seq_number,), order_by=('distance',)).first()
+        page = (
+            self.pages.filter(page_number=page_number)
+            .extra(
+                select={'distance': "ABS(seq_number - %s)"},
+                select_params=(seq_number,),
+                order_by=('distance',),
+            )
+            .first()
+        )
         if page:
             return page.seq_number
         else:
             # guesstimate
-            page = self.pages.filter(page_number__lte=page_number).order_by('-page_number').first()
+            page = (
+                self.pages.filter(page_number__lte=page_number)
+                .order_by('-page_number')
+                .first()
+            )
             if page:
                 return page.seq_number + (page_number - page.page_number)
 
         return seq_number
 
+
 class TranscriptVolume(models.Model):
-    transcript = models.ForeignKey(Transcript, related_name='volumes', on_delete=models.PROTECT)
+    transcript = models.ForeignKey(
+        Transcript, related_name='volumes', on_delete=models.PROTECT
+    )
 
     volume_number = models.IntegerField()
     description = models.TextField(blank=True, null=True)
+
 
 # class TranscriptPageQuerySet(models.QuerySet):
 #     use_for_related_fields = True
@@ -67,11 +88,16 @@ class TranscriptVolume(models.Model):
 #         joiner = TranscriptPageJoiner(self.all())
 #         return joiner.html()
 
+
 class TranscriptPage(models.Model):
     # objects = TranscriptPageQuerySet.as_manager()
 
-    transcript = models.ForeignKey(Transcript, related_name='pages', on_delete=models.PROTECT)
-    volume = models.ForeignKey(TranscriptVolume, related_name='pages', on_delete=models.PROTECT)
+    transcript = models.ForeignKey(
+        Transcript, related_name='pages', on_delete=models.PROTECT
+    )
+    volume = models.ForeignKey(
+        TranscriptVolume, related_name='pages', on_delete=models.PROTECT
+    )
     updated_at = models.DateTimeField(auto_now=True)
 
     seq_number = models.IntegerField(db_index=True)
@@ -88,7 +114,9 @@ class TranscriptPage(models.Model):
     def __getattribute__(self, attrname):
         orig = super().__getattribute__(attrname)
         if attrname == 'image_url' and settings.PROXY_TRANSCRIPTS:
-            return reverse('proxy_transcript', kwargs={'path': orig.split('/')[-1]})
+            return reverse(
+                'proxy_transcript', kwargs={'path': orig.split('/')[-1]}
+            )
         return orig
 
     def xml_tree(self):
@@ -117,24 +145,39 @@ class TranscriptPage(models.Model):
         # TODO: this blob won't allow exact phrase matches across transcript pages.
         # It might be extended a few words into either adjacent page to allow that.
         text = ''
-        for event, element in etree.iterwalk(self.xml_tree(), events=('start', 'end')):
-            if element.tag == 'p' :
+        for event, element in etree.iterwalk(
+            self.xml_tree(), events=('start', 'end')
+        ):
+            if element.tag == 'p':
                 if len(element) and element[0].tag == 'runningHead':
                     continue
                 if event == 'start':
                     if element.text:
-                        if len(element.text) < 20 and TranscriptPageJoiner.ignore_p.match(element.text):
+                        if len(
+                            element.text
+                        ) < 20 and TranscriptPageJoiner.ignore_p.match(
+                            element.text
+                        ):
                             continue
                         text += element.text
                 else:
                     text += '\n\n'
             elif event == 'end' and element.tag == 'spkr':
                 if element.text:
-                    text += '<span class="speaker">{}</span> '.format(element.text)
-                if element.tail: text += element.tail
-            elif event == 'end' and element.tag in ('evidenceFileDoc', 'exhibitDocDef', 'exhibitDocPros'):
-                if element.text: text += element.text
-                if element.tail: text += element.tail
+                    text += '<span class="speaker">{}</span> '.format(
+                        element.text
+                    )
+                if element.tail:
+                    text += element.tail
+            elif event == 'end' and element.tag in (
+                'evidenceFileDoc',
+                'exhibitDocDef',
+                'exhibitDocPros',
+            ):
+                if element.text:
+                    text += element.text
+                if element.tail:
+                    text += element.tail
         return text
 
     def extract_evidence_codes(self):
@@ -150,17 +193,22 @@ class TranscriptPage(models.Model):
             if element.tag == 'exhibitDocPros':
                 codes.append('Prosecution {}'.format(element.get('n')))
             elif element.tag == 'exhibitDocDef':
-                codes.append('{} {}'.format(element.get('def') or 'Unknown Defendant', element.get('n')))
+                codes.append(
+                    '{} {}'.format(
+                        element.get('def') or 'Unknown Defendant',
+                        element.get('n'),
+                    )
+                )
         return codes
 
     class Meta:
         unique_together = (
-                ('transcript', 'seq_number'),
-                ('volume', 'volume_seq_number')
-            )
+            ('transcript', 'seq_number'),
+            ('volume', 'volume_seq_number'),
+        )
         index_together = (
-                ('transcript', 'seq_number'),
-                ('transcript', 'page_number'),
-                ('transcript', 'date'),
-                ('volume', 'volume_seq_number')
-            )
+            ('transcript', 'seq_number'),
+            ('transcript', 'page_number'),
+            ('transcript', 'date'),
+            ('volume', 'volume_seq_number'),
+        )

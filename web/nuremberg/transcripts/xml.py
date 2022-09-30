@@ -1,6 +1,7 @@
 import re
 from lxml import etree
 
+
 class TranscriptPageJoiner:
     """
     This class is a parser for transcript XML pages that generates joined sentences across page boundaries.
@@ -88,7 +89,9 @@ class TranscriptPageJoiner:
         self.pages = pages
 
     # Matches paragraphs that look like 'Court No. 1', mod OCR errors
-    ignore_p = re.compile(r'^Cou[rn]t (N[o0][\.\:]? ?)?[\dILO]?', re.IGNORECASE)
+    ignore_p = re.compile(
+        r'^Cou[rn]t (N[o0][\.\:]? ?)?[\dILO]?', re.IGNORECASE
+    )
 
     # Match for places it makes sense to end a paragraph
     # sentence_ending_letters = r'|'.join(( # ends of sentences that exclude "Mr."
@@ -103,23 +106,28 @@ class TranscriptPageJoiner:
     sentence_ending_letters = r'.{0,4}?'
 
     # BUG: OCR sometimes reads '.' as ',' . Nothing to do about it
-    sentence_ending_punctuation = r'([.?!:;/\-]|\.{3,5})' # mandatory punctuation to end a sentence
-    sentence_wrapping = r'[)"\']' # optional wrapping outside a sentence
-    sentence_inner_wrapping = r'[)"\']' # optional wrapping inside a sentence
+    sentence_ending_punctuation = (
+        r'([.?!:;/\-]|\.{3,5})'  # mandatory punctuation to end a sentence
+    )
+    sentence_wrapping = r'[)"\']'  # optional wrapping outside a sentence
+    sentence_inner_wrapping = r'[)"\']'  # optional wrapping inside a sentence
 
     # a conservative regex used to break up paragraphs (we don't want to do this too randomly)
-    sentence_break = re.compile(r'((?:[a-z]{2}|[0-9]{2}|[A-Z]{2})[\.\?\:][\)\"]?)')
+    sentence_break = re.compile(
+        r'((?:[a-z]{2}|[0-9]{2}|[A-Z]{2})[\.\?\:][\)\"]?)'
+    )
 
     # a liberal regex used to identify paragraph breaks to ignore
     sentence_ends = (
-        r'<p>\s*$', # end on a blank paragraph (likely inserted)
-        r'</span>\s*$', # end on a heading or subheading
-        r'^\s*$', # end on an empty paragraph
-        r'({}){}?{}{}?\s*$'.format(sentence_ending_letters, \
-            sentence_inner_wrapping, \
-            sentence_ending_punctuation, \
+        r'<p>\s*$',  # end on a blank paragraph (likely inserted)
+        r'</span>\s*$',  # end on a heading or subheading
+        r'^\s*$',  # end on an empty paragraph
+        r'({}){}?{}{}?\s*$'.format(
+            sentence_ending_letters,
+            sentence_inner_wrapping,
+            sentence_ending_punctuation,
             sentence_wrapping,
-            ),
+        ),
     )
     sentence_end = re.compile(r'|'.join(sentence_ends))
 
@@ -143,14 +151,18 @@ class TranscriptPageJoiner:
     audit = False
 
     # state variables
-    input_page = None # the current page being parsed
-    output_page = None # the page being created (different from input_page if joining)
+    input_page = None  # the current page being parsed
+    output_page = (
+        None  # the page being created (different from input_page if joining)
+    )
 
-    joining = False # in joining state, paragraph breaks will be deferred to the next natural sentence boundary
-    join_page = False # if joining bridges a page, defer the next page break
-    ignore_join = False # used by first_page to indicate that the first join found on the second page should be elided
+    joining = False  # in joining state, paragraph breaks will be deferred to the next natural sentence boundary
+    join_page = False  # if joining bridges a page, defer the next page break
+    ignore_join = False  # used by first_page to indicate that the first join found on the second page should be elided
 
-    first_page = last_page = False # used to trim content from the first and last included pages
+    first_page = (
+        last_page
+    ) = False  # used to trim content from the first and last included pages
 
     # convenience output indicating the proper seq numbers to be used for splicing with this join
     from_seq = to_seq = None
@@ -192,17 +204,20 @@ class TranscriptPageJoiner:
     def close_page(self):
         self.log('<span>[closed]</span>')
         if self.page_html and self.output_page:
-            self.html_pages.append({'page': self.output_page, 'html': self.page_html})
+            self.html_pages.append(
+                {'page': self.output_page, 'html': self.page_html}
+            )
 
     def put(self, text):
         self.page_html += text
 
     def open_p(self):
         self.put('<p>\n')
+
     def close_p(self):
         self.put('\n</p>\n')
 
-    def log(self, text): # pragma: no cover
+    def log(self, text):  # pragma: no cover
         if self.debug:
             self.page_html += text
 
@@ -213,10 +228,17 @@ class TranscriptPageJoiner:
                 if not self.ignore_join:
                     self.put(ends[0] + ends[1])
                     self.close_p()
-                    self.log( '[INSERTED END]')
+                    self.log('[INSERTED END]')
                     self.log('match: ' + str(ends))
                     if self.audit:
-                        self.joins.append('INSERTED: ...{: >26}{} [.] {}... (seq {})'.format(ends[0][-25:].replace('\n', '\\n'), ends[1], ends[2][:25].replace('\n', '\\n'), self.seq))
+                        self.joins.append(
+                            'INSERTED: ...{: >26}{} [.] {}... (seq {})'.format(
+                                ends[0][-25:].replace('\n', '\\n'),
+                                ends[1],
+                                ends[2][:25].replace('\n', '\\n'),
+                                self.seq,
+                            )
+                        )
 
                 self.ignore_join = False
                 self.joining = False
@@ -253,16 +275,21 @@ class TranscriptPageJoiner:
         ignore_p = False
         if not self.joining:
             self.open_page()
-        for event, element in etree.iterwalk(page.xml_tree(), events=('start', 'end')):
+        for event, element in etree.iterwalk(
+            page.xml_tree(), events=('start', 'end')
+        ):
             if self.last_page and not self.joining:
                 # final join is complete
                 return
-            if element.tag == 'p' :
+            if element.tag == 'p':
                 # since p tags have children, we have to open and close them separately
                 if event == 'start':
                     # skip paragraphs that aren't real transcript text
-                    if (len(element) and element[0].tag == 'runningHead') \
-                        or (element.text and len(element.text) < 25 and self.ignore_p.match(element.text)):
+                    if (len(element) and element[0].tag == 'runningHead') or (
+                        element.text
+                        and len(element.text) < 25
+                        and self.ignore_p.match(element.text)
+                    ):
                         ignore_p = True
                         continue
                     # decide whether to output a <p> tag
@@ -270,7 +297,11 @@ class TranscriptPageJoiner:
                         self.open_p()
                         if element.text:
                             if self.subheading.match(element.text):
-                                self.put('<span class="subheading">{}</span>'.format(element.text))
+                                self.put(
+                                    '<span class="subheading">{}</span>'.format(
+                                        element.text
+                                    )
+                                )
                             else:
                                 self.put(element.text)
                     elif element.text:
@@ -287,7 +318,9 @@ class TranscriptPageJoiner:
 
                     # decide whether to output a </p> tag
                     end = self.sentence_end.search(self.page_html)
-                    if not end or self.reject_sentence_end.search(end.group(0)):
+                    if not end or self.reject_sentence_end.search(
+                        end.group(0)
+                    ):
                         self.joining = True
                         # BUG: No good way to tell if this is the middle of a word.
                         # It's usually not...
@@ -297,12 +330,29 @@ class TranscriptPageJoiner:
 
                         self.log('[IGNORING END]')
                         if self.audit:
-                            self.joins.append('IGNORED: ...{: >30} [x] ({})'.format(self.page_html[-25:].replace('\n', '\\n'), self.seq))
+                            self.joins.append(
+                                'IGNORED: ...{: >30} [x] ({})'.format(
+                                    self.page_html[-25:].replace('\n', '\\n'),
+                                    self.seq,
+                                )
+                            )
                             if end:
-                                self.joins.append('REJECTED: ...{: >30} [x] ({})'.format(self.page_html[-25:].replace('\n', '\\n'), self.seq))
+                                self.joins.append(
+                                    'REJECTED: ...{: >30} [x] ({})'.format(
+                                        self.page_html[-25:].replace(
+                                            '\n', '\\n'
+                                        ),
+                                        self.seq,
+                                    )
+                                )
                     elif not self.joining:
                         if self.audit:
-                            self.joins.append('ALLOWED: ...{: >30} [x] ({})'.format(self.page_html[-25:].replace('\n', '\\n'), self.seq))
+                            self.joins.append(
+                                'ALLOWED: ...{: >30} [x] ({})'.format(
+                                    self.page_html[-25:].replace('\n', '\\n'),
+                                    self.seq,
+                                )
+                            )
 
                         self.close_p()
 
@@ -313,23 +363,57 @@ class TranscriptPageJoiner:
                     if self.joining:
                         # a <spkr> tag should always close a paragraph, even if it seems incomplete
                         self.close_join()
-                    if element.text and element.tail and not element.tail.isspace():
+                    if (
+                        element.text
+                        and element.tail
+                        and not element.tail.isspace()
+                    ):
                         if self.speech_heading.match(element.tail):
                             # a <spkr> with an all-caps tail is probably a mis-identified header
-                            self.put('<span class="heading">{} {}</span>'.format(element.text, element.tail))
+                            self.put(
+                                '<span class="heading">{} {}</span>'.format(
+                                    element.text, element.tail
+                                )
+                            )
                         else:
-                            self.put('<span class="speaker">{}</span>{}'.format(element.text, element.tail))
+                            self.put(
+                                '<span class="speaker">{}</span>{}'.format(
+                                    element.text, element.tail
+                                )
+                            )
                     else:
                         # A <spkr> without a tail is usually a header
-                        self.put('<span class="heading">{}</span>'.format(element.text))
+                        self.put(
+                            '<span class="heading">{}</span>'.format(
+                                element.text
+                            )
+                        )
 
-                elif element.tag in ('evidenceFileDoc', 'exhibitDocPros', 'exhibitDocDef'):
+                elif element.tag in (
+                    'evidenceFileDoc',
+                    'exhibitDocPros',
+                    'exhibitDocDef',
+                ):
                     if element.tag == 'evidenceFileDoc':
-                        self.put('<a href="/search?q=evidence:&quot;{}&quot;">{}</a>'.format(element.get('n'), element.text))
+                        self.put(
+                            '<a href="/search?q=evidence:&quot;{}&quot;">{}</a>'.format(
+                                element.get('n'), element.text
+                            )
+                        )
                     elif element.tag == 'exhibitDocPros':
-                        self.put('<a href="/search?q=exhibit:&quot;Prosecution+{}&quot;">{}</a>'.format(element.get('n'), element.text))
+                        self.put(
+                            '<a href="/search?q=exhibit:&quot;Prosecution+{}&quot;">{}</a>'.format(
+                                element.get('n'), element.text
+                            )
+                        )
                     elif element.tag == 'exhibitDocDef':
-                        self.put('<a href="/search?q=exhibit:&quot;{}+{}&quot;">{}</a>'.format(element.get('def'), element.get('n'), element.text))
+                        self.put(
+                            '<a href="/search?q=exhibit:&quot;{}+{}&quot;">{}</a>'.format(
+                                element.get('def'),
+                                element.get('n'),
+                                element.text,
+                            )
+                        )
 
                     if element.tail:
                         if not self.joining:
