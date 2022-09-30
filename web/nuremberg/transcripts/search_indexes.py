@@ -2,17 +2,22 @@ from haystack import indexes
 from nuremberg.documents.models import Document
 from nuremberg.transcripts.models import TranscriptPage
 
+
 class TranscriptPageIndex(indexes.SearchIndex, indexes.Indexable):
     text = indexes.CharField(document=True, use_template=True)
     highlight = indexes.CharField(model_attr='text')
     material_type = indexes.CharField(default='Transcript', faceted=True)
-    grouping_key = indexes.FacetCharField(facet_for='grouping_key') # not really a facet, just an exact key
+    grouping_key = indexes.FacetCharField(
+        facet_for='grouping_key'
+    )  # not really a facet, just an exact key
 
     slug = indexes.CharField(model_attr='transcript__slug', indexed=False)
     transcript_id = indexes.CharField(model_attr='transcript__id')
     title = indexes.CharField(model_attr='transcript__title')
 
-    total_pages = indexes.IntegerField(model_attr='transcript__total_pages', default=0, null=True)
+    total_pages = indexes.IntegerField(
+        model_attr='transcript__total_pages', default=0, null=True
+    )
     language = indexes.CharField(default='English', faceted=True)
     source = indexes.CharField(default='Trial Transcript', faceted=True)
 
@@ -27,8 +32,12 @@ class TranscriptPageIndex(indexes.SearchIndex, indexes.Indexable):
 
     authors = indexes.MultiValueField(faceted=True, null=True)
     defendants = indexes.MultiValueField(faceted=True, null=True)
-    case_names = indexes.MultiValueField(model_attr='transcript__case__short_name', faceted=True)
-    case_tags = indexes.MultiValueField(model_attr='transcript__case__tag_name', faceted=True)
+    case_names = indexes.MultiValueField(
+        model_attr='transcript__case__short_name', faceted=True
+    )
+    case_tags = indexes.MultiValueField(
+        model_attr='transcript__case__tag_name', faceted=True
+    )
 
     evidence_codes = indexes.MultiValueField(null=True)
     exhibit_codes = indexes.MultiValueField(null=True)
@@ -56,7 +65,10 @@ class TranscriptPageIndex(indexes.SearchIndex, indexes.Indexable):
             return page.date.year
 
     def prepare_defendants(self, page):
-        return [defendant.full_name() for defendant in page.transcript.case.defendants.all()]
+        return [
+            defendant.full_name()
+            for defendant in page.transcript.case.defendants.all()
+        ]
 
     def prepare_authors(self, page):
         # TODO
@@ -69,4 +81,7 @@ class TranscriptPageIndex(indexes.SearchIndex, indexes.Indexable):
         return page.extract_exhibit_codes()
 
     def prepare_trial_activities(self, page):
-        return [activity.short_name for activity in page.transcript.case.activities.all()]
+        return [
+            activity.short_name
+            for activity in page.transcript.case.activities.all()
+        ]

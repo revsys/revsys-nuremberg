@@ -13,7 +13,9 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+BASE_DIR = os.path.dirname(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+)
 
 
 # Quick-start development settings - unsuitable for production
@@ -35,7 +37,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
-
     'nuremberg',
     'nuremberg.core',
     'nuremberg.content',
@@ -44,7 +45,6 @@ INSTALLED_APPS = [
     'nuremberg.photographs',
     'nuremberg.search',
     'compressor',
-
     'haystack',
     'proxy',
     'static_precompiler',
@@ -81,9 +81,9 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'nuremberg.core.middlewares.context_processors.show_mockups',
                 'nuremberg.core.middlewares.context_processors.settings_variables',
-            ],
+            ]
         },
-    },
+    }
 ]
 
 WSGI_APPLICATION = 'nuremberg.wsgi.application'
@@ -94,9 +94,9 @@ WSGI_APPLICATION = 'nuremberg.wsgi.application'
 
 DATABASES = {
     'default': {
-      'ENGINE': 'django.db.backends.sqlite3',
-      'NAME': 'nuremberg_dev.db',
-      'USER': 'nuremberg'
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': 'nuremberg_dev.db',
+        'USER': 'nuremberg',
     }
 }
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
@@ -107,16 +107,14 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'
+    },
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'
     },
 ]
 
@@ -169,24 +167,20 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 HAYSTACK_CONNECTIONS = {
     'default': {
         'ENGINE': 'nuremberg.search.lib.solr_grouping_backend.GroupedSolrEngine',
-        'URL': 'http://solr:8983/solr/nuremberg_dev'
-    },
+        'URL': 'http://solr:8983/solr/nuremberg_dev',
+    }
 }
 HAYSTACK_DEFAULT_OPERATOR = 'AND'
 
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-        },
-    },
+    'handlers': {'console': {'class': 'logging.StreamHandler'}},
     'loggers': {
         'django': {
             'handlers': ['console'],
             'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
-        },
+        }
     },
 }
 
