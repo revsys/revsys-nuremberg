@@ -11,7 +11,6 @@ services:
   web:
     build:
       context: ./web
-    # image: nuremberg:0.15
     tty: true
     command: bash
     volumes:
@@ -44,5 +43,4 @@ networks:
   minio:
 
 volumes:
-  db_data:
   solr_data:

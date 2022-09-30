@@ -17,6 +17,6 @@ RUN curl -sL https://deb.nodesource.com/setup_18.x | bash - \
 RUN apt install sqlite3
 
 COPY requirements.txt ./requirements.txt
-RUN pip install pip==22.0.4 \
+RUN pip install -U pip \
     && pip install -r requirements.txt \
     && rm requirements.txt
