@@ -1,5 +1,4 @@
 from haystack import indexes
-from nuremberg.documents.models import Document
 from nuremberg.transcripts.models import TranscriptPage
 
 

@@ -1,11 +1,9 @@
 from django.http import Http404
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect
 from haystack.generic_views import (
-    SearchView,
     FacetedSearchView,
     FacetedSearchMixin,
 )
-from nuremberg.documents.models import Document
 from .forms import DocumentSearchForm
 from .lib.digg_paginator import DiggPaginator
 from .lib.solr_grouping_backend import GroupedSearchQuerySet

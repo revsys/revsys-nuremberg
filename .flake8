@@ -1,0 +1,6 @@
+[flake8]
+exclude = web/nuremberg/*/migrations/,web/nuremberg/settings/*.py
+max-line-length = 79
+# max-doc-length = 79
+# start very slow by checking only `imported but unused`
+select = F4,F8

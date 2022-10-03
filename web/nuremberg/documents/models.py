@@ -1,9 +1,8 @@
+import datetime
 from django.conf import settings
 from django.urls import reverse
 from django.utils.text import slugify
 from django.db import models
-import datetime
-import re
 
 global_slug_count = 0
 
@@ -124,7 +123,7 @@ class DocumentImage(models.Model):
 
     def find_url(self, scale):
         if self.scale == scale:
-            return url
+            return self.url
         else:
             images = self.document.images.all()
             filter = (

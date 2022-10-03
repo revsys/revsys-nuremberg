@@ -1,13 +1,31 @@
+from time import sleep
+
+import pytest
+from django.urls import reverse
+from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
-from nuremberg.core.tests.clientside_helpers import *
+from selenium.webdriver.support.expected_conditions import (
+    visibility_of_element_located,
+)
+from selenium.webdriver.support.ui import Select, WebDriverWait as wait
+
+from nuremberg.core.tests.clientside_helpers import (
+    at,
+    element_has_attribute,
+    global_variable_exists,
+)
+from nuremberg.core.tests.clientside_helpers import (  # noqa, pytest fixtures
+    browser,
+    unblocked_live_server,
+)
 
 
 @pytest.fixture(scope='module')
-def document(browser, unblocked_live_server):
+def document(browser, unblocked_live_server):  # noqa
     document_id = 1
     browser.get(
         unblocked_live_server.url
-        + url('documents:show', kwargs={'document_id': document_id})
+        + reverse('documents:show', kwargs={'document_id': document_id})
     )
     browser.execute_script(
         "$('html').removeClass('touchevents'); $('html').removeClass('no-xhrresponsetypeblob'); Modernizr.touchevents = false; Modernizr.xhrresponsetypeblob = true;"
