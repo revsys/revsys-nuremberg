@@ -1,4 +1,6 @@
 import datetime
+import logging
+
 from django.conf import settings
 from django.urls import reverse
 from django.utils.text import slugify
@@ -23,6 +25,13 @@ class Document(models.Model):
     source = models.ForeignKey(
         'DocumentSource', db_column='DocVersionID', on_delete=models.PROTECT
     )
+
+    class Meta:
+        managed = False
+        db_table = 'tblDoc'
+
+    def __str__(self):
+        return "#{0} - {1}".format(self.id, self.title)
 
     def page_range(self):
         return range(1, (self.image_count or 0) + 1)
@@ -72,21 +81,8 @@ class Document(models.Model):
             # print ("{0}. DocID: {1} TitleDescriptive slug: {2}".format(global_slug_count, self.id, testing))
             return testing
 
-    class Meta:
-        managed = False
-        db_table = 'tblDoc'
-
-    def __str__(self):
-        return "#{0} - {1}".format(self.id, self.title)
-
 
 class DocumentImage(models.Model):
-    document = models.ForeignKey(
-        Document, related_name='images', on_delete=models.PROTECT
-    )
-
-    page_number = models.IntegerField()
-    physical_page_number = models.IntegerField(blank=True, null=True)
 
     THUMB = 't'
     HALF = 'h'
@@ -101,6 +97,12 @@ class DocumentImage(models.Model):
         (FULL, 'full'),
     )
 
+    document = models.ForeignKey(
+        Document, related_name='images', on_delete=models.PROTECT
+    )
+    page_number = models.IntegerField()
+    physical_page_number = models.IntegerField(blank=True, null=True)
+
     url = models.CharField(max_length=255, blank=True, null=True)
     scale = models.CharField(max_length=1, choices=IMAGE_SCALES)
     width = models.IntegerField(blank=True, null=True)
@@ -109,6 +111,19 @@ class DocumentImage(models.Model):
     image_type = models.ForeignKey(
         'DocumentImageType', on_delete=models.PROTECT
     )
+
+    class Meta:
+        managed = False
+        ordering = ['page_number']
+
+    def __str__(self):
+        return "#{} Page {} {} {}x{}".format(
+            self.document.id,
+            self.page_number,
+            self.scale,
+            self.width,
+            self.height,
+        )
 
     def __getattribute__(self, attrname):
         orig = super().__getattribute__(attrname)
@@ -154,19 +169,6 @@ class DocumentImage(models.Model):
 
     image_tag.allow_tags = True
 
-    def __str__(self):
-        return "#{} Page {} {} {}x{}".format(
-            self.document.id,
-            self.page_number,
-            self.scale,
-            self.width,
-            self.height,
-        )
-
-    class Meta:
-        managed = False
-        ordering = ['page_number']
-
 
 class OldDocumentImage(models.Model):
     id = models.AutoField(primary_key=True, db_column='ImagesListID')
@@ -203,6 +205,9 @@ class DocumentImageType(models.Model):
         managed = False
         db_table = 'tblPageTypes'
 
+    def __str__(self):
+        return self.name
+
 
 class DocumentSource(models.Model):
     id = models.AutoField(primary_key=True, db_column='VersionID')
@@ -212,6 +217,9 @@ class DocumentSource(models.Model):
         managed = False
         db_table = 'tblVersions'
 
+    def __str__(self):
+        return self.name
+
 
 class DocumentLanguage(models.Model):
     id = models.AutoField(primary_key=True, db_column='LanguageID')
@@ -220,6 +228,9 @@ class DocumentLanguage(models.Model):
     class Meta:
         managed = False
         db_table = 'tblLanguages'
+
+    def __str__(self):
+        return self.name
 
 
 class DocumentDate(models.Model):
@@ -237,18 +248,25 @@ class DocumentDate(models.Model):
     )  # this is technically a foreign key but also just 1-indexed month number
     year = models.IntegerField(db_column='DocYear')
 
-    def as_date(self):
-        if not (self.year and self.month and self.day):
-            return None
-        if self.year == 0 or self.month == 13 or self.day >= 32:
-            return None
-        if self.month == 2 and self.day == 29 and (self.year % 4) != 0:
-            return None  # this is an issue
-        return datetime.date(self.year, self.month, self.day)
-
     class Meta:
         managed = False
         db_table = 'tblDatesOfDocList'
+
+    def __str__(self):
+        return '{}-{}-{}'.format(self.year, self.month, self.day)
+
+    def as_date(self):
+        try:
+            result = datetime.date(self.year, self.month, self.day)
+        except (TypeError, ValueError) as e:
+            logging.warning(
+                str(e) + ' (got year %r, month %r, day %r)',
+                self.year,
+                self.month,
+                self.day,
+            )
+            result = None  # this is an issue
+        return result
 
 
 class DocumentPersonalAuthor(models.Model):
@@ -264,15 +282,15 @@ class DocumentPersonalAuthor(models.Model):
         through_fields=('author', 'document'),
     )
 
+    class Meta:
+        managed = False
+        db_table = 'tblPersonalAuthors'
+
     def full_name(self):
         if self.first_name and self.last_name:
             return '{} {}'.format(self.first_name, self.last_name)
         else:
             return self.first_name or self.last_name or 'Unknown'
-
-    class Meta:
-        managed = False
-        db_table = 'tblPersonalAuthors'
 
 
 class DocumentsToPersonalAuthors(models.Model):
@@ -302,12 +320,12 @@ class DocumentGroupAuthor(models.Model):
         through_fields=('author', 'document'),
     )
 
-    def short_name(self):
-        return self.name.split(' (')[0]
-
     class Meta:
         managed = False
         db_table = 'tblGroupAuthors'
+
+    def short_name(self):
+        return self.name.split(' (')[0]
 
 
 class DocumentsToGroupAuthors(models.Model):
@@ -398,15 +416,15 @@ class DocumentDefendant(models.Model):
         through_fields=('defendant', 'document'),
     )
 
+    class Meta:
+        managed = False
+        db_table = 'tblDefendants'
+
     def full_name(self):
         if self.first_name and self.last_name:
             return '{} {}'.format(self.first_name, self.last_name)
         else:
             return self.first_name or self.last_name or 'Unknown'
-
-    class Meta:
-        managed = False
-        db_table = 'tblDefendants'
 
 
 class DocumentsToDefendants(models.Model):
@@ -446,11 +464,6 @@ class DocumentActivity(models.Model):
         on_delete=models.CASCADE,
     )
 
-    @property
-    def short_name(self):
-        # cheating for now
-        return self.name.split(' (c')[0]
-
     documents = models.ManyToManyField(
         Document,
         related_name='activities',
@@ -461,6 +474,11 @@ class DocumentActivity(models.Model):
     class Meta:
         managed = False
         db_table = 'tblActivities'
+
+    @property
+    def short_name(self):
+        # cheating for now
+        return self.name.split(' (c')[0]
 
 
 class DocumentsToActivities(models.Model):
@@ -512,14 +530,14 @@ class DocumentEvidenceCode(models.Model):
         db_column='NMTNoText', max_length=25, blank=True, null=True
     )  # Field name made lowercase.
 
+    class Meta:
+        managed = False
+        db_table = 'tblNMTList'
+
     def __str__(self):
         return '{}-{}{}'.format(
             self.prefix.code, self.number, self.suffix or ''
         )
-
-    class Meta:
-        managed = False
-        db_table = 'tblNMTList'
 
 
 class DocumentExhibitCodeName(models.Model):
@@ -611,6 +629,10 @@ class DocumentExhibitCode(models.Model):
         db_column='DefDocBkNoSuffix', max_length=5, blank=True, null=True
     )  # Field name made lowercase.
 
+    class Meta:
+        managed = False
+        db_table = 'tblCasesList'
+
     def __str__(self):
         if self.prosecution_number:
             return 'Prosecution {}{}'.format(
@@ -625,7 +647,3 @@ class DocumentExhibitCode(models.Model):
                 name, self.defense_number, self.defense_suffix or ''
             )
         return ''
-
-    class Meta:
-        managed = False
-        db_table = 'tblCasesList'
