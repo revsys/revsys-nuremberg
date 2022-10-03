@@ -1,14 +1,9 @@
-import pytest
-
-pytestmark = pytest.mark.django_db
-
 import re
+from urllib.parse import urlparse
+
 import pyquery
-from lxml.html import FormElement
-from django.test import Client
-from django.urls import reverse as url
 from django.http import QueryDict
-from urllib.parse import urlencode, urlparse
+from django.test import Client
 
 
 def go_to(url, expected_status=200, follow_redirects=True):

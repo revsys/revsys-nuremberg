@@ -1,5 +1,15 @@
-from nuremberg.core.tests.acceptance_helpers import *
+import pytest
+from django.http import QueryDict
+from django.urls import reverse
+
+from nuremberg.core.tests.acceptance_helpers import (
+    follow_link,
+    go_to,
+)
 from nuremberg.search.templatetags.search_url import search_url
+
+
+pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture
@@ -212,7 +222,7 @@ def test_document_search(query):
 
 
 def test_landing_search(query):
-    page = go_to(url('content:landing'))
+    page = go_to(reverse('content:landing'))
 
     search_bar = page('input[type=search]')
     assert search_bar
@@ -220,7 +230,7 @@ def test_landing_search(query):
     page = go_to(search_bar.submit_value('workers'))
     assert 'Results 1-15 of 649 for workers' in page.text()
 
-    page = go_to(url('content:landing'))
+    page = go_to(reverse('content:landing'))
 
     # uncheck Documents
     search_bar = page('input[type=search]')
