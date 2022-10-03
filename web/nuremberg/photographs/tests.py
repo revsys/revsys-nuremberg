@@ -1,1 +1,1 @@
-from nuremberg.core.tests.acceptance_helpers import *
+from nuremberg.core.tests.acceptance_helpers import *  # noqa

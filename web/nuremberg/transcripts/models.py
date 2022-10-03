@@ -1,13 +1,13 @@
 import re
-from io import BytesIO
-from lxml import etree
 from datetime import datetime
-from django.conf import settings
-from django.urls import reverse
-from django.utils.text import slugify
-from django.utils.functional import cached_property
+from lxml import etree
 
+from django.conf import settings
 from django.db import models
+from django.urls import reverse
+from django.utils.functional import cached_property
+from django.utils.text import slugify
+
 from nuremberg.documents.models import DocumentCase, DocumentActivity
 from .xml import TranscriptPageJoiner
 

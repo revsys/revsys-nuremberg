@@ -1,9 +1,19 @@
-from nuremberg.core.tests.acceptance_helpers import *
+import os
+from datetime import datetime
+
+import pytest
+from django.core.management import call_command
+from django.urls import reverse
+
+from nuremberg.core.tests.acceptance_helpers import (
+    follow_link,
+    go_to,
+)
 from nuremberg.search.templatetags.search_url import url_with_query
 from nuremberg.transcripts.models import Transcript, TranscriptPage
-from django.core.management import call_command
-from datetime import datetime
-from os import path
+
+
+pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture
@@ -30,7 +40,7 @@ def test_transcript_viewer(seq):
 
 
 def test_transcript_search(seq):
-    page = go_to(url('transcripts:search', kwargs={'transcript_id': 1}))
+    page = go_to(reverse('transcripts:search', kwargs={'transcript_id': 1}))
 
     search_bar = page('input[type="search"]')
     assert search_bar
@@ -227,7 +237,7 @@ def test_exhibit_links(seq):
 
 
 def test_xml_import():
-    abspath = path.dirname(path.abspath(__file__))
+    abspath = os.path.dirname(os.path.abspath(__file__))
     transcript_page = TranscriptPage.objects.get(
         transcript_id=1, volume_id=1, volume_seq_number=136
     )
@@ -236,9 +246,9 @@ def test_xml_import():
     assert transcript_page.page_number == 121
 
     # ingest a dummy xml file
-    out = call_command(
+    call_command(
         'ingest_transcript_xml',
-        path.join(abspath, 'bad/NRMB-NMT01-01_00136_0.xml'),
+        os.path.join(abspath, 'bad/NRMB-NMT01-01_00136_0.xml'),
     )
 
     transcript_page = TranscriptPage.objects.get(
@@ -254,7 +264,7 @@ def test_xml_import():
     # ingest the correct xml file
     call_command(
         'ingest_transcript_xml',
-        path.join(abspath, 'good/NRMB-NMT01-01_00136_0.xml'),
+        os.path.join(abspath, 'good/NRMB-NMT01-01_00136_0.xml'),
     )
 
     transcript_page = TranscriptPage.objects.get(

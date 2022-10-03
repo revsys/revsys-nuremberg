@@ -1,5 +1,5 @@
 import requests, re
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor
 from io import BytesIO, SEEK_CUR
 
 from django.core.management.base import BaseCommand

@@ -1,9 +1,15 @@
-from nuremberg.core.tests.acceptance_helpers import *
+import pytest
+from django.urls import reverse
+
+from nuremberg.core.tests.acceptance_helpers import PyQuery, client
+
+
+pytestmark = pytest.mark.django_db
 
 
 def document(document_id):
     response = client.get(
-        url('documents:show', kwargs={'document_id': document_id})
+        reverse('documents:show', kwargs={'document_id': document_id})
     )
     return PyQuery(response.content)
 

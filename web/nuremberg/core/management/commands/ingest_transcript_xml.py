@@ -1,7 +1,5 @@
-from os import path, listdir
 import re
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from io import BytesIO, SEEK_CUR
+from os import path, listdir
 
 from django.core.management.base import BaseCommand
 from nuremberg.documents.models import DocumentCase
@@ -45,7 +43,7 @@ class Command(BaseCommand):
         print('Ingesting', len(paths), 'files.')
         for file_path in paths:
             if not path.exists(file_path):
-                print("No such file:", filename)
+                print("No such file:", file_path)
                 continue
 
             filename = path.basename(file_path)

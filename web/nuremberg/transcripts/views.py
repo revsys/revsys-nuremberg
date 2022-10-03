@@ -1,12 +1,11 @@
-from datetime import datetime
-from django.shortcuts import render
-from django.template.loader import render_to_string
 from django.http.response import JsonResponse
+from django.template.loader import render_to_string
+from django.shortcuts import render
 from django.views.generic import View
+
 from nuremberg.search.views import Search as GenericSearchView
 from .models import Transcript
 from .xml import TranscriptPageJoiner
-import json
 
 
 class Search(GenericSearchView):
