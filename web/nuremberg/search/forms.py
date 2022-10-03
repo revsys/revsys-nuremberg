@@ -1,7 +1,8 @@
-from haystack.forms import SearchForm, FacetedSearchForm
-from haystack.inputs import AutoQuery, Raw
 import re
 from collections import deque
+
+from haystack.forms import SearchForm
+from haystack.inputs import AutoQuery
 
 
 class EmptyFacetsSearchForm(SearchForm):

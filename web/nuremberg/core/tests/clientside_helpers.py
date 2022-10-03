@@ -1,19 +1,9 @@
-import os
 import pytest
+from pytest_django.fixtures import live_server
+from selenium import webdriver
+from selenium.webdriver.common.by import By
 
 pytestmark = pytest.mark.django_db
-
-from pytest_django.fixtures import live_server
-
-from django.urls import reverse as url
-
-from selenium import webdriver
-from selenium.webdriver.support.ui import Select
-from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait as wait
-from selenium.webdriver.support.expected_conditions import *
-from time import sleep
 
 
 @pytest.fixture(scope='session')

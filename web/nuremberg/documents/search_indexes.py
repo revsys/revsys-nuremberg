@@ -1,6 +1,5 @@
 from haystack import indexes
 from nuremberg.documents.models import Document
-from nuremberg.transcripts.models import TranscriptPage
 
 
 class DocumentIndex(indexes.SearchIndex, indexes.Indexable):

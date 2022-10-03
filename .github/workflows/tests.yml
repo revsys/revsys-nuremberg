@@ -38,8 +38,8 @@ jobs:
           run: docker compose logs
           if: failure()
 
-        - name: Check code style
-          uses: psf/black@stable
+        - name: Run pre-commit to check code style (no commits will be made)
+          uses: pre-commit/action@v3.0.0
 
         - name: Down images
           run: docker compose down
