@@ -24,6 +24,9 @@ class Transcript(models.Model):
         DocumentActivity, related_name='transcripts'
     )
 
+    def __str__(self):
+        return self.title
+
     def slug(self):
         return slugify(self.title)
 
@@ -81,6 +84,9 @@ class TranscriptVolume(models.Model):
     volume_number = models.IntegerField()
     description = models.TextField(blank=True, null=True)
 
+    def __str__(self):
+        return 'Transcript volume {}'.format(self.volume_number)
+
 
 # class TranscriptPageQuerySet(models.QuerySet):
 #     use_for_related_fields = True
@@ -111,6 +117,18 @@ class TranscriptPage(models.Model):
 
     xml = models.TextField()
 
+    class Meta:
+        unique_together = (
+            ('transcript', 'seq_number'),
+            ('volume', 'volume_seq_number'),
+        )
+        index_together = (
+            ('transcript', 'seq_number'),
+            ('transcript', 'page_number'),
+            ('transcript', 'date'),
+            ('volume', 'volume_seq_number'),
+        )
+
     def __getattribute__(self, attrname):
         orig = super().__getattribute__(attrname)
         if attrname == 'image_url' and settings.PROXY_TRANSCRIPTS:
@@ -118,6 +136,11 @@ class TranscriptPage(models.Model):
                 'proxy_transcript', kwargs={'path': orig.split('/')[-1]}
             )
         return orig
+
+    def __str__(self):
+        return 'Transcript id {} page {} volume {}'.format(
+            self.transcript.id, self.page_number, self.volume.volume_number
+        )
 
     def xml_tree(self):
         return etree.fromstring(self.xml.encode('utf8'))
@@ -200,15 +223,3 @@ class TranscriptPage(models.Model):
                     )
                 )
         return codes
-
-    class Meta:
-        unique_together = (
-            ('transcript', 'seq_number'),
-            ('volume', 'volume_seq_number'),
-        )
-        index_together = (
-            ('transcript', 'seq_number'),
-            ('transcript', 'page_number'),
-            ('transcript', 'date'),
-            ('volume', 'volume_seq_number'),
-        )
