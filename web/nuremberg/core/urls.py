@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.contrib import admin
 from django.http import HttpResponse
 from django.urls import include, re_path
 from django.views.decorators.csrf import csrf_exempt
@@ -15,7 +16,7 @@ def proxied(base_url):
 
 
 urlpatterns = [
-    # re_path(r'^admin/', admin.site.urls),
+    re_path(r'^admin/', admin.site.urls),
     re_path(r'^transcripts/', include('nuremberg.transcripts.urls')),
     re_path(r'^documents/', include('nuremberg.documents.urls')),
     re_path(r'^photographs/', include('nuremberg.photographs.urls')),

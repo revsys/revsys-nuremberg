@@ -55,3 +55,6 @@ class Photograph(models.Model):
     class Meta:
         managed = False
         db_table = 'tblPhotographs'
+
+    def __str__(self):
+        return self.inscription
