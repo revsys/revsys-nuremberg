@@ -34,11 +34,13 @@ pip-tools
 pre-commit
 
 # testing
-pytest
 coverage
 django_coverage_plugin
+model_bakery
 pyquery
-pytest-django
+pytest
 pytest-cov
+pytest-django
 pytest-instafail
+requests-mock
 selenium
