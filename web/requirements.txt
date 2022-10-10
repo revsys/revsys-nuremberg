@@ -87,6 +87,8 @@ packaging==21.3
     #   pytest
 pep517==0.13.0
     # via build
+pillow==9.2.0
+    # via -r requirements.in
 pip-tools==6.9.0
     # via -r requirements.in
 platformdirs==2.5.2

@@ -97,10 +97,8 @@ class Command(BaseCommand):
                     volume_seq_number=volume_seq_number,
                 )
             page.xml = xml
-            page.image_url = (
-                "//s3.amazonaws.com/nuremberg-transcripts/{}".format(
-                    filename.replace('.xml', '.jpg')
-                )
+            page._url = "//s3.amazonaws.com/nuremberg-transcripts/{}".format(
+                filename.replace('.xml', '.jpg')
             )
             try:
                 page.populate_from_xml()
