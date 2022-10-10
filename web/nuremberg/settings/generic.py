@@ -185,15 +185,17 @@ LOGGING = {
 }
 
 # Look for images in AWS S3
-# DOCUMENTS_URL = 'http://s3.amazonaws.com/nuremberg-documents/'
+DOCUMENTS_BUCKET = 'nuremberg-documents'
+TRANSCRIPTS_BUCKET = 'nuremberg-transcripts'
+# DOCUMENTS_URL = f'http://s3.amazonaws.com/{DOCUMENTS_BUCKET}/'
 # DOCUMENTS_PRINTING_URL = 'http://nuremberg.law.harvard.edu/imagedir/HLSL_NUR_printing/'
-# TRANSCRIPTS_URL = ''
+# TRANSCRIPTS_URL = f'http://s3.amazonaws.com/{TRANSCRIPTS_BUCKET}/'
 # PROXY_DOCUMENT_IMAGE_THUMBS = False
 # PROXY_TRANSCRIPTS = False
 
 # Look for images in a local minio
-DOCUMENTS_URL = 'http://minio:9000/nuremberg-documents/'
+DOCUMENTS_URL = f'http://minio:9000/{DOCUMENTS_BUCKET}/'
 DOCUMENTS_PRINTING_URL = DOCUMENTS_URL
-TRANSCRIPTS_URL = 'http://minio:9000/nuremberg-transcripts/'
+TRANSCRIPTS_URL = f'http://minio:9000/{TRANSCRIPTS_BUCKET}/'
 PROXY_DOCUMENT_IMAGE_THUMBS = True
 PROXY_TRANSCRIPTS = True
