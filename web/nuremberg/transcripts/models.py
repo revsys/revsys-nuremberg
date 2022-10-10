@@ -1,15 +1,17 @@
+import logging
 import re
 from datetime import datetime
 from lxml import etree
 
-from django.conf import settings
 from django.db import models
-from django.urls import reverse
 from django.utils.functional import cached_property
 from django.utils.text import slugify
 
 from nuremberg.documents.models import DocumentCase, DocumentActivity
 from .xml import TranscriptPageJoiner
+
+
+logger = logging.getLogger(__name__)
 
 
 class Transcript(models.Model):
@@ -113,9 +115,15 @@ class TranscriptPage(models.Model):
     page_number = models.IntegerField(blank=True, null=True)
     page_label = models.CharField(max_length=10, blank=True, null=True)
 
-    image_url = models.TextField(blank=True, null=True)
-
     xml = models.TextField()
+    image = models.ImageField(
+        upload_to='nuremberg-transcripts',
+        null=True,
+        blank=True,
+    )
+
+    # DEPRECATED in favor of `image`
+    _url = models.TextField(blank=True, null=True, db_column='image_url')
 
     class Meta:
         unique_together = (
@@ -129,18 +137,21 @@ class TranscriptPage(models.Model):
             ('volume', 'volume_seq_number'),
         )
 
-    def __getattribute__(self, attrname):
-        orig = super().__getattribute__(attrname)
-        if attrname == 'image_url' and settings.PROXY_TRANSCRIPTS:
-            return reverse(
-                'proxy_transcript', kwargs={'path': orig.split('/')[-1]}
-            )
-        return orig
-
     def __str__(self):
         return 'Transcript id {} page {} volume {}'.format(
             self.transcript.id, self.page_number, self.volume.volume_number
         )
+
+    @property
+    def image_url(self):
+        try:
+            result = self.image.url
+        except ValueError:
+            result = self._url
+            logger.exception(
+                'No transcript page for "%s" (fallback %s)', self, result
+            )
+        return result
 
     def xml_tree(self):
         return etree.fromstring(self.xml.encode('utf8'))

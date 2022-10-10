@@ -13,7 +13,7 @@ echo "Setting up sqlite"
 unzip -p dumps/nuremberg_prod_dump_2022-08-02.sqlite3.zip > web/nuremberg_dev.db
 
 echo "Migrating databases"
-$DOCKER_COMPOSE_EXEC web python manage.py migrate
+$DOCKER_COMPOSE_EXEC web python manage.py migrate --fake-initial
 
 echo "Wait for Solr to be ready..."
 while ! $DOCKER_COMPOSE_EXEC solr solr status >/dev/null 2>&1; do

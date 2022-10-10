@@ -1,14 +1,12 @@
 import datetime
 import logging
 
-from django.conf import settings
-from django.urls import reverse
 from django.utils.text import slugify
 from django.db import models
 
-global_slug_count = 0
 
-IMAGE_URL_ROOT = "http://nuremberg.law.harvard.edu/imagedir/HLSL_NMT01"
+global_slug_count = 0
+logger = logging.getLogger(__name__)
 
 
 class Document(models.Model):
@@ -103,17 +101,25 @@ class DocumentImage(models.Model):
     page_number = models.IntegerField()
     physical_page_number = models.IntegerField(blank=True, null=True)
 
-    url = models.CharField(max_length=255, blank=True, null=True)
-    scale = models.CharField(max_length=1, choices=IMAGE_SCALES)
+    # BEGIN DEPRECATED in favor of `image`
+    _url = models.CharField(
+        max_length=255, blank=True, null=True, db_column='url'
+    )
     width = models.IntegerField(blank=True, null=True)
     height = models.IntegerField(blank=True, null=True)
+    # END DEPRECATED in favor of `image`
 
+    scale = models.CharField(max_length=1, choices=IMAGE_SCALES)
     image_type = models.ForeignKey(
         'DocumentImageType', on_delete=models.PROTECT
     )
+    image = models.ImageField(
+        upload_to='nuremberg-documents',
+        null=True,
+        blank=True,
+    )
 
     class Meta:
-        managed = False
         ordering = ['page_number']
 
     def __str__(self):
@@ -125,16 +131,16 @@ class DocumentImage(models.Model):
             self.height,
         )
 
-    def __getattribute__(self, attrname):
-        orig = super().__getattribute__(attrname)
-        if (
-            attrname == 'url'
-            and settings.PROXY_DOCUMENT_IMAGE_THUMBS
-            and orig
-            and orig.startswith('/static/image_cache/thumb/')
-        ):
-            return reverse('proxy_image', kwargs={'path': orig.split('/')[-1]})
-        return orig
+    @property
+    def url(self):
+        try:
+            result = self.image.url
+        except ValueError:
+            result = self._url
+            logger.exception(
+                'No document image for "%s" (fallback %s)', self, result
+            )
+        return result
 
     def find_url(self, scale):
         if self.scale == scale:
