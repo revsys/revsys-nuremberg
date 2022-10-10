@@ -20,6 +20,7 @@ requests
 # Assets
 django_compressor
 django-static-precompiler
+pillow
 
 # Serving images not hosted locally
 django-proxy
