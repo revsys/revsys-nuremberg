@@ -11,6 +11,3 @@ TEMPLATES[0]['OPTIONS']['debug'] = True
 CACHES = {
     'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}
 }
-DOCUMENTS_URL = (
-    DOCUMENTS_PRINTING_URL
-) = 'https://nuremberg.law.harvard.edu/proxy_image/'

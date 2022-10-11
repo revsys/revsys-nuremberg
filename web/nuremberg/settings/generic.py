@@ -184,18 +184,14 @@ LOGGING = {
     },
 }
 
-# Look for images in AWS S3
+# file storage using django-storages
+# https://django-storages.readthedocs.io/en/latest/backends/amazon-S3.html
+
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 DOCUMENTS_BUCKET = 'nuremberg-documents'
 TRANSCRIPTS_BUCKET = 'nuremberg-transcripts'
-# DOCUMENTS_URL = f'http://s3.amazonaws.com/{DOCUMENTS_BUCKET}/'
-# DOCUMENTS_PRINTING_URL = 'http://nuremberg.law.harvard.edu/imagedir/HLSL_NUR_printing/'
-# TRANSCRIPTS_URL = f'http://s3.amazonaws.com/{TRANSCRIPTS_BUCKET}/'
-# PROXY_DOCUMENT_IMAGE_THUMBS = False
-# PROXY_TRANSCRIPTS = False
 
-# Look for images in a local minio
-DOCUMENTS_URL = f'http://minio:9000/{DOCUMENTS_BUCKET}/'
-DOCUMENTS_PRINTING_URL = DOCUMENTS_URL
-TRANSCRIPTS_URL = f'http://minio:9000/{TRANSCRIPTS_BUCKET}/'
-PROXY_DOCUMENT_IMAGE_THUMBS = True
-PROXY_TRANSCRIPTS = True
+# Look for images in AWS S3
+# DOCUMENTS_URL = f'http://s3.amazonaws.com/{DOCUMENTS_BUCKET}/'
+# TRANSCRIPTS_URL = f'http://s3.amazonaws.com/{TRANSCRIPTS_BUCKET}/'
+

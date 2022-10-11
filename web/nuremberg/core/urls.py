@@ -1,18 +1,8 @@
 from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.http import HttpResponse
 from django.urls import include, re_path
-from django.views.decorators.csrf import csrf_exempt
-from proxy.views import proxy_view
-
-
-@csrf_exempt
-def proxied(base_url):
-    def proxy_handler(request, path):
-        remoteurl = base_url + path
-        return proxy_view(request, remoteurl)
-
-    return proxy_handler
 
 
 urlpatterns = [
@@ -23,28 +13,15 @@ urlpatterns = [
     re_path(r'^search/', include('nuremberg.search.urls')),
     re_path(r'^', include('nuremberg.content.urls')),
     re_path(
-        r'^proxy_image/printing/(?P<path>.*)$',
-        # RedirectView.as_view(url='http://nuremberg.law.harvard.edu/imagedir/HLSL_NUR_printing/%(url)s')),
-        proxied(base_url=settings.DOCUMENTS_PRINTING_URL),
-    ),
-    re_path(
-        r'^proxy_image/(?P<path>.*)$',
-        # RedirectView.as_view(url='http://s3.amazonaws.com/nuremberg-documents/%(url)s'))
-        proxied(base_url=settings.DOCUMENTS_URL),
-        name='proxy_image',
-    ),
-    re_path(
-        r'^proxy_transcript/(?P<path>.*)$',
-        proxied(base_url=settings.TRANSCRIPTS_URL),
-        name='proxy_transcript',
-    ),
-    re_path(
         r'^robots.txt$',
         lambda r: HttpResponse(
             "User-agent: *\nDisallow: /search/", content_type="text/plain"
         ),
     ),
 ]
+# This helper function works ONLY in debug mode and ONLY if the given prefix
+# is local (e.g. media/) and not a URL (e.g. http://media.example.com/).
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 handler400 = 'nuremberg.core.views.handler400'
 handler403 = 'nuremberg.core.views.handler403'

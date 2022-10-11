@@ -15,6 +15,9 @@ unzip -p dumps/nuremberg_prod_dump_2022-08-02.sqlite3.zip > web/nuremberg_dev.db
 echo "Migrating databases"
 $DOCKER_COMPOSE_EXEC web python manage.py migrate --fake-initial
 
+echo "Migrating image urls for DocumentImage related to Document ID 1"
+$DOCKER_COMPOSE_EXEC web python manage.py backfill_image_fields --documents --ids 1 --prefix HLSL_NUR
+
 echo "Wait for Solr to be ready..."
 while ! $DOCKER_COMPOSE_EXEC solr solr status >/dev/null 2>&1; do
     sleep 1
