@@ -19,28 +19,8 @@ services:
     environment:
       # let Django load Docker-specific settings conditionally
       - DOCKERIZED=True
-    networks:
-      - default
-      - minio
     depends_on:
       - solr
-      - minio
-
-  minio:
-    image: bitnami/minio:2022.8.22
-    environment:
-      - MINIO_FORCE_NEW_KEYS=yes
-      - MINIO_ROOT_USER=${MINIO_ROOT_USER:-accesskey}
-      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:-secretkey}
-      - MINIO_DEFAULT_BUCKETS=nuremberg-documents:download,nuremberg-transcripts:download
-    volumes:
-      - ./minio/data:/data
-    networks:
-      - minio
-
-networks:
-  default:
-  minio:
 
 volumes:
   solr_data:
