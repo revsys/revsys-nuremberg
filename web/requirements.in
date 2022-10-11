@@ -24,9 +24,6 @@ django-static-precompiler
 django-storages
 pillow
 
-# Serving images not hosted locally
-django-proxy
-
 # Web Server (non-development)
 gunicorn
 whitenoise
