@@ -32,7 +32,7 @@ jobs:
           run: docker compose exec -T web pytest
 
         - name: Run browser tests
-          run: docker compose exec -T web pytest nuremberg/documents/browser_tests.py
+          run: docker compose exec -T web pytest --cov-fail-under=36 nuremberg/documents/browser_tests.py
 
         - name: Get logs on failure
           run: docker compose logs
