@@ -114,12 +114,7 @@ class DocumentImage(models.Model):
     image_type = models.ForeignKey(
         'DocumentImageType', on_delete=models.PROTECT
     )
-    image = models.ImageField(
-        upload_to='nuremberg-documents',
-        null=True,
-        blank=True,
-        storage=DocumentStorage(),
-    )
+    image = models.ImageField(null=True, blank=True, storage=DocumentStorage())
 
     class Meta:
         ordering = ['page_number']
