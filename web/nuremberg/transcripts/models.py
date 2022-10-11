@@ -7,6 +7,7 @@ from django.db import models
 from django.utils.functional import cached_property
 from django.utils.text import slugify
 
+from nuremberg.core.storages import TranscriptStorage
 from nuremberg.documents.models import DocumentCase, DocumentActivity
 from .xml import TranscriptPageJoiner
 
@@ -120,6 +121,7 @@ class TranscriptPage(models.Model):
         upload_to='nuremberg-transcripts',
         null=True,
         blank=True,
+        storage=TranscriptStorage(),
     )
 
     # DEPRECATED in favor of `image`

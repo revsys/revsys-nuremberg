@@ -2,6 +2,7 @@
 
 from django.db import migrations, models
 import django.db.models.deletion
+import nuremberg.core.storages
 
 
 class Migration(migrations.Migration):
@@ -18,7 +19,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='documentimage',
             name='image',
-            field=models.ImageField(blank=True, null=True, upload_to='nuremberg-documents'),
+            field=models.ImageField(blank=True, null=True, storage=nuremberg.core.storages.DocumentStorage(), upload_to='nuremberg-documents'),
         ),
         migrations.AlterField(
             model_name='documentimage',

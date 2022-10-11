@@ -18,8 +18,10 @@ pysolr
 requests
 
 # Assets
+boto3
 django_compressor
 django-static-precompiler
+django-storages
 pillow
 
 # Serving images not hosted locally
