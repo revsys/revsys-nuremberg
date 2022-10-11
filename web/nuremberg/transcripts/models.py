@@ -118,10 +118,7 @@ class TranscriptPage(models.Model):
 
     xml = models.TextField()
     image = models.ImageField(
-        upload_to='nuremberg-transcripts',
-        null=True,
-        blank=True,
-        storage=TranscriptStorage(),
+        null=True, blank=True, storage=TranscriptStorage()
     )
 
     # DEPRECATED in favor of `image`

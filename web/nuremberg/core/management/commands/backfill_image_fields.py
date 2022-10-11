@@ -1,9 +1,8 @@
 import requests
-from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.db.models import F, Q, Value
-from django.db.models.functions import Concat, StrIndex, Substr
+from django.db.models.functions import StrIndex, Substr
 
 from nuremberg.documents.models import DocumentImage
 from nuremberg.transcripts.models import TranscriptPage
@@ -73,7 +72,6 @@ class Command(BaseCommand):
         qs,
         source_field,
         prefix,
-        media_folder,
         check=False,
         dry_run=False,
     ):
@@ -83,13 +81,9 @@ class Command(BaseCommand):
                 url_from_index__gt=0,
             )
             .update(
-                image=Concat(
-                    Value(media_folder),
-                    Substr(source_field, F('url_from_index'), length=None),
-                ),
+                image=Substr(source_field, F('url_from_index'), length=None),
             )
         )
-        # import pdb; pdb.set_trace()
         if check:
             for item in qs.model.objects.filter(id__in=[i.id for i in qs]):
                 if item.image.url.startswith('/'):
@@ -109,7 +103,7 @@ class Command(BaseCommand):
 
         return updated
 
-    def backfill_images(self, qs, prefix, media_folder, dry_run, force, check):
+    def backfill_images(self, qs, prefix, dry_run, force, check):
         model_name = qs.model.__name__
         qs = qs.filter(_url__isnull=False)
         if not force:
@@ -123,8 +117,7 @@ class Command(BaseCommand):
             updated = self._backfill_images(
                 qs,
                 source_field='_url',
-                prefix=f'/{prefix}',
-                media_folder=media_folder,
+                prefix=f'{prefix}',
                 check=check,
                 dry_run=dry_run,
             )
@@ -140,12 +133,10 @@ class Command(BaseCommand):
             qs = DocumentImage.objects.all()
             if options['ids']:
                 qs = qs.filter(document_id__in=options['ids'])
-            media_folder = settings.DOCUMENTS_BUCKET
         elif options['transcripts']:
             qs = TranscriptPage.objects.all()
             if options['ids']:
                 qs = qs.filter(transcript_id__in=options['ids'])
-            media_folder = settings.TRANSCRIPTS_BUCKET
         else:
             # argparse's mutually exclusive group ensures we never reach this
             return
@@ -153,7 +144,6 @@ class Command(BaseCommand):
         self.backfill_images(
             qs=qs,
             prefix=options['prefix'],
-            media_folder=media_folder,
             dry_run=options['dry_run'],
             force=options['force'],
             check=options['check'],
