@@ -24,6 +24,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='transcriptpage',
             name='image',
-            field=models.ImageField(blank=True, null=True, storage=nuremberg.core.storages.TranscriptStorage(), upload_to='nuremberg-transcripts'),
+            field=models.ImageField(blank=True, null=True, storage=nuremberg.core.storages.TranscriptStorage()),
         ),
     ]

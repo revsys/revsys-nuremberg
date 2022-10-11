@@ -63,7 +63,7 @@ def test_backfill_document_image_url_backfilled():
 
     assert (
         DocumentImage.objects.get(id=image_url_static_cache.id).image.path
-        == '/media/nuremberg-documents/TEST_TEST_03799001.jpg'
+        == '/media/TEST_TEST_03799001.jpg'
     )
     assert (
         DocumentImage.objects.get(id=image_url_static_cache.id)._url
@@ -72,7 +72,7 @@ def test_backfill_document_image_url_backfilled():
 
     assert (
         DocumentImage.objects.get(id=image_url_printing.id).image.path
-        == '/media/nuremberg-documents/TEST_TEST_00198001.jpg'
+        == '/media/TEST_TEST_00198001.jpg'
     )
     assert (
         DocumentImage.objects.get(id=image_url_printing.id)._url
@@ -81,7 +81,7 @@ def test_backfill_document_image_url_backfilled():
 
     assert (
         DocumentImage.objects.get(id=image_url_regular.id).image.path
-        == '/media/nuremberg-documents/TEST_TEST_03799352.jpg'
+        == '/media/TEST_TEST_03799352.jpg'
     )
     assert (
         DocumentImage.objects.get(id=image_url_regular.id)._url
@@ -106,7 +106,7 @@ def test_backfill_document_image_non_absolute_url(settings):
     assert stdout.getvalue() == 'Updated 1 DocumentImage(s).\n'
     assert stderr.getvalue() == (
         'Can not validate non absolute URL '
-        f'{settings.MEDIA_URL}nuremberg-documents/HLSL_NUR_0001001.jpg.\n'
+        f'{settings.MEDIA_URL}HLSL_NUR_0001001.jpg.\n'
     )
 
 
@@ -115,7 +115,7 @@ def test_backfill_document_image_absolute_url(settings, requests_mock):
     item = baker.make(
         'DocumentImage', image=None, _url='/proxy_image/IMG_0001001.jpg'
     )
-    image_url = f'{settings.MEDIA_URL}nuremberg-documents/IMG_0001001.jpg'
+    image_url = f'{settings.MEDIA_URL}IMG_0001001.jpg'
     requests_mock.head(image_url, status_code=404)
 
     result, stdout, stderr = do_command_call(
@@ -167,7 +167,7 @@ def test_backfill_document_image_force():
     assert stderr.getvalue() == ''
     assert (
         DocumentImage.objects.get(id=item.id).image.path
-        == '/media/nuremberg-documents/HLSL_NUR_0001001.jpg'
+        == '/media/HLSL_NUR_0001001.jpg'
     )
     assert DocumentImage.objects.get(id=item.id)._url == item._url
 
@@ -244,7 +244,7 @@ def test_backfill_transcript_page_url_backfilled():
 
     assert (
         TranscriptPage.objects.get(id=image_url_regular.id).image.path
-        == '/media/nuremberg-transcripts/TEST-TEST04-17_003.jpg'
+        == '/media/TEST-TEST04-17_003.jpg'
     )
     assert (
         TranscriptPage.objects.get(id=image_url_regular.id)._url
@@ -271,7 +271,7 @@ def test_backfill_transcript_page_non_absolute_url(settings):
     assert stdout.getvalue() == 'Updated 1 TranscriptPage(s).\n'
     assert stderr.getvalue() == (
         'Can not validate non absolute URL '
-        f'{settings.MEDIA_URL}nuremberg-transcripts/NRMB-NMT01-01_00001.jpg.\n'
+        f'{settings.MEDIA_URL}NRMB-NMT01-01_00001.jpg.\n'
     )
 
 
@@ -280,7 +280,7 @@ def test_backfill_transcript_page_absolute_url(settings, requests_mock):
     item = baker.make(
         'TranscriptPage', image=None, _url='/anything/at/all/IMG_0001001.jpg'
     )
-    image_url = f'{settings.MEDIA_URL}nuremberg-transcripts/IMG_0001001.jpg'
+    image_url = f'{settings.MEDIA_URL}IMG_0001001.jpg'
     requests_mock.head(image_url, status_code=404)
 
     result, stdout, stderr = do_command_call(
@@ -332,7 +332,7 @@ def test_backfill_transcript_page_force():
     assert stderr.getvalue() == ''
     assert (
         TranscriptPage.objects.get(id=item.id).image.path
-        == '/media/nuremberg-transcripts/NRMB-NMT01-01_00001.jpg'
+        == '/media/NRMB-NMT01-01_00001.jpg'
     )
     assert TranscriptPage.objects.get(id=item.id)._url == item._url
 
