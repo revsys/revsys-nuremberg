@@ -194,4 +194,3 @@ TRANSCRIPTS_BUCKET = 'nuremberg-transcripts'
 # Look for images in AWS S3
 # DOCUMENTS_URL = f'http://s3.amazonaws.com/{DOCUMENTS_BUCKET}/'
 # TRANSCRIPTS_URL = f'http://s3.amazonaws.com/{TRANSCRIPTS_BUCKET}/'
-
