@@ -3,6 +3,7 @@ import logging
 
 from django.utils.text import slugify
 from django.db import models
+from nuremberg.core.storages import DocumentStorage
 
 
 global_slug_count = 0
@@ -117,6 +118,7 @@ class DocumentImage(models.Model):
         upload_to='nuremberg-documents',
         null=True,
         blank=True,
+        storage=DocumentStorage(),
     )
 
     class Meta:
