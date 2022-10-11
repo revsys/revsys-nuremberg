@@ -188,9 +188,13 @@ LOGGING = {
 # https://django-storages.readthedocs.io/en/latest/backends/amazon-S3.html
 
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-DOCUMENTS_BUCKET = 'nuremberg-documents'
-TRANSCRIPTS_BUCKET = 'nuremberg-transcripts'
+AWS_S3_ACCESS_KEY_ID = os.getenv('AWS_S3_ACCESS_KEY_ID')
+AWS_S3_SECRET_ACCESS_KEY = os.getenv('AWS_S3_SECRET_ACCESS_KEY')
+AWS_S3_REGION_NAME = 'sfo2'
+AWS_S3_ENDPOINT_URL = f'https://{AWS_S3_REGION_NAME}.digitaloceanspaces.com'
+DOCUMENTS_BUCKET = 'harvard-law-library-nuremberg-documents'
+TRANSCRIPTS_BUCKET = 'harvard-law-library-nuremberg-transcripts'
 
 # Look for images in AWS S3
-# DOCUMENTS_URL = f'http://s3.amazonaws.com/{DOCUMENTS_BUCKET}/'
-# TRANSCRIPTS_URL = f'http://s3.amazonaws.com/{TRANSCRIPTS_BUCKET}/'
+# DOCUMENTS_URL = f'http://s3.amazonaws.com/nuremberg-documents/'
+# TRANSCRIPTS_URL = f'http://s3.amazonaws.com/nuremberg-transcripts/'
