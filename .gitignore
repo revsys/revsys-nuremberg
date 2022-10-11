@@ -3,14 +3,12 @@ __pycache__
 /screenshots/*
 /web/static
 .cache
-web/.coverage
+web/coverage
 web/htmlcov
 debug.txt
 /*.log
 venv
 src
 *.pyc
-minio/data/*
-!minio/data/.gitkeep
 nuremberg_dev.db
 nuremberg_prod_dump_2022-08-02.sqlite3.zip

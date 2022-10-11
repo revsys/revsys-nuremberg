@@ -61,8 +61,6 @@ django-coverage-plugin==2.0.3
     # via -r requirements.in
 django-haystack==3.2.1
     # via -r requirements.in
-django-proxy==1.2.1
-    # via -r requirements.in
 django-static-precompiler==2.1
     # via -r requirements.in
 django-storages==1.13.1
@@ -146,7 +144,6 @@ rcssmin==1.1.0
 requests==2.28.1
     # via
     #   -r requirements.in
-    #   django-proxy
     #   pysolr
     #   requests-mock
 requests-mock==1.10.0

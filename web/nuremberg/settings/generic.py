@@ -46,7 +46,6 @@ INSTALLED_APPS = [
     'nuremberg.search',
     'compressor',
     'haystack',
-    'proxy',
     'static_precompiler',
 ]
 
