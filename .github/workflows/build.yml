@@ -17,7 +17,7 @@ jobs:
 
       - name: Tag the branch
         run: |
-          export VINNIE_VERSION=`docker compose run --rm web vinnie --semver=False bump`
+          export VINNIE_VERSION=`docker compose run --rm web vinnie --no-semver bump`
           echo "vinnie_version=$VINNIE_VERSION" >> $GITHUB_ENV
           git tag $VINNIE_VERSION
           git push --tags
