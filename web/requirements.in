@@ -31,7 +31,6 @@ whitenoise
 # Development
 pip-tools
 pre-commit
-vinnie
 
 # testing
 coverage
