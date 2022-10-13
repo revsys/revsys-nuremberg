@@ -32,9 +32,7 @@ cfgv==3.3.1
 charset-normalizer==2.1.1
     # via requests
 click==8.1.3
-    # via
-    #   pip-tools
-    #   vinnie
+    # via pip-tools
 coverage[toml]==6.5.0
     # via
     #   -r requirements.in
@@ -71,10 +69,6 @@ exceptiongroup==1.0.0rc9
     # via trio
 filelock==3.8.0
     # via virtualenv
-gitdb==4.0.9
-    # via gitpython
-gitpython==3.1.13
-    # via vinnie
 gunicorn==20.1.0
     # via -r requirements.in
 h11==0.14.0
@@ -160,15 +154,11 @@ s3transfer==0.6.0
     # via boto3
 selenium==4.5.0
     # via -r requirements.in
-semver==2.13.0
-    # via vinnie
 six==1.16.0
     # via
     #   django-coverage-plugin
     #   python-dateutil
     #   requests-mock
-smmap==5.0.0
-    # via gitdb
 sniffio==1.3.0
     # via trio
 sortedcontainers==2.4.0
@@ -194,8 +184,6 @@ urllib3[socks]==1.26.12
     #   botocore
     #   requests
     #   selenium
-vinnie==0.8.2
-    # via -r requirements.in
 virtualenv==20.16.5
     # via pre-commit
 wheel==0.37.1
