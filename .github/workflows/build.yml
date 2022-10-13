@@ -15,9 +15,16 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Tag the branch
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Tag the branch with vinnie
         run: |
-          export VINNIE_VERSION=`docker compose run --rm web vinnie --no-semver bump`
+          python -m pip install --upgrade pip
+          pip install vinnie
+          export VINNIE_VERSION=`vinnie --no-semver bump`
           echo "vinnie_version=$VINNIE_VERSION" >> $GITHUB_ENV
           git tag $VINNIE_VERSION
           git push --tags
