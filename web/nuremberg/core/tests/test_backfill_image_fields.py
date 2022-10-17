@@ -62,7 +62,7 @@ def test_backfill_document_image_url_backfilled():
     assert DocumentImage.objects.get(id=image_url_null.id)._url is None
 
     assert (
-        DocumentImage.objects.get(id=image_url_static_cache.id).image.path
+        DocumentImage.objects.get(id=image_url_static_cache.id).image.url
         == '/media/TEST_TEST_03799001.jpg'
     )
     assert (
@@ -71,7 +71,7 @@ def test_backfill_document_image_url_backfilled():
     )
 
     assert (
-        DocumentImage.objects.get(id=image_url_printing.id).image.path
+        DocumentImage.objects.get(id=image_url_printing.id).image.url
         == '/media/TEST_TEST_00198001.jpg'
     )
     assert (
@@ -80,7 +80,7 @@ def test_backfill_document_image_url_backfilled():
     )
 
     assert (
-        DocumentImage.objects.get(id=image_url_regular.id).image.path
+        DocumentImage.objects.get(id=image_url_regular.id).image.url
         == '/media/TEST_TEST_03799352.jpg'
     )
     assert (
@@ -166,7 +166,7 @@ def test_backfill_document_image_force():
     assert stdout.getvalue() == 'Updated 1 DocumentImage(s).\n'
     assert stderr.getvalue() == ''
     assert (
-        DocumentImage.objects.get(id=item.id).image.path
+        DocumentImage.objects.get(id=item.id).image.url
         == '/media/HLSL_NUR_0001001.jpg'
     )
     assert DocumentImage.objects.get(id=item.id)._url == item._url
@@ -243,7 +243,7 @@ def test_backfill_transcript_page_url_backfilled():
     assert TranscriptPage.objects.get(id=image_url_null.id)._url is None
 
     assert (
-        TranscriptPage.objects.get(id=image_url_regular.id).image.path
+        TranscriptPage.objects.get(id=image_url_regular.id).image.url
         == '/media/TEST-TEST04-17_003.jpg'
     )
     assert (
@@ -331,7 +331,7 @@ def test_backfill_transcript_page_force():
     assert stdout.getvalue() == 'Updated 1 TranscriptPage(s).\n'
     assert stderr.getvalue() == ''
     assert (
-        TranscriptPage.objects.get(id=item.id).image.path
+        TranscriptPage.objects.get(id=item.id).image.url
         == '/media/NRMB-NMT01-01_00001.jpg'
     )
     assert TranscriptPage.objects.get(id=item.id)._url == item._url
