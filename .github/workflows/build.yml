@@ -26,6 +26,8 @@ jobs:
           pip install vinnie
           export VINNIE_VERSION=`vinnie --no-semver bump`
           echo "vinnie_version=$VINNIE_VERSION" >> $GITHUB_ENV
+          git config user.name "Vinnie The Versioner"
+          git config user.email "no-em@il"
           git tag $VINNIE_VERSION
           git push --tags
 
