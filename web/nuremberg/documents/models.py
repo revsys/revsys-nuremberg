@@ -1,8 +1,13 @@
 import datetime
 import logging
+import operator
+from collections import defaultdict
 
 from django.utils.text import slugify
 from django.db import models
+from django.db.models import Value
+from django.db.models.functions import Concat
+
 from nuremberg.core.storages import DocumentStorage
 
 
@@ -404,13 +409,13 @@ class PersonalAuthorProperty(models.Model):
 
     @property
     def rank(self):
-        try:
-            result = PersonalAuthorPropertyRank.objects.get(
-                name=self.name
-            ).rank
-        except PersonalAuthorPropertyRank.DoesNotExist:
-            result = None
-        return result
+        result = (
+            PersonalAuthorPropertyRank.objects.filter(name=self.name)
+            .order_by('rank')
+            .last()
+        )
+        if result:
+            return result.rank
 
 
 class DocumentCase(models.Model):
@@ -718,3 +723,67 @@ class DocumentExhibitCode(models.Model):
                 name, self.defense_number, self.defense_suffix or ''
             )
         return ''
+
+
+def author_metadata(author_name, max_length=10):
+    properties = PersonalAuthorProperty.objects.filter(
+        personal_author_name=author_name
+    )
+
+    # Group properties by name, this may need a more complex algorithm
+    result = defaultdict(list)
+    for p in properties:
+        if p.rank is None or p.rank < 1:
+            continue
+        key = p.name
+        # handle special cases
+        if key in ('family name', 'given name'):
+            key = 'name'
+        elif key in ('place of birth', 'date of birth'):
+            key = 'born'
+        elif key in ('place of death', 'date of death'):
+            key = 'died'
+        else:
+            key = p.name
+        result[key].append((p.rank, p.entity))
+
+    image_urls = result.pop('image', None)
+    if image_urls:
+        # XXX: we need to properly handle "media legend" for images
+        image = {
+            'url': sorted(image_urls)[0][1],
+            'alt': result.pop('media_legend', f'Image of {author_name}'),
+        }
+    else:
+        image = None
+
+    # If a given author doesn't have at least 10 ranked properties, display
+    # only the ranked properties
+    result = sorted(
+        (
+            {
+                'rank': max(i[0] for i in matches),  # maximun rank
+                'name': name,
+                # list of entities ordered by their individual rank in reverse
+                'values': [
+                    i[1] for i in sorted(matches, key=lambda x: (-x[0], x[1]))
+                ],
+            }
+            for name, matches in result.items()
+        ),
+        key=operator.itemgetter('rank'),
+        reverse=True,
+    )[:max_length]
+
+    if not result:
+        author = (
+            DocumentPersonalAuthor.objects.annotate(
+                full_name=Concat('first_name', Value(' '), 'last_name')
+            )
+            .filter(full_name=author_name)
+            .first()
+        )
+        if author and author.title:
+            result = [{'rank': 1, 'name': 'title', 'values': [author.title]}]
+
+    return result, image

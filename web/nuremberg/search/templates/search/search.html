@@ -8,6 +8,26 @@
 {% block javascript_module %}search{% endblock %}
 
 {% block content %}
+<style>
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f1f1f1;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+  padding: 12px 16px;
+}
+
+.dropdown:hover .dropdown-content {display: block;}
+
+</style>
+
 <section role="search" aria-label="Search the archive" class="theme-beige thin">
   <h1 class="h4">Search the archive
     <!-- <a class="h5" tabindex="1" href="#results">Jump to results</a> -->
