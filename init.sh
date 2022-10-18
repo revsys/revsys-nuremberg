@@ -10,7 +10,7 @@ SOLR_SNAPSHOT_NAME="nuremberg_solr_snapshot_2022-09-28.tar.gz"
 SOLR_URL="http://localhost:8983/solr"
 
 echo "Setting up sqlite"
-unzip -p dumps/nuremberg_prod_dump_2022-08-02.sqlite3.zip > web/nuremberg_dev.db
+unzip -p dumps/nuremberg_prod_dump_latest.sqlite3.zip > web/nuremberg_dev.db
 
 echo "Migrating databases"
 $DOCKER_COMPOSE_EXEC web python manage.py migrate --fake-initial

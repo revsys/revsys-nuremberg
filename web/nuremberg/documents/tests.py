@@ -4,7 +4,7 @@ import pytest
 from django.urls import reverse
 
 from nuremberg.core.tests.acceptance_helpers import PyQuery, client
-from nuremberg.documents.models import DocumentDate
+from nuremberg.documents.models import Document, DocumentDate
 
 
 pytestmark = pytest.mark.django_db
@@ -42,10 +42,7 @@ def document(document_id):
 def test_document_1():
     page = document(1)
 
-    assert (
-        'List of Case 1 files, prosecution and defense, in English'
-        in page('h1').text()
-    )
+    assert Document.objects.get(id=1).title in page('h1').text()
 
     images = page('.document-image')
     assert len(images) == 20

@@ -18,6 +18,7 @@ from nuremberg.core.tests.clientside_helpers import (  # noqa, pytest fixtures
     browser,
     unblocked_live_server,
 )
+from nuremberg.documents.models import Document
 
 
 @pytest.fixture(scope='module')
@@ -28,12 +29,13 @@ def document(browser, unblocked_live_server):  # noqa
         + reverse('documents:show', kwargs={'document_id': document_id})
     )
     browser.execute_script(
-        "$('html').removeClass('touchevents'); $('html').removeClass('no-xhrresponsetypeblob'); Modernizr.touchevents = false; Modernizr.xhrresponsetypeblob = true;"
+        "$('html').removeClass('touchevents'); "
+        "$('html').removeClass('no-xhrresponsetypeblob'); "
+        "Modernizr.touchevents = false; "
+        "Modernizr.xhrresponsetypeblob = true;"
     )
-    assert (
-        'List of Case 1 files, prosecution and defense, in English'
-        in browser.title
-    )
+    assert Document.objects.get(id=document_id).title in browser.title
+
     return browser
 
 
