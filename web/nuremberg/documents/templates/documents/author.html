@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{{ author }}{% endblock %}
+
+{% block content %}
+<section class="theme-light results">
+<h2>{{ author }}</h2>
+{% if image %}
+<img src="{{ image.url }}" width=200 alt="{{ image.alt }}" style="float:right" />
+{% endif %}
+<ul>
+{% for item in metadata %}
+  <li>
+    <strong>{{ item.name|capfirst }}:</strong>
+    {% for i in item.values %}{{i}}{% if not forloop.last %}, {% endif %}{% endfor%}
+  </li>
+{% empty %}
+<p>{% trans 'Additional biographical details not yet available.' %}</p>
+{% endfor %}
+</ul>
+</section>
+{% endblock %}
