@@ -12,8 +12,8 @@
 The client uses [Docker/Docker Compose](https://docs.docker.com/compose/).
 
     docker compose up
-    cp dumps/nuremberg_prod_dump_2022-08-02.sqlite3.zip . && unzip nuremberg_prod_dump_2022-08-02.sqlite3
-    mv nuremberg_prod_dump_2022-08-02.sqlite3 web/nuremberg_dev.db
+    cp dumps/nuremberg_prod_dump_2022-10-18.sqlite3.zip . && unzip nuremberg_prod_dump_2022-10-18.sqlite3
+    mv nuremberg_prod_dump_2022-10-18.sqlite3 web/nuremberg_dev.db
     docker compose cp solr_conf/ solr:/opt/solr-8.11.2/solr_conf
     docker compose exec solr cp -r /opt/solr-8.11.2/solr_conf /var/solr/data/nuremberg_dev
     docker compose exec solr solr create_core -c nuremberg_dev -d solr_conf
