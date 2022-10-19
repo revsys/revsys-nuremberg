@@ -9,27 +9,37 @@
 
 ## Setup
 
-The client uses [Docker/Docker Compose](https://docs.docker.com/compose/).
+The client uses [Docker/Docker Compose](https://docs.docker.com/compose/). In
+the host computer, run:
 
-    docker compose up
-    cp dumps/nuremberg_prod_dump_2022-10-18.sqlite3.zip . && unzip nuremberg_prod_dump_2022-10-18.sqlite3
-    mv nuremberg_prod_dump_2022-10-18.sqlite3 web/nuremberg_dev.db
-    docker compose cp solr_conf/ solr:/opt/solr-8.11.2/solr_conf
-    docker compose exec solr cp -r /opt/solr-8.11.2/solr_conf /var/solr/data/nuremberg_dev
-    docker compose exec solr solr create_core -c nuremberg_dev -d solr_conf
-    docker compose exec web python manage.py rebuild_index
+    docker compose up -d
+
+Populate the database and the search engine index (this could take some time):
+
+    ./init.sh
+
+
+> **_NOTE:_**  For a faster search index setup, set the env var
+> `SOLR_RESTORE_SNAPSHOPT` so Solr indexes are restored from a snapshot.
+> This is how the CI test run is configured, which can be inspected in
+> [this file](.github/workflows/tests.yml).
+
+
+Start the Django development server with:
+
     docker compose exec web python manage.py runserver 0.0.0.0:8000
 
 Then visit [localhost:8000](http://localhost:8000).
 
-To run with production settings, set appropriate SECRET_KEY,
-ALLOWED_HOSTS, and HOST_NAME env vars, and run
+To run with production settings, set appropriate `SECRET_KEY`,
+`ALLOWED_HOSTS`, and `HOST_NAME` env vars, and run:
 
     docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
-    docker compose exec web ./manage.py compress
-    docker compose exec web ./manage.py collectstatic
+    docker compose exec web python manage.py compress
+    docker compose exec web python manage.py collectstatic
 
-Then visit [localhost:8080](http://localhost:8080). (If you get a 502 wait a few seconds and then refresh the page.)
+Then visit [localhost:8080](http://localhost:8080).
+(If you get a 502 wait a few seconds and then refresh the page.)
 
 When you are finished,
 
@@ -43,10 +53,10 @@ Django parlance). Each module includes all URL routing, model and view code,
 tests, templates, JavaScript code, and static assets for the corresponding
 feature set:
 
-- `nuremberg`: Top-level namespace for organizational purposes only.  `.core`:
-- Top-level URL routing, test frameworks, base templates and middleware, and
-- site-wide style files.  `.settings`: Environment-specific Django settings
-- files.  `.content`: Files for static pages with project information, etc.
+- `nuremberg`: Top-level namespace for organizational purposes only.
+- `.core`: Top-level URL routing, test frameworks, base templates and middleware, and site-wide style files.
+- `.settings`: Environment-specific Django settings files.
+- `.content`: Files for static pages with project information, etc.
 - `.documents`: Files for displaying digitized document images.
 - `.transcripts`: Files for full-text transcripts and OCR documents.
 - `.photographs`: Files for displaying images from the photographic archive.
