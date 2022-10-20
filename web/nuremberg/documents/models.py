@@ -289,6 +289,9 @@ class DocumentPersonalAuthor(models.Model):
         managed = False
         db_table = 'tblPersonalAuthors'
 
+    def __str__(self):
+        return self.full_name()
+
     def full_name(self):
         if self.first_name and self.last_name:
             return '{} {}'.format(self.first_name, self.last_name)
@@ -327,6 +330,9 @@ class DocumentGroupAuthor(models.Model):
         managed = False
         db_table = 'tblGroupAuthors'
 
+    def __str__(self):
+        return self.name if self.name is not None else '<None>'
+
     def short_name(self):
         return self.name.split(' (')[0]
 
@@ -343,6 +349,64 @@ class DocumentsToGroupAuthors(models.Model):
     class Meta:
         managed = False
         db_table = 'tblGroupAuthorsList'
+
+
+class PersonalAuthorPropertyRank(models.Model):
+    id = models.AutoField(db_column='RecordID', primary_key=True)
+    name = models.CharField(db_column='Property', max_length=200, unique=True)
+    instance_count = models.IntegerField(db_column='InstanceCount')
+    rank = models.IntegerField(db_column='PropertyRank')
+    loadtimestamp = models.DateTimeField(db_column='LoadTimeStamp')
+
+    class Meta:
+        managed = False
+        db_table = 'tblNurAuthorsWikidataPropertiesRanked'
+
+    def __str__(self):
+        return 'Property {} ranked as {} (count {})'.format(
+            self.name, self.rank, self.instance_count
+        )
+
+
+class PersonalAuthorProperty(models.Model):
+    id = models.AutoField(db_column='RecordID', primary_key=True)
+    name = models.CharField(db_column='Property', max_length=100)
+    personal_author = models.ForeignKey(
+        'DocumentPersonalAuthor',
+        db_column='NTPPersonalAuthorID',
+        on_delete=models.PROTECT,
+        related_name='properties',
+    )
+    wikidata_id = models.CharField(db_column='WikidataID', max_length=100)
+    personal_author_name = models.CharField(
+        db_column='PersonalAuthorName', max_length=200
+    )
+    honorific = models.CharField(db_column='Honorific', max_length=100)
+    personal_author_description = models.CharField(
+        db_column='PersonalAuthorDescription', max_length=1000
+    )
+    entity = models.CharField(db_column='Entity', max_length=200)
+    loadtimestamp = models.DateTimeField(db_column='LoadTimestamp')
+
+    class Meta:
+        managed = False
+        db_table = 'tblNurAuthorsWikidataProperties'
+        verbose_name_plural = 'Personal author properties'
+
+    def __str__(self):
+        return 'Property {} for {}'.format(
+            self.name, self.personal_author.full_name()
+        )
+
+    @property
+    def rank(self):
+        try:
+            result = PersonalAuthorPropertyRank.objects.get(
+                name=self.name
+            ).rank
+        except PersonalAuthorPropertyRank.DoesNotExist:
+            result = None
+        return result
 
 
 class DocumentCase(models.Model):
