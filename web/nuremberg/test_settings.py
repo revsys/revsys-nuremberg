@@ -1,5 +1,7 @@
 from nuremberg.settings import *
 
+SECRET_KEY = "testing-secret"
+
 COMPRESS_ENABLED = False
 DEBUG = False
 
@@ -15,3 +17,5 @@ PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
 CACHES = {
     'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}
 }
+
+DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
