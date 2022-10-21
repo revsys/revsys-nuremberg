@@ -381,7 +381,9 @@ class PersonalAuthorProperty(models.Model):
     personal_author_name = models.CharField(
         db_column='PersonalAuthorName', max_length=200
     )
-    honorific = models.CharField(db_column='Honorific', max_length=100)
+    honorific = models.CharField(
+        db_column='Honorific', max_length=100, blank=True
+    )
     personal_author_description = models.CharField(
         db_column='PersonalAuthorDescription', max_length=1000
     )
