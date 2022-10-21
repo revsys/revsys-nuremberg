@@ -1,11 +1,15 @@
-from .dev import *
+from nuremberg.settings import *
 
 COMPRESS_ENABLED = False
+DEBUG = False
 
 ALLOWED_HOSTS = ['web', 'localhost']
 
 # Needed for template coverage report
 TEMPLATES[0]['OPTIONS']['debug'] = True
+
+# Any users are created and logged in faster with weak MD5 hasher
+PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
 
 # disable cache during tests
 CACHES = {
