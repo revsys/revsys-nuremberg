@@ -82,6 +82,7 @@ class PersonalAuthorPropertyAdmin(ReadOnlyAdmin):
     list_display = (
         'personal_author',
         'name',
+        'entity',
         'rank',
         'personal_author_description',
     )
