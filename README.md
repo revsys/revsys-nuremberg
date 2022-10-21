@@ -114,10 +114,64 @@ deployment process.
 
 ## Data
 
-Since it is expected that this app will host a largely static dataset, the Django admin is not enabled. Updates can be made directly in SQLite. Just ensure that any changes are reindexed by Solr.
+Since it is expected that this app will host a largely static dataset, the
+Django admin is enabled purely in read only mode. Updates can be made directly in SQLite. Just ensure that any changes are reindexed by Solr.
 
-A minimal admin interface can be manually enabled locally if desired in `core/urls.py`. For it to be operable, you will need to run migrations and use the Django management command to create an admin user for your use. If you choose to do so, make sure not to commit and deploy your changes!
+An admin interface is provided via the usual `/admin` URL. For it to be
+operable, you will need to use the Django management command to create an admin
+user for your use. If you choose to do so, make sure not to commit and deploy your changes!
 
+### Importing from MySQL/MariaDB
+
+Some of the data for this project is taken from external MySQL/MariaDB SQL
+dumps. To import a SQL dump named `some-table.sql`, follow these steps:
+
+1. Download [mysql2sqlite](https://github.com/dumblob/mysql2sqlite)
+
+2. Run the converter (no side effect yet):
+
+    `./mysql2sqlite some-table.sql > some-table-converted.sql`
+
+3. Review the converted SQL, it may need one or two new directives
+   to drop a table if it exists or similar.
+
+4. Once the converted SQL looks good, run:
+
+    `sqlite3  web/nuremberg_dev.db < some-table-converted.sql`
+
+> **_NOTE:_** The converter's README says: *both mysql2sqlite and
+> sqlite3 might write something to stdout and stderr - e.g. memory coming
+> from PRAGMA journal_mode = MEMORY; is not harmful*.
+
+### Updating the database dump in the repo
+
+In order to update the database dump included in the repo, first of all every
+local user should be removed. To do so open a python shell using
+`docker compose exec web python manage.py shell` and then run:
+
+    Python 3.10.7 (main, Oct  5 2022, 14:33:54) [GCC 10.2.1 20210110] on linux
+    Type "help", "copyright", "credits" or "license" for more information.
+    (InteractiveConsole)
+    >>> from django.contrib.auth import get_user_model
+    >>> get_user_model().objects.all().delete()
+    (0, {})
+    >>>
+
+Then, zip the sqlite DB creating a new zip file in the `dumps` folder, and re-point the existing `latest` symlink to it:
+
+    cd web/
+    zip -FS ../dumps/nuremberg_prod_dump_`date -I`.sqlite3.zip nuremberg_dev.db
+    cd ..
+    ln -fs nuremberg_prod_dump_`date -I`.sqlite3.zip dumps/nuremberg_prod_dump_latest.sqlite3.zip
+
+Review the changes and potentially:
+
+ 1. Confirm that the symlink `dumps/nuremberg_prod_dump_latest.sqlite3.zip` is pointing to a valid zipfile:
+
+        ls -la `realpath dumps/nuremberg_prod_dump_latest.sqlite3.zip`
+
+ 2. Remove older dump(s)
+ 3. Stage and commit your changes to the git repo
 
 ## Solr
 
