@@ -19,6 +19,8 @@ services:
     environment:
       # let Django load Docker-specific settings conditionally
       - DOCKERIZED=True
+      - DEBUG=True
+      - SECRET_KEY=top-secret-1234
     depends_on:
       - solr
 

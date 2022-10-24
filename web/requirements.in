@@ -7,6 +7,8 @@
 # LTS through 2024
 Django
 
+django-environ
+
 # DB
 dj-database-url
 psycopg2
@@ -31,6 +33,7 @@ whitenoise
 # Development
 pip-tools
 pre-commit
+IPython
 
 # testing
 coverage

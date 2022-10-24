@@ -11,6 +11,8 @@ services:
       - ./media:/media
     ports:
       - "127.0.0.1:8000:8000"
+    environment:
+      - LOCAL_DEVELOPMENT=True
 
   selenium:
     image: selenium/standalone-chrome:3.141.59
