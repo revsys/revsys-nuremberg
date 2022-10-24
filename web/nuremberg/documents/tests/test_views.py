@@ -1,8 +1,9 @@
 import pytest
 from django.urls import reverse
+from model_bakery import baker
 
 from nuremberg.core.tests.acceptance_helpers import PyQuery, client
-from nuremberg.documents.models import Document
+from nuremberg.documents.models import Document, PersonalAuthorProperty
 
 
 pytestmark = pytest.mark.django_db
@@ -88,8 +89,8 @@ def test_document_3799():
     page = document(3799)
 
     assert (
-        'Journal and office records of Hans Frank, Governor General of Poland, 1939-1944'
-        in page('h1').text()
+        'Journal and office records of Hans Frank, Governor General of Poland'
+        ', 1939-1944' in page('h1').text()
     )
 
     images = page('.document-image img')
@@ -104,3 +105,165 @@ def test_document_3799():
     assert 'Language of Text: German' in info
     assert 'Source of Text: Photostat' in info
     assert 'HLSL Item No.: 3799' in info
+
+
+def assert_author_metadata_html(
+    response, author_name, image_url, image_alt, *metadata
+):
+    assert response.status_code == 200
+    assert 'text/html' in response.headers['Content-Type']
+
+    content = PyQuery(response.content)
+
+    # name is shown
+    name = content.find('[data-test="author-name"]').text()
+    assert name == author_name
+
+    # image is shown
+    image = content.find('[data-test="author-image"]')
+    assert len(image) == 1
+    assert image[0].attrib['src'] == image_url
+    assert image[0].attrib['alt'] == image_alt
+
+    # other attributes
+    items = content.find('[data-test="author-metadata-item"]')
+    assert len(items) == len(metadata)
+    items = [  # remove html-insignificant spaces or \n
+        ' '.join(j.strip() for j in i.text_content().strip().split())
+        for i in items
+    ]
+    assert items == list(metadata)
+
+
+def test_author_details_not_found():
+    name = 'not existent'
+    assert (
+        PersonalAuthorProperty.objects.filter(
+            personal_author_name=name
+        ).count()
+        == 0
+    )
+
+    # request JSON
+    response = client.get(
+        reverse('documents:author', kwargs={'author_name': name}),
+        HTTP_ACCEPT='application/json',
+    )
+
+    assert response.status_code == 200
+    assert 'application/json' in response.headers['Content-Type']
+    assert response.json() == {
+        'author': {'name': name},
+        'image': None,
+        'metadata': [],
+    }
+
+    # request HTML
+    response = client.get(
+        reverse('documents:author', kwargs={'author_name': 'not existent'})
+    )
+
+    image_url = '/static/images/authors/placeholder.png'
+    image_alt = 'No image available.'
+    assert_author_metadata_html(
+        response,
+        name,
+        image_url,
+        image_alt,
+        'Additional biographical details not yet available.',
+    )
+
+
+def test_author_details():
+    author = baker.make('DocumentPersonalAuthor')
+    name = author.full_name()
+    prop_image = baker.make(
+        'PersonalAuthorProperty',
+        personal_author_name=name,
+        name='image',
+        entity='https://link-to-image-1.jpg',
+    )
+    image_alt = f'Image of {name}'
+    # other props, birth and occupation
+    rank_place_of_birth = baker.make(
+        'PersonalAuthorPropertyRank', name='place of birth', rank=28
+    )
+    rank_date_of_birth = baker.make(
+        'PersonalAuthorPropertyRank', name='date of birth', rank=27
+    )
+    prop_place_of_birth = baker.make(
+        'PersonalAuthorProperty',
+        personal_author_name=name,
+        name=rank_place_of_birth.name,
+        entity='A city',
+    )
+    prop_date_of_birth = baker.make(
+        'PersonalAuthorProperty',
+        personal_author_name=name,
+        name=rank_date_of_birth.name,
+        entity='1979-01-01',
+    )
+    rank_occupation = baker.make(
+        'PersonalAuthorPropertyRank', name='occupation', rank=26
+    )
+    baker.make(
+        'PersonalAuthorProperty',
+        personal_author_name=name,
+        name=rank_occupation.name,
+        entity='soldier',
+    )
+    baker.make(
+        'PersonalAuthorProperty',
+        personal_author_name=name,
+        name=rank_occupation.name,
+        entity='politician',
+    )
+    baker.make(
+        'PersonalAuthorProperty',
+        personal_author_name=name,
+        name=rank_occupation.name,
+        entity='writer',
+    )
+
+    # request JSON
+    response = client.get(
+        reverse('documents:author', kwargs={'author_name': name}),
+        HTTP_ACCEPT='application/json',
+    )
+
+    assert response.status_code == 200
+    assert 'application/json' in response.headers['Content-Type']
+    assert response.json() == {
+        'author': {'name': name},
+        'image': {'url': prop_image.entity, 'alt': image_alt},
+        'metadata': [
+            {
+                'name': 'born',
+                'rank': 28,
+                'values': [
+                    prop_place_of_birth.entity,
+                    prop_date_of_birth.entity,
+                ],
+            },
+            {
+                'name': 'occupation',
+                'rank': 26,
+                'values': ['politician', 'soldier', 'writer'],
+            },
+        ],
+    }
+
+    # request HTML (default)
+    response = client.get(
+        reverse('documents:author', kwargs={'author_name': name})
+    )
+
+    # occupation and other metadata is shown alphabetically ordered
+    assert_author_metadata_html(
+        response,
+        name,
+        prop_image.entity,
+        image_alt,
+        f'Born: {prop_place_of_birth.entity}; {prop_date_of_birth.entity}',
+        f'Occupation: politician; soldier; writer',
+    )

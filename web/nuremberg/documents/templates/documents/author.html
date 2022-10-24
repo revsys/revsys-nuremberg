@@ -1,23 +1,33 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% load static %}
 
 {% block title %}{{ author }}{% endblock %}
 
 {% block content %}
 <section class="theme-light results">
-<h2>{{ author }}</h2>
+
+<h2 data-test="author-name">{{ author.name }}</h2>
+
+<img data-test="author-image"
 {% if image %}
-<img src="{{ image.url }}" width=200 alt="{{ image.alt }}" style="float:right" />
-{% endif %}
+    src="{{ image.url }}" alt="{{ image.alt }}"
+{% else %}
+    src="{% static 'images/authors/placeholder.png' %}" alt="{% trans 'No image available.' %}"
+{% endif %} width=200 style="float:right" />
+
 <ul>
 {% for item in metadata %}
-  <li>
+  <li data-test="author-metadata-item">
     <strong>{{ item.name|capfirst }}:</strong>
-    {% for i in item.values %}{{i}}{% if not forloop.last %}, {% endif %}{% endfor%}
+    {% for i in item.values %}{{i}}{% if not forloop.last %}; {% endif %}{% endfor%}
   </li>
 {% empty %}
-<p>{% trans 'Additional biographical details not yet available.' %}</p>
+  <li data-test="author-metadata-item">
+    {% trans 'Additional biographical details not yet available.' %}
+  </li>
 {% endfor %}
 </ul>
+
 </section>
 {% endblock %}

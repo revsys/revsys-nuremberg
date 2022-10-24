@@ -731,7 +731,7 @@ def author_metadata(author_name, max_length=10):
     )
 
     # Group properties by name, this may need a more complex algorithm
-    result = defaultdict(list)
+    grouped_props = defaultdict(list)
     for p in properties:
         if p.rank is None or p.rank < 1:
             continue
@@ -745,21 +745,23 @@ def author_metadata(author_name, max_length=10):
             key = 'died'
         else:
             key = p.name
-        result[key].append((p.rank, p.entity))
+        grouped_props[key].append((p.rank, p.entity))
 
-    image_urls = result.pop('image', None)
+    image_urls = grouped_props.pop('image', None)
     if image_urls:
         # XXX: we need to properly handle "media legend" for images
         image = {
             'url': sorted(image_urls)[0][1],
-            'alt': result.pop('media_legend', f'Image of {author_name}'),
+            'alt': grouped_props.pop(
+                'media_legend', f'Image of {author_name}'
+            ),
         }
     else:
         image = None
 
     # If a given author doesn't have at least 10 ranked properties, display
     # only the ranked properties
-    result = sorted(
+    metadata = sorted(
         (
             {
                 'rank': max(i[0] for i in matches),  # maximun rank
@@ -769,13 +771,13 @@ def author_metadata(author_name, max_length=10):
                     i[1] for i in sorted(matches, key=lambda x: (-x[0], x[1]))
                 ],
             }
-            for name, matches in result.items()
+            for name, matches in grouped_props.items()
         ),
         key=operator.itemgetter('rank'),
         reverse=True,
     )[:max_length]
 
-    if not result:
+    if not metadata:
         author = (
             DocumentPersonalAuthor.objects.annotate(
                 full_name=Concat('first_name', Value(' '), 'last_name')
@@ -784,6 +786,11 @@ def author_metadata(author_name, max_length=10):
             .first()
         )
         if author and author.title:
-            result = [{'rank': 1, 'name': 'title', 'values': [author.title]}]
+            metadata = [{'rank': 1, 'name': 'title', 'values': [author.title]}]
 
-    return result, image
+    result = {
+        'author': {'name': author_name},
+        'image': image,
+        'metadata': metadata,
+    }
+    return result

@@ -44,10 +44,9 @@ def test_author_metadata_no_match():
         == 0
     )
 
-    metadata, image = author_metadata(name)
+    result = author_metadata(name)
 
-    assert metadata == []
-    assert image is None
+    assert result == {'author': {'name': name}, 'image': None, 'metadata': []}
 
 
 def test_author_metadata_no_property_match():
@@ -65,10 +64,14 @@ def test_author_metadata_no_property_match():
         title='Some Title',
     )
 
-    metadata, image = author_metadata(name)
+    result = author_metadata(name)
 
-    assert metadata == [{'rank': 1, 'name': 'title', 'values': [author.title]}]
-    assert image is None
+    metadata = [{'rank': 1, 'name': 'title', 'values': [author.title]}]
+    assert result == {
+        'author': {'name': name},
+        'image': None,
+        'metadata': metadata,
+    }
 
 
 def test_author_metadata_no_property_match_empty_title():
@@ -86,10 +89,9 @@ def test_author_metadata_no_property_match_empty_title():
         title='',
     )
 
-    metadata, image = author_metadata(name)
+    result = author_metadata(name)
 
-    assert metadata == []
-    assert image is None
+    assert result == {'author': {'name': name}, 'image': None, 'metadata': []}
 
 
 def test_author_metadata_uses_property_ranks():
@@ -152,15 +154,18 @@ def test_author_metadata_uses_property_ranks():
     )
     assert prop_5.rank == 5
 
-    metadata, image = author_metadata(author.full_name())
+    result = author_metadata(author.full_name())
 
     # order is given by higher rank first, then entity
     expected = [
         {'rank': 5, 'name': 'valid 5', 'values': [prop_5.entity]},
         {'rank': 1, 'name': 'valid 1', 'values': ['another', 'one value']},
     ]
-    assert metadata == expected
-    assert image is None
+    assert result == {
+        'author': {'name': author.full_name()},
+        'image': None,
+        'metadata': expected,
+    }
 
 
 def test_author_metadata_extracts_image():
@@ -190,11 +195,16 @@ def test_author_metadata_extracts_image():
     )
     assert prop_image_2.rank == 30
 
-    metadata, image = author_metadata(name)
+    result = author_metadata(name)
 
-    assert metadata == [{'rank': 1, 'name': 'title', 'values': [author.title]}]
+    metadata = [{'rank': 1, 'name': 'title', 'values': [author.title]}]
     # XXX: alt needs data definition, waiting on Paul for this
-    assert image == {'url': prop_image_1.entity, 'alt': f'Image of {name}'}
+    image = {'url': prop_image_1.entity, 'alt': f'Image of {name}'}
+    assert result == {
+        'author': {'name': name},
+        'image': image,
+        'metadata': metadata,
+    }
 
 
 def test_author_metadata_groups_birth_data():
@@ -218,16 +228,20 @@ def test_author_metadata_groups_birth_data():
         entity='1979-01-01',
     )
 
-    metadata, image = author_metadata(name)
+    result = author_metadata(name)
 
-    assert metadata == [
+    metadata = [
         {
             'rank': 24,
             'name': 'born',
             'values': [prop_place_of_birth.entity, prop_date_of_birth.entity],
         }
     ]
-    assert image is None
+    assert result == {
+        'author': {'name': name},
+        'image': None,
+        'metadata': metadata,
+    }
 
 
 def test_author_metadata_groups_death_data():
@@ -251,16 +265,20 @@ def test_author_metadata_groups_death_data():
         entity='1979-01-01',
     )
 
-    metadata, image = author_metadata(name)
+    result = author_metadata(name)
 
-    assert metadata == [
+    metadata = [
         {
             'rank': 24,
             'name': 'died',
             'values': [prop_place_of_death.entity, prop_date_of_death.entity],
         }
     ]
-    assert image is None
+    assert result == {
+        'author': {'name': name},
+        'image': None,
+        'metadata': metadata,
+    }
 
 
 def test_author_metadata_groups_name_data():
@@ -284,13 +302,17 @@ def test_author_metadata_groups_name_data():
         entity='Given Name',
     )
 
-    metadata, image = author_metadata(name)
+    result = author_metadata(name)
 
-    assert metadata == [
+    metadata = [
         {
             'rank': 28,
             'name': 'name',
             'values': [prop_family_name.entity, prop_given_name.entity],
         }
     ]
-    assert image is None
+    assert result == {
+        'author': {'name': name},
+        'image': None,
+        'metadata': metadata,
+    }
