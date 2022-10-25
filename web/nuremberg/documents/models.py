@@ -6,7 +6,6 @@ from django.db import models
 from nuremberg.core.storages import DocumentStorage
 
 
-global_slug_count = 0
 logger = logging.getLogger(__name__)
 
 
@@ -52,9 +51,7 @@ class Document(models.Model):
         if date:
             return date.as_date()
 
-    def slug(self):  # pragma: no cover
-        global global_slug_count
-        global_slug_count += 1
+    def slug(self):
         # Try to extract the "genre term" from the descriptive title
         try:
             words = self.title.split(' ')
@@ -73,11 +70,9 @@ class Document(models.Model):
             ):
                 n += 1
             testing = slugify(' '.join(words[:n]))
-            # print ("{0}. DocID: {1} TitleDescriptive slug: {2}".format(global_slug_count, self.id, testing))
             return slugify(' '.join(words[:n]))
         except:
             testing = "descriptive-title-missing"
-            # print ("{0}. DocID: {1} TitleDescriptive slug: {2}".format(global_slug_count, self.id, testing))
             return testing
 
 
