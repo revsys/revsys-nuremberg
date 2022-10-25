@@ -4,6 +4,7 @@ from .models import (
     Document,
     DocumentImage,
     DocumentPersonalAuthor,
+    DocumentsToPersonalAuthors,
     DocumentGroupAuthor,
     PersonalAuthorProperty,
     PersonalAuthorPropertyRank,
@@ -18,6 +19,13 @@ class DocumentImageInline(admin.TabularInline):
     fields = ('page_number', 'physical_page_number', 'image_tag')
     readonly_fields = fields
     extra = 0
+
+
+class PersonalAuthorsInline(admin.StackedInline):
+    model = DocumentsToPersonalAuthors
+    extra = 0
+    verbose_name = "Personal Author"
+    classes = ['collapse']
 
 
 class PersonalAuthorPropertyInline(admin.TabularInline):
@@ -56,7 +64,7 @@ class ReadOnlyAdmin(admin.ModelAdmin):
 
 class DocumentAdmin(ReadOnlyAdmin):
     list_display = ('id', 'title', 'image_count')
-    inlines = [DocumentImageInline]
+    inlines = [PersonalAuthorsInline, DocumentImageInline]
     ordering = ('-image_count',)
     search_fields = ('title', 'literal_title')
     list_filter = ('language', 'source')
@@ -87,7 +95,12 @@ class PersonalAuthorPropertyAdmin(ReadOnlyAdmin):
         'personal_author_description',
     )
     list_filter = ('personal_author_name', 'name')
-    search_fields = ('name', 'personal_author_description')
+    search_fields = (
+        'name',
+        'wikidata_id',
+        'personal_author_name',
+        'personal_author_description',
+    )
 
 
 admin.site.register(Document, DocumentAdmin)
