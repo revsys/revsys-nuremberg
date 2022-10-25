@@ -32,7 +32,7 @@ class PersonalAuthorPropertyInline(admin.TabularInline):
     model = PersonalAuthorProperty
     fields = (
         'name',
-        'entity',
+        'value',
         'property_rank',
         'personal_author_description',
         'wikidata_id',
@@ -90,7 +90,7 @@ class PersonalAuthorPropertyAdmin(ReadOnlyAdmin):
     list_display = (
         'personal_author',
         'name',
-        'entity',
+        'value',
         'rank',
         'personal_author_description',
     )

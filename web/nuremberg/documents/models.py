@@ -365,7 +365,6 @@ class PersonalAuthorPropertyRank(models.Model):
 
 class PersonalAuthorProperty(models.Model):
     id = models.AutoField(db_column='RecordID', primary_key=True)
-    name = models.CharField(db_column='Property', max_length=100)
     personal_author = models.ForeignKey(
         'DocumentPersonalAuthor',
         db_column='NTPPersonalAuthorID',
@@ -382,17 +381,25 @@ class PersonalAuthorProperty(models.Model):
     personal_author_description = models.CharField(
         db_column='PersonalAuthorDescription', max_length=1000
     )
-    entity = models.CharField(db_column='Entity', max_length=200)
+    name = models.CharField(db_column='Property', max_length=100)
+    value = models.CharField(db_column='Entity', max_length=200)
+    qualifier = models.CharField(db_column='Qualifier', max_length=100)
+    qualifier_value = models.CharField(db_column='QualValue', max_length=200)
+
     loadtimestamp = models.DateTimeField(db_column='LoadTimestamp')
 
     class Meta:
         managed = False
-        db_table = 'tblNurAuthorsWikidataProperties'
+        db_table = 'tblNurAuthorsWikidataPropertiesAndQualifiers'
         verbose_name_plural = 'Personal author properties'
 
     def __str__(self):
-        return 'Property {} for {}'.format(
-            self.name, self.personal_author.full_name()
+        return 'Property {} for {}: {} ({}: {})'.format(
+            self.name,
+            self.personal_author.full_name(),
+            self.value,
+            self.qualifier,
+            self.qualifier_value,
         )
 
     @property
