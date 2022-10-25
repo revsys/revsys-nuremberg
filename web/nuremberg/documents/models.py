@@ -5,7 +5,7 @@ from collections import defaultdict
 
 from django.utils.text import slugify
 from django.db import models
-from django.db.models import Value
+from django.db.models import Case, Count, Value, When
 from django.db.models.functions import Concat
 
 from nuremberg.core.storages import DocumentStorage
@@ -272,6 +272,81 @@ class DocumentDate(models.Model):
         return result
 
 
+class DocumentPersonalAuthorManager(models.Manager):
+    def properties(self, author_name, max_length=10):
+        author = (
+            self.annotate(
+                db_full_name=Case(
+                    When(first_name__isnull=True, then='last_name'),
+                    When(last_name__isnull=True, then='first_name'),
+                    default=Concat('first_name', Value(' '), 'last_name'),
+                ),
+            )
+            .filter(db_full_name=author_name)
+            .annotate(prolific=Count('documents'))  # XXX: To Be Reviewed
+            .order_by('-prolific')
+            .first()
+        )
+
+        result = {
+            'author': {'name': author_name},
+            'image': None,
+            'properties': [],
+        }
+        if not author:
+            return result
+
+        result['author'].update({'id': author.id, 'title': author.title})
+
+        # Group properties by name, this may need a more complex algorithm
+        grouped_props = defaultdict(list)
+        for p in author.properties.all():
+            if p.rank is None or p.rank < 1:
+                continue
+            key = p.name
+            # handle special cases
+            if key in ('family name', 'given name'):
+                key = 'name'
+            elif key in ('place of birth', 'date of birth'):
+                key = 'born'
+            elif key in ('place of death', 'date of death'):
+                key = 'died'
+            else:
+                key = p.name
+            grouped_props[key].append((p.rank, p.entity))
+
+        image_urls = grouped_props.pop('image', None)
+        if image_urls:
+            # XXX: we need to properly handle "media legend" for images
+            result['image'] = {
+                'url': sorted(image_urls)[0][1],
+                'alt': grouped_props.pop(
+                    'media_legend', f'Image of {author_name}'
+                ),
+            }
+
+        # If a given author doesn't have at least 10 ranked properties, display
+        # only the ranked properties
+        result['properties'] = sorted(
+            (
+                {
+                    'rank': max(i[0] for i in props),  # maximun rank
+                    'name': name,
+                    # list of entities ordered by their rank DESC then name ASC
+                    'values': [
+                        i[1]
+                        for i in sorted(props, key=lambda x: (-x[0], x[1]))
+                    ],
+                }
+                for name, props in grouped_props.items()
+            ),
+            key=operator.itemgetter('rank'),
+            reverse=True,
+        )[:max_length]
+
+        return result
+
+
 class DocumentPersonalAuthor(models.Model):
     id = models.AutoField(primary_key=True, db_column='PersonalAuthorID')
     last_name = models.CharField(max_length=35, db_column='AuthLName')
@@ -284,6 +359,8 @@ class DocumentPersonalAuthor(models.Model):
         through='DocumentsToPersonalAuthors',
         through_fields=('author', 'document'),
     )
+
+    objects = DocumentPersonalAuthorManager()
 
     class Meta:
         managed = False
@@ -723,74 +800,3 @@ class DocumentExhibitCode(models.Model):
                 name, self.defense_number, self.defense_suffix or ''
             )
         return ''
-
-
-def author_metadata(author_name, max_length=10):
-    properties = PersonalAuthorProperty.objects.filter(
-        personal_author_name=author_name
-    )
-
-    # Group properties by name, this may need a more complex algorithm
-    grouped_props = defaultdict(list)
-    for p in properties:
-        if p.rank is None or p.rank < 1:
-            continue
-        key = p.name
-        # handle special cases
-        if key in ('family name', 'given name'):
-            key = 'name'
-        elif key in ('place of birth', 'date of birth'):
-            key = 'born'
-        elif key in ('place of death', 'date of death'):
-            key = 'died'
-        else:
-            key = p.name
-        grouped_props[key].append((p.rank, p.entity))
-
-    image_urls = grouped_props.pop('image', None)
-    if image_urls:
-        # XXX: we need to properly handle "media legend" for images
-        image = {
-            'url': sorted(image_urls)[0][1],
-            'alt': grouped_props.pop(
-                'media_legend', f'Image of {author_name}'
-            ),
-        }
-    else:
-        image = None
-
-    # If a given author doesn't have at least 10 ranked properties, display
-    # only the ranked properties
-    metadata = sorted(
-        (
-            {
-                'rank': max(i[0] for i in matches),  # maximun rank
-                'name': name,
-                # list of entities ordered by their individual rank in reverse
-                'values': [
-                    i[1] for i in sorted(matches, key=lambda x: (-x[0], x[1]))
-                ],
-            }
-            for name, matches in grouped_props.items()
-        ),
-        key=operator.itemgetter('rank'),
-        reverse=True,
-    )[:max_length]
-
-    if not metadata:
-        author = (
-            DocumentPersonalAuthor.objects.annotate(
-                full_name=Concat('first_name', Value(' '), 'last_name')
-            )
-            .filter(full_name=author_name)
-            .first()
-        )
-        if author and author.title:
-            metadata = [{'rank': 1, 'name': 'title', 'values': [author.title]}]
-
-    result = {
-        'author': {'name': author_name},
-        'image': image,
-        'metadata': metadata,
-    }
-    return result
