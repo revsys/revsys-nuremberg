@@ -51,7 +51,7 @@ class Document(models.Model):
         if date:
             return date.as_date()
 
-    def slug(self):
+    def slug(self):  # pragma: no cover
         # Try to extract the "genre term" from the descriptive title
         try:
             words = self.title.split(' ')
