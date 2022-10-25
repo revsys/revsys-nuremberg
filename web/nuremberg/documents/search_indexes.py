@@ -1,5 +1,19 @@
+import json
+
 from haystack import indexes
 from nuremberg.documents.models import Document
+
+
+class JsonField(indexes.CharField):
+
+    # ToDo: redefine prepare as well?
+    # https://django-haystack.readthedocs.io/en/latest/searchfield_api.html#prepare
+
+    def convert(self, value):
+        value = super().convert(value)
+        if value is not None:
+            value = json.loads(value)
+        return value
 
 
 class DocumentIndex(indexes.SearchIndex, indexes.Indexable):
@@ -28,6 +42,7 @@ class DocumentIndex(indexes.SearchIndex, indexes.Indexable):
     )
 
     authors = indexes.MultiValueField(faceted=True, null=True)
+    authors_properties = JsonField(null=True, indexed=False)
     defendants = indexes.MultiValueField(faceted=True, null=True)
     case_names = indexes.MultiValueField(faceted=True, null=True)
     case_tags = indexes.MultiValueField(faceted=True, null=True)
@@ -64,6 +79,10 @@ class DocumentIndex(indexes.SearchIndex, indexes.Indexable):
         return [
             author.short_name() for author in document.group_authors.all()
         ] + [author.full_name() for author in document.personal_authors.all()]
+
+    def prepare_authors_properties(self, document):
+        result = document.personal_authors.all().order_by('id').properties()
+        return json.dumps(result)
 
     def prepare_trial_activities(self, document):
         return [activity.short_name for activity in document.activities.all()]
