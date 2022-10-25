@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.generic import View
 
-from .models import Document, author_metadata
+from .models import Document, DocumentPersonalAuthor
 
 
 class Show(View):
@@ -23,7 +23,7 @@ class Show(View):
         )
 
 
-def author_details(request, author_name):
+def author_properties(request, author_name):
     # XXX: Using the author name as author key could be flaky. Though currently
     # author names are reasonable "unique", we can't guarantee this condition.
     # But, in order to obtain an author ID, we should change the document

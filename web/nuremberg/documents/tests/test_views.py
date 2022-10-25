@@ -3,7 +3,7 @@ from django.urls import reverse
 from model_bakery import baker
 
 from nuremberg.core.tests.acceptance_helpers import PyQuery, client
-from nuremberg.documents.models import Document, PersonalAuthorProperty
+from nuremberg.documents.models import Document
 
 
 pytestmark = pytest.mark.django_db
@@ -107,8 +107,8 @@ def test_document_3799():
     assert 'HLSL Item No.: 3799' in info
 
 
-def assert_author_metadata_html(
-    response, author_name, image_url, image_alt, *metadata
+def assert_author_properties_html(
+    response, author_name, image_url, image_alt, *properties
 ):
     assert response.status_code == 200
     assert 'text/html' in response.headers['Content-Type']
@@ -126,23 +126,17 @@ def assert_author_metadata_html(
     assert image[0].attrib['alt'] == image_alt
 
     # other attributes
-    items = content.find('[data-test="author-metadata-item"]')
-    assert len(items) == len(metadata)
+    items = content.find('[data-test="author-property"]')
+    assert len(items) == len(properties)
     items = [  # remove html-insignificant spaces or \n
         ' '.join(j.strip() for j in i.text_content().strip().split())
         for i in items
     ]
-    assert items == list(metadata)
+    assert items == list(properties)
 
 
-def test_author_details_not_found():
+def test_author_properties_not_found():
     name = 'not existent'
-    assert (
-        PersonalAuthorProperty.objects.filter(
-            personal_author_name=name
-        ).count()
-        == 0
-    )
 
     # request JSON
     response = client.get(
@@ -155,7 +149,7 @@ def test_author_details_not_found():
     assert response.json() == {
         'author': {'name': name},
         'image': None,
-        'metadata': [],
+        'properties': [],
     }
 
     # request HTML
@@ -165,7 +159,7 @@ def test_author_details_not_found():
 
     image_url = '/static/images/authors/placeholder.png'
     image_alt = 'No image available.'
-    assert_author_metadata_html(
+    assert_author_properties_html(
         response,
         name,
         image_url,
@@ -174,12 +168,12 @@ def test_author_details_not_found():
     )
 
 
-def test_author_details():
+def test_author_properties():
     author = baker.make('DocumentPersonalAuthor')
     name = author.full_name()
     prop_image = baker.make(
         'PersonalAuthorProperty',
-        personal_author_name=name,
+        personal_author=author,
         name='image',
         entity='https://link-to-image-1.jpg',
     )
@@ -193,13 +187,13 @@ def test_author_details():
     )
     prop_place_of_birth = baker.make(
         'PersonalAuthorProperty',
-        personal_author_name=name,
+        personal_author=author,
         name=rank_place_of_birth.name,
         entity='A city',
     )
     prop_date_of_birth = baker.make(
         'PersonalAuthorProperty',
-        personal_author_name=name,
+        personal_author=author,
         name=rank_date_of_birth.name,
         entity='1979-01-01',
     )
@@ -208,19 +202,19 @@ def test_author_details():
     )
     baker.make(
         'PersonalAuthorProperty',
-        personal_author_name=name,
+        personal_author=author,
         name=rank_occupation.name,
         entity='soldier',
     )
     baker.make(
         'PersonalAuthorProperty',
-        personal_author_name=name,
+        personal_author=author,
         name=rank_occupation.name,
         entity='politician',
     )
     baker.make(
         'PersonalAuthorProperty',
-        personal_author_name=name,
+        personal_author=author,
         name=rank_occupation.name,
         entity='writer',
     )
@@ -234,9 +228,9 @@ def test_author_details():
     assert response.status_code == 200
     assert 'application/json' in response.headers['Content-Type']
     assert response.json() == {
-        'author': {'name': name},
+        'author': {'name': name, 'id': author.id, 'title': author.title},
         'image': {'url': prop_image.entity, 'alt': image_alt},
-        'metadata': [
+        'properties': [
             {
                 'name': 'born',
                 'rank': 28,
@@ -258,8 +252,8 @@ def test_author_details():
         reverse('documents:author', kwargs={'author_name': name})
     )
 
-    # occupation and other metadata is shown alphabetically ordered
-    assert_author_metadata_html(
+    # occupation values are shown alphabetically ordered
+    assert_author_properties_html(
         response,
         name,
         prop_image.entity,

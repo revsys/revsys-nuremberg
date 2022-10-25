@@ -2,7 +2,7 @@
 {% load i18n %}
 {% load static %}
 
-{% block title %}{{ author }}{% endblock %}
+{% block title %}{{ author.name }}{% endblock %}
 
 {% block content %}
 <section class="theme-light results">
@@ -17,13 +17,13 @@
 {% endif %} width=200 style="float:right" />
 
 <ul>
-{% for item in metadata %}
-  <li data-test="author-metadata-item">
+{% for item in properties %}
+  <li data-test="author-property">
     <strong>{{ item.name|capfirst }}:</strong>
-    {% for i in item.values %}{{i}}{% if not forloop.last %}; {% endif %}{% endfor%}
+    {% for i in item.values %}{{i}}{% if not forloop.last %}; {% endif %}{% endfor %}
   </li>
 {% empty %}
-  <li data-test="author-metadata-item">
+  <li data-test="author-property">
     {% trans 'Additional biographical details not yet available.' %}
   </li>
 {% endfor %}

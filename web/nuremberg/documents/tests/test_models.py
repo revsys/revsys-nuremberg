@@ -5,8 +5,8 @@ from model_bakery import baker
 
 from nuremberg.documents.models import (
     DocumentDate,
+    DocumentPersonalAuthor,
     PersonalAuthorProperty,
-    author_metadata,
 )
 
 
@@ -35,76 +35,118 @@ def test_document_date_valid_as_date(day, month, year):
     assert d.as_date() == datetime.date(year, month, day)
 
 
-def test_author_metadata_no_match():
+def test_author_properties_no_match():
     name = 'Does Not Exist'
-    assert (
-        PersonalAuthorProperty.objects.filter(
-            personal_author_name=name
-        ).count()
-        == 0
-    )
 
-    result = author_metadata(name)
+    result = DocumentPersonalAuthor.objects.properties(name)
 
-    assert result == {'author': {'name': name}, 'image': None, 'metadata': []}
+    assert result == {
+        'author': {'name': name},
+        'image': None,
+        'properties': [],
+    }
 
 
-def test_author_metadata_no_property_match():
+def test_author_properties_no_property_match_uses_title():
     name = 'Does Not Exist'
-    assert (
-        PersonalAuthorProperty.objects.filter(
-            personal_author_name=name
-        ).count()
-        == 0
-    )
     author = baker.make(
         'DocumentPersonalAuthor',
         first_name='Does Not',
         last_name='Exist',
         title='Some Title',
     )
+    assert (
+        PersonalAuthorProperty.objects.filter(personal_author=author).count()
+        == 0
+    )
 
-    result = author_metadata(name)
+    result = DocumentPersonalAuthor.objects.properties(name)
 
-    metadata = [{'rank': 1, 'name': 'title', 'values': [author.title]}]
     assert result == {
-        'author': {'name': name},
+        'author': {'name': name, 'id': author.id, 'title': author.title},
         'image': None,
-        'metadata': metadata,
+        'properties': [],
     }
 
 
-def test_author_metadata_no_property_match_empty_title():
+def test_author_properties_uses_title_even_if_empty_first_name():
     name = 'Does Not Exist'
+    author = baker.make(
+        'DocumentPersonalAuthor',
+        first_name='Does Not Exist',
+        last_name=None,
+        title='Some Title',
+    )
     assert (
-        PersonalAuthorProperty.objects.filter(
-            personal_author_name=name
-        ).count()
+        PersonalAuthorProperty.objects.filter(personal_author=author).count()
         == 0
     )
-    baker.make(
+
+    result = DocumentPersonalAuthor.objects.properties(name)
+
+    assert result == {
+        'author': {'name': name, 'id': author.id, 'title': author.title},
+        'image': None,
+        'properties': [],
+    }
+
+
+def test_author_properties_uses_title_even_if_empty_last_name():
+    name = 'Does Not Exist'
+    author = baker.make(
+        'DocumentPersonalAuthor',
+        first_name=None,
+        last_name='Does Not Exist',
+        title='Some Title',
+    )
+    assert (
+        PersonalAuthorProperty.objects.filter(personal_author=author).count()
+        == 0
+    )
+
+    result = DocumentPersonalAuthor.objects.properties(name)
+
+    assert result == {
+        'author': {'name': name, 'id': author.id, 'title': author.title},
+        'image': None,
+        'properties': [],
+    }
+
+
+def test_author_properties_no_property_match_empty_title():
+    name = 'Does Not Exist'
+    author = baker.make(
         'DocumentPersonalAuthor',
         first_name='Does Not',
         last_name='Exist',
         title='',
     )
+    assert (
+        PersonalAuthorProperty.objects.filter(personal_author=author).count()
+        == 0
+    )
 
-    result = author_metadata(name)
+    result = DocumentPersonalAuthor.objects.properties(name)
 
-    assert result == {'author': {'name': name}, 'image': None, 'metadata': []}
+    assert result == {
+        'author': {'name': name, 'id': author.id, 'title': author.title},
+        'image': None,
+        'properties': [],
+    }
 
 
-def test_author_metadata_uses_property_ranks():
+def test_author_properties_uses_property_ranks():
     author = baker.make(
         'DocumentPersonalAuthor', first_name='Some', last_name='Name'
     )
+    name = author.full_name()
 
     rank0 = baker.make(
         'PersonalAuthorPropertyRank', name='ignore due to rank 0', rank=0
     )
     prop0 = baker.make(
         'PersonalAuthorProperty',
-        personal_author_name=author.full_name(),
+        personal_author=author,
         name=rank0.name,
         entity='Ignored 0',
     )
@@ -115,7 +157,7 @@ def test_author_metadata_uses_property_ranks():
     )
     prop_1 = baker.make(
         'PersonalAuthorProperty',
-        personal_author_name=author.full_name(),
+        personal_author=author,
         name=rank_negative_1.name,
         entity='Ignored -1',
     )
@@ -123,7 +165,7 @@ def test_author_metadata_uses_property_ranks():
 
     prop_none = baker.make(
         'PersonalAuthorProperty',
-        personal_author_name=author.full_name(),
+        personal_author=author,
         name='no rank available',
         entity='Ignored None',
     )
@@ -132,14 +174,14 @@ def test_author_metadata_uses_property_ranks():
     rank_1 = baker.make('PersonalAuthorPropertyRank', name='valid 1', rank=1)
     prop_1_1 = baker.make(
         'PersonalAuthorProperty',
-        personal_author_name=author.full_name(),
+        personal_author=author,
         name=rank_1.name,
         entity='one value',
     )
     assert prop_1_1.rank == 1
     prop_1_2 = baker.make(
         'PersonalAuthorProperty',
-        personal_author_name=author.full_name(),
+        personal_author=author,
         name=rank_1.name,
         entity='another',
     )
@@ -148,13 +190,13 @@ def test_author_metadata_uses_property_ranks():
     rank_5 = baker.make('PersonalAuthorPropertyRank', name='valid 5', rank=5)
     prop_5 = baker.make(
         'PersonalAuthorProperty',
-        personal_author_name=author.full_name(),
+        personal_author=author,
         name=rank_5.name,
         entity='different value, could be a link who knows',
     )
     assert prop_5.rank == 5
 
-    result = author_metadata(author.full_name())
+    result = DocumentPersonalAuthor.objects.properties(name)
 
     # order is given by higher rank first, then entity
     expected = [
@@ -162,13 +204,13 @@ def test_author_metadata_uses_property_ranks():
         {'rank': 1, 'name': 'valid 1', 'values': ['another', 'one value']},
     ]
     assert result == {
-        'author': {'name': author.full_name()},
+        'author': {'name': name, 'id': author.id, 'title': author.title},
         'image': None,
-        'metadata': expected,
+        'properties': expected,
     }
 
 
-def test_author_metadata_extracts_image():
+def test_author_properties_extracts_image():
     author = baker.make(
         'DocumentPersonalAuthor',
         first_name='Some Other',
@@ -182,33 +224,37 @@ def test_author_metadata_extracts_image():
     )
     prop_image_1 = baker.make(
         'PersonalAuthorProperty',
-        personal_author_name=name,
+        personal_author=author,
         name=rank_image.name,
         entity='https://link-to-image-1.jpg',
     )
     assert prop_image_1.rank == 30
     prop_image_2 = baker.make(
         'PersonalAuthorProperty',
-        personal_author_name=name,
+        personal_author=author,
         name=rank_image.name,
         entity='https://link-to-image-2.jpg',
     )
     assert prop_image_2.rank == 30
 
-    result = author_metadata(name)
+    result = DocumentPersonalAuthor.objects.properties(name)
 
-    metadata = [{'rank': 1, 'name': 'title', 'values': [author.title]}]
     # XXX: alt needs data definition, waiting on Paul for this
     image = {'url': prop_image_1.entity, 'alt': f'Image of {name}'}
     assert result == {
-        'author': {'name': name},
+        'author': {'name': name, 'id': author.id, 'title': author.title},
         'image': image,
-        'metadata': metadata,
+        'properties': [],
     }
 
 
-def test_author_metadata_groups_birth_data():
+def test_author_properties_groups_birth_data():
     name = 'John Doe'
+    author = baker.make(
+        'DocumentPersonalAuthor',
+        first_name=name,
+        last_name=None,
+    )
     rank_place_of_birth = baker.make(
         'PersonalAuthorPropertyRank', name='place of birth', rank=24
     )
@@ -217,20 +263,20 @@ def test_author_metadata_groups_birth_data():
     )
     prop_place_of_birth = baker.make(
         'PersonalAuthorProperty',
-        personal_author_name=name,
+        personal_author=author,
         name=rank_place_of_birth.name,
         entity='A city or location',
     )
     prop_date_of_birth = baker.make(
         'PersonalAuthorProperty',
-        personal_author_name=name,
+        personal_author=author,
         name=rank_date_of_birth.name,
         entity='1979-01-01',
     )
 
-    result = author_metadata(name)
+    result = DocumentPersonalAuthor.objects.properties(name)
 
-    metadata = [
+    properties = [
         {
             'rank': 24,
             'name': 'born',
@@ -238,14 +284,19 @@ def test_author_metadata_groups_birth_data():
         }
     ]
     assert result == {
-        'author': {'name': name},
+        'author': {'name': name, 'id': author.id, 'title': author.title},
         'image': None,
-        'metadata': metadata,
+        'properties': properties,
     }
 
 
-def test_author_metadata_groups_death_data():
+def test_author_properties_groups_death_data():
     name = 'John Doe'
+    author = baker.make(
+        'DocumentPersonalAuthor',
+        first_name=None,
+        last_name=name,
+    )
     rank_place_of_death = baker.make(
         'PersonalAuthorPropertyRank', name='place of death', rank=24
     )
@@ -254,20 +305,20 @@ def test_author_metadata_groups_death_data():
     )
     prop_place_of_death = baker.make(
         'PersonalAuthorProperty',
-        personal_author_name=name,
+        personal_author=author,
         name=rank_place_of_death.name,
         entity='A city or location',
     )
     prop_date_of_death = baker.make(
         'PersonalAuthorProperty',
-        personal_author_name=name,
+        personal_author=author,
         name=rank_date_of_death.name,
         entity='1979-01-01',
     )
 
-    result = author_metadata(name)
+    result = DocumentPersonalAuthor.objects.properties(name)
 
-    metadata = [
+    properties = [
         {
             'rank': 24,
             'name': 'died',
@@ -275,14 +326,19 @@ def test_author_metadata_groups_death_data():
         }
     ]
     assert result == {
-        'author': {'name': name},
+        'author': {'name': name, 'id': author.id, 'title': author.title},
         'image': None,
-        'metadata': metadata,
+        'properties': properties,
     }
 
 
-def test_author_metadata_groups_name_data():
+def test_author_properties_groups_name_data():
     name = 'John Doe'
+    author = baker.make(
+        'DocumentPersonalAuthor',
+        first_name='John',
+        last_name='Doe',
+    )
     rank_family_name = baker.make(
         'PersonalAuthorPropertyRank', name='family name', rank=28
     )
@@ -291,20 +347,20 @@ def test_author_metadata_groups_name_data():
     )
     prop_family_name = baker.make(
         'PersonalAuthorProperty',
-        personal_author_name=name,
+        personal_author=author,
         name=rank_family_name.name,
         entity='Family Name',
     )
     prop_given_name = baker.make(
         'PersonalAuthorProperty',
-        personal_author_name=name,
+        personal_author=author,
         name=rank_given_name.name,
         entity='Given Name',
     )
 
-    result = author_metadata(name)
+    result = DocumentPersonalAuthor.objects.properties(name)
 
-    metadata = [
+    properties = [
         {
             'rank': 28,
             'name': 'name',
@@ -312,7 +368,7 @@ def test_author_metadata_groups_name_data():
         }
     ]
     assert result == {
-        'author': {'name': name},
+        'author': {'name': name, 'id': author.id, 'title': author.title},
         'image': None,
-        'metadata': metadata,
+        'properties': properties,
     }
