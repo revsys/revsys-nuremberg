@@ -326,7 +326,7 @@ def test_author_properties():
     born = f'Born: {prop_date_of_birth.value} ({prop_place_of_birth.value})'
     occupation = (
         f'Occupation: politician (member of: something; period: 1925-01-01 '
-        f'through 1925-08-08); soldier ; writer (date: 1923-11-09)'
+        f'through 1925-08-08); soldier; writer (date: 1923-11-09)'
     )
     assert_author_properties_html(
         response,
