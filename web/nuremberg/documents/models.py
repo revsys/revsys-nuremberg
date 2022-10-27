@@ -476,12 +476,16 @@ class PersonalAuthorProperty(models.Model):
         verbose_name_plural = 'Personal author properties'
 
     def __str__(self):
-        return 'Property {} for {}: {} ({}: {})'.format(
+        qualifier = (
+            f' ({self.qualifier}: {self.qualifier_value})'
+            if self.qualifier
+            else ''
+        )
+        return 'Property {} for {}: {}{}'.format(
             self.name,
             self.personal_author.full_name(),
             self.value,
-            self.qualifier,
-            self.qualifier_value,
+            qualifier,
         )
 
     @property
