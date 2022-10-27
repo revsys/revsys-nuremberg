@@ -336,6 +336,45 @@ class DocumentPersonalAuthorManager(models.Manager):
 
                 qualifiers[qualifier].add(p.qualifier_value)
 
+        # The properties "date of birth" and "place of birth" can be merged
+        # into a single property thus: "born: 1900-03-19 (Berlin)" -- and
+        # similarly for "date of death" and "place of death" resolving to
+        # "died: 1945-03-09 (Wiesbaden)"
+        for event, display_name in (('birth', 'born'), ('death', 'died')):
+            place_of_event_dict = grouped_props.pop(f'place of {event}', {})
+            place_of_event_rank = place_of_event_dict.get('rank', 0)
+            place_of_event = place_of_event_dict.get('prop_values', {})
+
+            date_of_event_dict = grouped_props.pop(f'date of {event}', {})
+            date_of_event_rank = date_of_event_dict.get('rank', 0)
+            date_of_event = date_of_event_dict.get('prop_values', {})
+
+            if place_of_event and date_of_event:
+                date_and_place = '{date} ({place})'.format(
+                    date=' '.join(date_of_event.keys()),
+                    place=' '.join(place_of_event.keys()),
+                )
+            elif place_of_event:
+                date_and_place = ' '.join(place_of_event.keys())
+            elif date_of_event:
+                date_and_place = ' '.join(date_of_event.keys())
+            else:
+                continue
+
+            # qualifiers for place and date
+            qualifiers = [i.items() for i in place_of_event.values()] + [
+                i.items() for i in date_of_event.values()
+            ]
+            # resulting merge by qualifier name
+            merged_qualifiers = defaultdict(set)
+            for q, qs in [i for items in qualifiers for i in items]:
+                merged_qualifiers[q].update(qs)
+
+            grouped_props[display_name] = {
+                'prop_values': {date_and_place: merged_qualifiers},
+                'rank': max(place_of_event_rank, date_of_event_rank),
+            }
+
         # The merging of properties and qualifiers should display property
         # followed by the qualifier in parentheses:
         # "property: property value (qualifier: qualifier value)"
@@ -374,41 +413,6 @@ class DocumentPersonalAuthorManager(models.Manager):
                 elif start and end:
                     sorted_qualifiers['period'] = start + end
 
-        # The properties "date of birth" and "place of birth" can be merged
-        # into a single property thus: "born: 1900-03-19 (Berlin)" -- and
-        # similarly for "date of death" and "place of death" resolving to
-        # "died: 1945-03-09 (Wiesbaden)"
-        for event, display_name in (('birth', 'born'), ('death', 'died')):
-            place_of_event_dict = grouped_props.pop(f'place of {event}', {})
-            place_of_event_rank = place_of_event_dict.get('rank', 0)
-            place_of_event = place_of_event_dict.get('prop_values', {})
-
-            date_of_event_dict = grouped_props.pop(f'date of {event}', {})
-            date_of_event_rank = date_of_event_dict.get('rank', 0)
-            date_of_event = date_of_event_dict.get('prop_values', {})
-
-            if place_of_event and date_of_event:
-                date_and_place = '{date} ({place})'.format(
-                    date=' '.join(date_of_event.keys()),
-                    place=' '.join(place_of_event.keys()),
-                )
-            elif place_of_event:
-                date_and_place = ' '.join(place_of_event.keys())
-            elif date_of_event:
-                date_and_place = ' '.join(date_of_event.keys())
-            else:
-                continue
-
-            qualifiers = {}
-            for q in place_of_event.values():
-                qualifiers.update(q)
-            for q in date_of_event.values():
-                qualifiers.update(q)
-            grouped_props[display_name] = {
-                'prop_values': {date_and_place: qualifiers},
-                'rank': max(place_of_event_rank, date_of_event_rank),
-            }
-
         image_urls = grouped_props.pop('image', {}).get('prop_values', {})
         if image_urls:
             first_image, qualifiers = list(image_urls.items())[0]
@@ -416,8 +420,8 @@ class DocumentPersonalAuthorManager(models.Manager):
             result['image'] = {
                 'url': first_image,
                 'alt': dict(qualifiers).pop(
-                    'media legend', f'Image of {author_name}'
-                ),
+                    'media legend', [f'Image of {author_name}']
+                )[0],
             }
 
         # All other grouped props are mapped directly to the end result
