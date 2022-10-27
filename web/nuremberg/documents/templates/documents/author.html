@@ -22,9 +22,11 @@
   <li data-test="author-property">
     <strong>{{ item.name|capfirst }}:</strong>
     {% for prop in item.prop_values %}
-        {{ prop.value }}
         {% if prop.qualifiers %}
-          <small>({% for q, qs in prop.qualifiers %}{{ q }}: {% if q == 'period' %}{{ qs|join:' through ' }}{% else %}{{ qs|join:'; ' }}{% endif %}{% if not forloop.last %}; {% endif %}{% endfor %})</small>{% endif %}{% if not forloop.last %};
+          {{ prop.value }}
+          <small>({% for q, qs in prop.qualifiers %}{{ q }}: {% if q == 'period' %}{{ qs|join:' through ' }}{% else %}{{ qs|join:'; ' }}{% endif %}{% if not forloop.last %}; {% endif %}{% endfor %})</small>{% if not forloop.last %}; {% endif %}
+        {% else %}
+          {{ prop.value }}{% if not forloop.last %}; {% endif %}
         {% endif %}
     {% endfor %}
   </li>
