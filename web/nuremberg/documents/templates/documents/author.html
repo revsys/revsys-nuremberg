@@ -20,7 +20,12 @@
 {% for item in properties %}
   <li data-test="author-property">
     <strong>{{ item.name|capfirst }}:</strong>
-    {% for i in item.values %}{{i}}{% if not forloop.last %}; {% endif %}{% endfor %}
+    {% for prop in item.prop_values %}
+        {{ prop.value }}
+        {% if prop.qualifiers %}
+          <small>({% for q, qs in prop.qualifiers %}{{ q }}: {% if q == 'period' %}{{ qs|join:' through ' }}{% else %}{{ qs|join:'; ' }}{% endif %}{% if not forloop.last %}; {% endif %}{% endfor %})</small>{% endif %}{% if not forloop.last %};
+        {% endif %}
+    {% endfor %}
   </li>
 {% empty %}
   <li data-test="author-property">

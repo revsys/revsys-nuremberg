@@ -4,6 +4,7 @@ from model_bakery import baker
 
 from nuremberg.core.tests.acceptance_helpers import PyQuery, client
 from nuremberg.documents.models import Document
+from .helpers import make_author
 
 
 pytestmark = pytest.mark.django_db
@@ -169,13 +170,13 @@ def test_author_properties_not_found():
 
 
 def test_author_properties():
-    author = baker.make('DocumentPersonalAuthor')
+    author = make_author()
     name = author.full_name()
     prop_image = baker.make(
         'PersonalAuthorProperty',
         personal_author=author,
         name='image',
-        entity='https://link-to-image-1.jpg',
+        value='https://link-to-image-1.jpg',
     )
     image_alt = f'Image of {name}'
     # other props, birth and occupation
@@ -189,13 +190,17 @@ def test_author_properties():
         'PersonalAuthorProperty',
         personal_author=author,
         name=rank_place_of_birth.name,
-        entity='A city',
+        value='A city',
+        qualifier='',
+        qualifier_value='',
     )
     prop_date_of_birth = baker.make(
         'PersonalAuthorProperty',
         personal_author=author,
         name=rank_date_of_birth.name,
-        entity='1979-01-01',
+        value='1979-01-01',
+        qualifier='',
+        qualifier_value='',
     )
     rank_occupation = baker.make(
         'PersonalAuthorPropertyRank', name='occupation', rank=26
@@ -204,19 +209,57 @@ def test_author_properties():
         'PersonalAuthorProperty',
         personal_author=author,
         name=rank_occupation.name,
-        entity='soldier',
+        value='soldier',
+        qualifier='',
+        qualifier_value='',
     )
     baker.make(
         'PersonalAuthorProperty',
         personal_author=author,
         name=rank_occupation.name,
-        entity='politician',
+        value='politician',
+        qualifier='',
+        qualifier_value='',
     )
     baker.make(
         'PersonalAuthorProperty',
         personal_author=author,
         name=rank_occupation.name,
-        entity='writer',
+        value='politician',
+        qualifier='start time',
+        qualifier_value='1925-01-01',
+    )
+    baker.make(
+        'PersonalAuthorProperty',
+        personal_author=author,
+        name=rank_occupation.name,
+        value='politician',
+        qualifier='end time',
+        qualifier_value='1925-08-08',
+    )
+    baker.make(
+        'PersonalAuthorProperty',
+        personal_author=author,
+        name=rank_occupation.name,
+        value='politician',
+        qualifier='member of',
+        qualifier_value='something',
+    )
+    baker.make(
+        'PersonalAuthorProperty',
+        personal_author=author,
+        name=rank_occupation.name,
+        value='writer',
+        qualifier='',
+        qualifier_value='',
+    )
+    baker.make(
+        'PersonalAuthorProperty',
+        personal_author=author,
+        name=rank_occupation.name,
+        value='writer',
+        qualifier='point in time',
+        qualifier_value='1923-11-09',
     )
 
     # request JSON
@@ -229,20 +272,32 @@ def test_author_properties():
     assert 'application/json' in response.headers['Content-Type']
     assert response.json() == {
         'author': {'name': name, 'id': author.id, 'title': author.title},
-        'image': {'url': prop_image.entity, 'alt': image_alt},
+        'image': {'url': prop_image.value, 'alt': image_alt},
         'properties': [
             {
                 'name': 'born',
                 'rank': 28,
-                'values': [
-                    prop_place_of_birth.entity,
-                    prop_date_of_birth.entity,
+                'prop_values': [
+                    {'value': '1979-01-01 (A city)', 'qualifiers': []},
                 ],
             },
             {
                 'name': 'occupation',
                 'rank': 26,
-                'values': ['politician', 'soldier', 'writer'],
+                'prop_values': [
+                    {
+                        'value': 'politician',
+                        'qualifiers': [
+                            ['member of', ['something']],
+                            ['period', ['1925-01-01', '1925-08-08']],
+                        ],
+                    },
+                    {'value': 'soldier', 'qualifiers': []},
+                    {
+                        'value': 'writer',
+                        'qualifiers': [['date', ['1923-11-09']]],
+                    },
+                ],
             },
         ],
     }
@@ -253,11 +308,16 @@ def test_author_properties():
     )
 
     # occupation values are shown alphabetically ordered
+    born = f'Born: {prop_date_of_birth.value} ({prop_place_of_birth.value})'
+    occupation = (
+        f'Occupation: politician (member of: something; period: 1925-01-01 '
+        f'through 1925-08-08); soldier ; writer (date: 1923-11-09)'
+    )
     assert_author_properties_html(
         response,
         name,
-        prop_image.entity,
+        prop_image.value,
         image_alt,
-        f'Born: {prop_place_of_birth.entity}; {prop_date_of_birth.entity}',
-        f'Occupation: politician; soldier; writer',
+        born,
+        occupation,
     )
