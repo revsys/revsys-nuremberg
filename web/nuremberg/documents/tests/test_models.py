@@ -1,4 +1,5 @@
 import datetime
+from functools import partial
 
 import pytest
 from model_bakery import baker
@@ -8,6 +9,7 @@ from nuremberg.documents.models import (
     DocumentPersonalAuthor,
     PersonalAuthorProperty,
 )
+from .helpers import make_author
 
 
 pytestmark = pytest.mark.django_db
@@ -35,6 +37,12 @@ def test_document_date_valid_as_date(day, month, year):
     assert d.as_date() == datetime.date(year, month, day)
 
 
+# no qualifiers for now
+make_property = partial(
+    baker.make, 'PersonalAuthorProperty', qualifier='', qualifier_value=''
+)
+
+
 def test_author_properties_no_match():
     name = 'Does Not Exist'
 
@@ -48,11 +56,10 @@ def test_author_properties_no_match():
 
 
 def test_author_properties_no_property_match_uses_title():
-    name = 'Does Not Exist'
-    author = baker.make(
-        'DocumentPersonalAuthor',
-        first_name='Does Not',
-        last_name='Exist',
+    name = 'No Properties'
+    author = make_author(
+        first_name='No',
+        last_name='Properties',
         title='Some Title',
     )
     assert (
@@ -71,8 +78,7 @@ def test_author_properties_no_property_match_uses_title():
 
 def test_author_properties_uses_title_even_if_empty_first_name():
     name = 'Does Not Exist'
-    author = baker.make(
-        'DocumentPersonalAuthor',
+    author = make_author(
         first_name='Does Not Exist',
         last_name=None,
         title='Some Title',
@@ -93,8 +99,7 @@ def test_author_properties_uses_title_even_if_empty_first_name():
 
 def test_author_properties_uses_title_even_if_empty_last_name():
     name = 'Does Not Exist'
-    author = baker.make(
-        'DocumentPersonalAuthor',
+    author = make_author(
         first_name=None,
         last_name='Does Not Exist',
         title='Some Title',
@@ -115,8 +120,7 @@ def test_author_properties_uses_title_even_if_empty_last_name():
 
 def test_author_properties_no_property_match_empty_title():
     name = 'Does Not Exist'
-    author = baker.make(
-        'DocumentPersonalAuthor',
+    author = make_author(
         first_name='Does Not',
         last_name='Exist',
         title='',
@@ -136,72 +140,75 @@ def test_author_properties_no_property_match_empty_title():
 
 
 def test_author_properties_uses_property_ranks():
-    author = baker.make(
-        'DocumentPersonalAuthor', first_name='Some', last_name='Name'
-    )
+    author = make_author(first_name='Some', last_name='Name')
     name = author.full_name()
 
     rank0 = baker.make(
         'PersonalAuthorPropertyRank', name='ignore due to rank 0', rank=0
     )
-    prop0 = baker.make(
-        'PersonalAuthorProperty',
+    prop0 = make_property(
         personal_author=author,
         name=rank0.name,
-        entity='Ignored 0',
+        value='Ignored 0',
     )
     assert prop0.rank == 0
 
     rank_negative_1 = baker.make(
         'PersonalAuthorPropertyRank', name='ignore due to rank -1', rank=-1
     )
-    prop_1 = baker.make(
-        'PersonalAuthorProperty',
+    prop_1 = make_property(
         personal_author=author,
         name=rank_negative_1.name,
-        entity='Ignored -1',
+        value='Ignored -1',
     )
     assert prop_1.rank == -1
 
-    prop_none = baker.make(
-        'PersonalAuthorProperty',
+    prop_none = make_property(
         personal_author=author,
         name='no rank available',
-        entity='Ignored None',
+        value='Ignored None',
     )
     assert prop_none.rank is None
 
     rank_1 = baker.make('PersonalAuthorPropertyRank', name='valid 1', rank=1)
-    prop_1_1 = baker.make(
-        'PersonalAuthorProperty',
+    prop_1_1 = make_property(
         personal_author=author,
         name=rank_1.name,
-        entity='one value',
+        value='one value',
     )
     assert prop_1_1.rank == 1
-    prop_1_2 = baker.make(
-        'PersonalAuthorProperty',
+    prop_1_2 = make_property(
         personal_author=author,
         name=rank_1.name,
-        entity='another',
+        value='another',
     )
     assert prop_1_2.rank == 1
 
     rank_5 = baker.make('PersonalAuthorPropertyRank', name='valid 5', rank=5)
-    prop_5 = baker.make(
-        'PersonalAuthorProperty',
+    prop_5 = make_property(
         personal_author=author,
         name=rank_5.name,
-        entity='different value, could be a link who knows',
+        value='different value, could be a link',
     )
     assert prop_5.rank == 5
 
     result = DocumentPersonalAuthor.objects.properties(name)
 
-    # order is given by higher rank first, then entity
+    # order is given by higher rank first, then value
     expected = [
-        {'rank': 5, 'name': 'valid 5', 'values': [prop_5.entity]},
-        {'rank': 1, 'name': 'valid 1', 'values': ['another', 'one value']},
+        {
+            'rank': 5,
+            'name': 'valid 5',
+            'prop_values': [{'value': prop_5.value, 'qualifiers': []}],
+        },
+        {
+            'rank': 1,
+            'name': 'valid 1',
+            'prop_values': [
+                {'value': 'another', 'qualifiers': []},
+                {'value': 'one value', 'qualifiers': []},
+            ],
+        },
     ]
     assert result == {
         'author': {'name': name, 'id': author.id, 'title': author.title},
@@ -211,8 +218,7 @@ def test_author_properties_uses_property_ranks():
 
 
 def test_author_properties_extracts_image():
-    author = baker.make(
-        'DocumentPersonalAuthor',
+    author = make_author(
         first_name='Some Other',
         last_name='Name',
         title='Sir Someone',
@@ -222,25 +228,23 @@ def test_author_properties_extracts_image():
     rank_image = baker.make(
         'PersonalAuthorPropertyRank', name='image', rank=30
     )
-    prop_image_1 = baker.make(
-        'PersonalAuthorProperty',
+    prop_image_1 = make_property(
         personal_author=author,
         name=rank_image.name,
-        entity='https://link-to-image-1.jpg',
+        value='https://link-to-image-1.jpg',
     )
     assert prop_image_1.rank == 30
-    prop_image_2 = baker.make(
-        'PersonalAuthorProperty',
+    prop_image_2 = make_property(
         personal_author=author,
         name=rank_image.name,
-        entity='https://link-to-image-2.jpg',
+        value='https://link-to-image-2.jpg',
     )
     assert prop_image_2.rank == 30
 
     result = DocumentPersonalAuthor.objects.properties(name)
 
     # XXX: alt needs data definition, waiting on Paul for this
-    image = {'url': prop_image_1.entity, 'alt': f'Image of {name}'}
+    image = {'url': prop_image_1.value, 'alt': f'Image of {name}'}
     assert result == {
         'author': {'name': name, 'id': author.id, 'title': author.title},
         'image': image,
@@ -250,8 +254,7 @@ def test_author_properties_extracts_image():
 
 def test_author_properties_groups_birth_data():
     name = 'John Doe'
-    author = baker.make(
-        'DocumentPersonalAuthor',
+    author = make_author(
         first_name=name,
         last_name=None,
     )
@@ -261,26 +264,25 @@ def test_author_properties_groups_birth_data():
     rank_date_of_birth = baker.make(
         'PersonalAuthorPropertyRank', name='date of birth', rank=23
     )
-    prop_place_of_birth = baker.make(
-        'PersonalAuthorProperty',
+    prop_place_of_birth = make_property(
         personal_author=author,
         name=rank_place_of_birth.name,
-        entity='A city or location',
+        value='A city or location',
     )
-    prop_date_of_birth = baker.make(
-        'PersonalAuthorProperty',
+    prop_date_of_birth = make_property(
         personal_author=author,
         name=rank_date_of_birth.name,
-        entity='1979-01-01',
+        value='1979-01-01',
     )
 
     result = DocumentPersonalAuthor.objects.properties(name)
 
+    born = f'{prop_date_of_birth.value} ({prop_place_of_birth.value})'
     properties = [
         {
             'rank': 24,
             'name': 'born',
-            'values': [prop_place_of_birth.entity, prop_date_of_birth.entity],
+            'prop_values': [{'value': born, 'qualifiers': []}],
         }
     ]
     assert result == {
@@ -292,8 +294,7 @@ def test_author_properties_groups_birth_data():
 
 def test_author_properties_groups_death_data():
     name = 'John Doe'
-    author = baker.make(
-        'DocumentPersonalAuthor',
+    author = make_author(
         first_name=None,
         last_name=name,
     )
@@ -303,26 +304,25 @@ def test_author_properties_groups_death_data():
     rank_date_of_death = baker.make(
         'PersonalAuthorPropertyRank', name='date of death', rank=23
     )
-    prop_place_of_death = baker.make(
-        'PersonalAuthorProperty',
+    prop_place_of_death = make_property(
         personal_author=author,
         name=rank_place_of_death.name,
-        entity='A city or location',
+        value='A city or location',
     )
-    prop_date_of_death = baker.make(
-        'PersonalAuthorProperty',
+    prop_date_of_death = make_property(
         personal_author=author,
         name=rank_date_of_death.name,
-        entity='1979-01-01',
+        value='1979-01-01',
     )
 
     result = DocumentPersonalAuthor.objects.properties(name)
 
+    died = f'{prop_date_of_death.value} ({prop_place_of_death.value})'
     properties = [
         {
             'rank': 24,
             'name': 'died',
-            'values': [prop_place_of_death.entity, prop_date_of_death.entity],
+            'prop_values': [{'value': died, 'qualifiers': []}],
         }
     ]
     assert result == {
@@ -332,10 +332,9 @@ def test_author_properties_groups_death_data():
     }
 
 
-def test_author_properties_groups_name_data():
+def test_author_properties_name_data_ignored():
     name = 'John Doe'
-    author = baker.make(
-        'DocumentPersonalAuthor',
+    author = make_author(
         first_name='John',
         last_name='Doe',
     )
@@ -345,30 +344,32 @@ def test_author_properties_groups_name_data():
     rank_given_name = baker.make(
         'PersonalAuthorPropertyRank', name='given name', rank=27
     )
-    prop_family_name = baker.make(
+    rank_birth_name = baker.make(
+        'PersonalAuthorPropertyRank', name='birth name', rank=26
+    )
+    baker.make(
         'PersonalAuthorProperty',
         personal_author=author,
         name=rank_family_name.name,
-        entity='Family Name',
+        value='Family Name',
     )
-    prop_given_name = baker.make(
+    baker.make(
         'PersonalAuthorProperty',
         personal_author=author,
         name=rank_given_name.name,
-        entity='Given Name',
+        value='Given Name',
+    )
+    baker.make(
+        'PersonalAuthorProperty',
+        personal_author=author,
+        name=rank_birth_name.name,
+        value='Birth Name',
     )
 
     result = DocumentPersonalAuthor.objects.properties(name)
 
-    properties = [
-        {
-            'rank': 28,
-            'name': 'name',
-            'values': [prop_family_name.entity, prop_given_name.entity],
-        }
-    ]
     assert result == {
         'author': {'name': name, 'id': author.id, 'title': author.title},
         'image': None,
-        'properties': properties,
+        'properties': [],
     }

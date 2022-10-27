@@ -298,45 +298,150 @@ class DocumentPersonalAuthorManager(models.Manager):
 
         result['author'].update({'id': author.id, 'title': author.title})
 
-        # Group properties by name, this may need a more complex algorithm
-        grouped_props = defaultdict(list)
+        # Properties grouped by name, then by qualifier
+        grouped_props = defaultdict(lambda: {'rank': set(), 'prop_values': {}})
+        # if rank would be available, we could filter and sort by rank
         for p in author.properties.all():
             if p.rank is None or p.rank < 1:
                 continue
-            key = p.name
-            # handle special cases
-            if key in ('family name', 'given name'):
-                key = 'name'
-            elif key in ('place of birth', 'date of birth'):
-                key = 'born'
-            elif key in ('place of death', 'date of death'):
-                key = 'died'
-            else:
-                key = p.name
-            grouped_props[key].append((p.rank, p.entity))
 
-        image_urls = grouped_props.pop('image', None)
+            key = p.name
+
+            # handle special cases
+            if key in ('family name', 'given name', 'birth name'):
+                continue
+
+            grouped_props[key]['rank'].add(p.rank)
+            qualifiers = grouped_props[key]['prop_values'].setdefault(
+                p.value, defaultdict(set)
+            )
+            # The qualifier "valid in place" can be suppressed altogether
+            if p.qualifier and p.qualifier != 'valid in place':
+                if not p.qualifier_value:
+                    logging.warning(
+                        'No qualifier value for %s (author: %s, property: %s)',
+                        p.qualifier,
+                        author,
+                        key,
+                    )
+                    continue
+
+                qualifier = p.qualifier
+                # The qualifier "object has role" can be simplified to "role"
+                # (same for "subject has role")
+                if qualifier in ('object has role', 'subject has role'):
+                    qualifier = 'role'
+                elif qualifier == 'point in time':
+                    qualifier = 'date'
+
+                qualifiers[qualifier].add(p.qualifier_value)
+
+        # The merging of properties and qualifiers should display property
+        # followed by the qualifier in parentheses:
+        # "property: property value (qualifier: qualifier value)"
+        # e.g., "participant in: Nuremberg Medical Trial (role: prosecutor)"
+
+        # For the qualifiers "start time" and "end time" for some property. On
+        # the front end, we'd like to simply see a parenthesized expression
+        # with the two dates separated by "through":
+        # "1933-10-15 through 1936-11-01"
+
+        for prop_name, prop_items in grouped_props.items():
+            # since properties data is denormalized, perform some rank checks
+            if len(prop_items['rank']) > 1:
+                logger.warning(
+                    'Got multiple ranks (%s) for the property %r (author: %s)',
+                    prop_items['rank'],
+                    prop_name,
+                    author,
+                )
+            prop_items['rank'] = max(prop_items.pop('rank'))
+
+            for prop_value, qualifiers in prop_items['prop_values'].items():
+                prop_items['prop_values'][prop_value] = sorted_qualifiers = {
+                    # sort the qualifier's values alphabetically
+                    q: sorted(qs)
+                    for q, qs in qualifiers.items()
+                }
+
+                # handle special cases for qualifiers, mostly date related
+                start = sorted_qualifiers.pop('start time', None)
+                end = sorted_qualifiers.pop('end time', None)
+                if start and not end:
+                    sorted_qualifiers['since'] = start
+                elif end and not start:
+                    sorted_qualifiers['until'] = end
+                elif start and end:
+                    sorted_qualifiers['period'] = start + end
+
+        # The properties "date of birth" and "place of birth" can be merged
+        # into a single property thus: "born: 1900-03-19 (Berlin)" -- and
+        # similarly for "date of death" and "place of death" resolving to
+        # "died: 1945-03-09 (Wiesbaden)"
+        for event, display_name in (('birth', 'born'), ('death', 'died')):
+            place_of_event_dict = grouped_props.pop(f'place of {event}', {})
+            place_of_event_rank = place_of_event_dict.get('rank', 0)
+            place_of_event = place_of_event_dict.get('prop_values', {})
+
+            date_of_event_dict = grouped_props.pop(f'date of {event}', {})
+            date_of_event_rank = date_of_event_dict.get('rank', 0)
+            date_of_event = date_of_event_dict.get('prop_values', {})
+
+            if place_of_event and date_of_event:
+                date_and_place = '{date} ({place})'.format(
+                    date=' '.join(date_of_event.keys()),
+                    place=' '.join(place_of_event.keys()),
+                )
+            elif place_of_event:
+                date_and_place = ' '.join(place_of_event.keys())
+            elif date_of_event:
+                date_and_place = ' '.join(date_of_event.keys())
+            else:
+                continue
+
+            qualifiers = {}
+            for q in place_of_event.values():
+                qualifiers.update(q)
+            for q in date_of_event.values():
+                qualifiers.update(q)
+            grouped_props[display_name] = {
+                'prop_values': {date_and_place: qualifiers},
+                'rank': max(place_of_event_rank, date_of_event_rank),
+            }
+
+        image_urls = grouped_props.pop('image', {}).get('prop_values', {})
         if image_urls:
+            first_image, qualifiers = list(image_urls.items())[0]
             # XXX: we need to properly handle "media legend" for images
             result['image'] = {
-                'url': sorted(image_urls)[0][1],
-                'alt': grouped_props.pop(
-                    'media_legend', f'Image of {author_name}'
+                'url': first_image,
+                'alt': dict(qualifiers).pop(
+                    'media legend', f'Image of {author_name}'
                 ),
             }
+
+        # All other grouped props are mapped directly to the end result
 
         # If a given author doesn't have at least 10 ranked properties, display
         # only the ranked properties
         result['properties'] = sorted(
             (
                 {
-                    'rank': max(i[0] for i in props),  # maximun rank
+                    'rank': props['rank'],
                     'name': name,
                     # list of entities ordered by their rank DESC then name ASC
-                    'values': [
-                        i[1]
-                        for i in sorted(props, key=lambda x: (-x[0], x[1]))
-                    ],
+                    'prop_values': sorted(
+                        (
+                            {
+                                'value': value,
+                                'qualifiers': sorted(qualifiers.items()),
+                            }
+                            for value, qualifiers in props[
+                                'prop_values'
+                            ].items()
+                        ),
+                        key=operator.itemgetter('value'),
+                    ),
                 }
                 for name, props in grouped_props.items()
             ),
