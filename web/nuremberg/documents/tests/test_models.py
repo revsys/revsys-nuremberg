@@ -63,7 +63,12 @@ def test_author_properties_no_property_match_uses_title():
     result = DocumentPersonalAuthor.objects.properties(name)
 
     assert result == {
-        'author': {'name': name, 'id': author.id, 'title': author.title},
+        'author': {
+            'name': name,
+            'id': author.id,
+            'title': author.title,
+            'description': '',
+        },
         'image': None,
         'properties': [],
     }
@@ -84,7 +89,12 @@ def test_author_properties_uses_title_even_if_empty_first_name():
     result = DocumentPersonalAuthor.objects.properties(name)
 
     assert result == {
-        'author': {'name': name, 'id': author.id, 'title': author.title},
+        'author': {
+            'name': name,
+            'id': author.id,
+            'title': author.title,
+            'description': '',
+        },
         'image': None,
         'properties': [],
     }
@@ -105,7 +115,12 @@ def test_author_properties_uses_title_even_if_empty_last_name():
     result = DocumentPersonalAuthor.objects.properties(name)
 
     assert result == {
-        'author': {'name': name, 'id': author.id, 'title': author.title},
+        'author': {
+            'name': name,
+            'id': author.id,
+            'title': author.title,
+            'description': '',
+        },
         'image': None,
         'properties': [],
     }
@@ -126,7 +141,12 @@ def test_author_properties_no_property_match_empty_title():
     result = DocumentPersonalAuthor.objects.properties(name)
 
     assert result == {
-        'author': {'name': name, 'id': author.id, 'title': author.title},
+        'author': {
+            'name': name,
+            'id': author.id,
+            'title': author.title,
+            'description': '',
+        },
         'image': None,
         'properties': [],
     }
@@ -216,7 +236,12 @@ def test_author_properties_uses_property_ranks():
         },
     ]
     assert result == {
-        'author': {'name': name, 'id': author.id, 'title': author.title},
+        'author': {
+            'name': name,
+            'id': author.id,
+            'title': author.title,
+            'description': prop_1_1.personal_author_description,
+        },
         'image': None,
         'properties': expected,
     }
@@ -227,7 +252,7 @@ def test_author_properties_groups_qualifiers():
     name = author.full_name()
 
     rank = baker.make('PersonalAuthorPropertyRank', name='a property', rank=10)
-    baker.make(
+    first = baker.make(
         'PersonalAuthorProperty',
         personal_author=author,
         name=rank.name,
@@ -316,7 +341,12 @@ def test_author_properties_groups_qualifiers():
         },
     ]
     assert result == {
-        'author': {'name': name, 'id': author.id, 'title': author.title},
+        'author': {
+            'name': name,
+            'id': author.id,
+            'title': author.title,
+            'description': first.personal_author_description,
+        },
         'image': None,
         'properties': expected,
     }
@@ -356,8 +386,14 @@ def test_author_properties_extracts_image():
 
     # Default alt if no 'media legend' qualifier is present
     image = {'url': prop_image_1.value, 'alt': f'Image of {name}'}
+    author_data = {
+        'name': name,
+        'id': author.id,
+        'title': author.title,
+        'description': prop_image_1.personal_author_description,
+    }
     assert result == {
-        'author': {'name': name, 'id': author.id, 'title': author.title},
+        'author': author_data,
         'image': image,
         'properties': [],
     }
@@ -374,7 +410,7 @@ def test_author_properties_extracts_image():
 
     result = DocumentPersonalAuthor.objects.properties(name)
     assert result == {
-        'author': {'name': name, 'id': author.id, 'title': author.title},
+        'author': author_data,
         'image': image,
         'properties': [],
     }
@@ -394,7 +430,7 @@ def test_author_properties_extracts_image():
 
     image['alt'] = legend
     assert result == {
-        'author': {'name': name, 'id': author.id, 'title': author.title},
+        'author': author_data,
         'image': image,
         'properties': [],
     }
@@ -440,7 +476,12 @@ def test_author_properties_groups_birth_data():
         }
     ]
     assert result == {
-        'author': {'name': name, 'id': author.id, 'title': author.title},
+        'author': {
+            'name': name,
+            'id': author.id,
+            'title': author.title,
+            'description': prop_place_of_birth.personal_author_description,
+        },
         'image': None,
         'properties': properties,
     }
@@ -486,7 +527,12 @@ def test_author_properties_groups_death_data():
         }
     ]
     assert result == {
-        'author': {'name': name, 'id': author.id, 'title': author.title},
+        'author': {
+            'name': name,
+            'id': author.id,
+            'title': author.title,
+            'description': prop_place_of_death.personal_author_description,
+        },
         'image': None,
         'properties': properties,
     }
@@ -507,7 +553,7 @@ def test_author_properties_name_data_ignored():
     rank_birth_name = baker.make(
         'PersonalAuthorPropertyRank', name='birth name', rank=26
     )
-    baker.make(
+    first = baker.make(
         'PersonalAuthorProperty',
         personal_author=author,
         name=rank_family_name.name,
@@ -529,7 +575,12 @@ def test_author_properties_name_data_ignored():
     result = DocumentPersonalAuthor.objects.properties(name)
 
     assert result == {
-        'author': {'name': name, 'id': author.id, 'title': author.title},
+        'author': {
+            'name': name,
+            'id': author.id,
+            'title': author.title,
+            'description': first.personal_author_description,
+        },
         'image': None,
         'properties': [],
     }
@@ -714,7 +765,12 @@ def test_author_properties_dates_and_qualifiers():
         },
     ]
     assert result == {
-        'author': {'name': name, 'id': author.id, 'title': author.title},
+        'author': {
+            'name': name,
+            'id': author.id,
+            'title': author.title,
+            'description': prop_place_of_birth.personal_author_description,
+        },
         'image': None,
         'properties': properties,
     }

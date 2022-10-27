@@ -296,14 +296,21 @@ class DocumentPersonalAuthorManager(models.Manager):
         if not author:
             return result
 
-        result['author'].update({'id': author.id, 'title': author.title})
+        result['author'].update(
+            {'id': author.id, 'title': author.title, 'description': ''}
+        )
 
         # Properties grouped by name, then by qualifier
-        grouped_props = defaultdict(lambda: {'rank': set(), 'prop_values': {}})
-        # if rank would be available, we could filter and sort by rank
-        for p in author.properties.all():
+        grouped_props = defaultdict(lambda: {'rank': 0, 'prop_values': {}})
+        # if rank would be available, we could filter and sort by rank. Since
+        # for now it's not, order by ID to have a reliable description in tests
+        for p in author.properties.all().order_by('id'):
             if p.rank is None or p.rank < 1:
                 continue
+
+            if not result['author']['description']:
+                # use first non empty property to update author's description
+                result['author']['description'] = p.personal_author_description
 
             key = p.name
 
@@ -311,7 +318,9 @@ class DocumentPersonalAuthorManager(models.Manager):
             if key in ('family name', 'given name', 'birth name'):
                 continue
 
-            grouped_props[key]['rank'].add(p.rank)
+            grouped_props[key]['rank'] = max(
+                p.rank, grouped_props[key]['rank']
+            )
             qualifiers = grouped_props[key]['prop_values'].setdefault(
                 p.value, defaultdict(set)
             )
@@ -386,16 +395,6 @@ class DocumentPersonalAuthorManager(models.Manager):
         # "1933-10-15 through 1936-11-01"
 
         for prop_name, prop_items in grouped_props.items():
-            # since properties data is denormalized, perform some rank checks
-            if len(prop_items['rank']) > 1:
-                logger.warning(
-                    'Got multiple ranks (%s) for the property %r (author: %s)',
-                    prop_items['rank'],
-                    prop_name,
-                    author,
-                )
-            prop_items['rank'] = max(prop_items.pop('rank'))
-
             for prop_value, qualifiers in prop_items['prop_values'].items():
                 prop_items['prop_values'][prop_value] = sorted_qualifiers = {
                     # sort the qualifier's values alphabetically
