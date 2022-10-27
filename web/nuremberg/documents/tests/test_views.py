@@ -109,7 +109,7 @@ def test_document_3799():
 
 
 def assert_author_properties_html(
-    response, author_name, image_url, image_alt, *properties
+    response, name, description, image_url, image_alt, *properties
 ):
     assert response.status_code == 200
     assert 'text/html' in response.headers['Content-Type']
@@ -117,8 +117,12 @@ def assert_author_properties_html(
     content = PyQuery(response.content)
 
     # name is shown
-    name = content.find('[data-test="author-name"]').text()
-    assert name == author_name
+    assert content.find('[data-test="author-name"]').text() == name
+
+    # description is shown
+    assert (
+        content.find('[data-test="author-description"]').text() == description
+    )
 
     # image is shown
     image = content.find('[data-test="author-image"]')
@@ -163,6 +167,7 @@ def test_author_properties_not_found():
     assert_author_properties_html(
         response,
         name,
+        '',
         image_url,
         image_alt,
         'Additional biographical details not yet available.',
@@ -172,8 +177,10 @@ def test_author_properties_not_found():
 def test_author_properties():
     author = make_author()
     name = author.full_name()
+    description = 'A summary of the author'
     prop_image = baker.make(
         'PersonalAuthorProperty',
+        personal_author_description='',
         personal_author=author,
         name='image',
         value='https://link-to-image-1.jpg',
@@ -189,6 +196,7 @@ def test_author_properties():
     prop_place_of_birth = baker.make(
         'PersonalAuthorProperty',
         personal_author=author,
+        personal_author_description='',
         name=rank_place_of_birth.name,
         value='A city',
         qualifier='',
@@ -197,6 +205,8 @@ def test_author_properties():
     prop_date_of_birth = baker.make(
         'PersonalAuthorProperty',
         personal_author=author,
+        # description is taken from any property that has it
+        personal_author_description=description,
         name=rank_date_of_birth.name,
         value='1979-01-01',
         qualifier='',
@@ -271,7 +281,12 @@ def test_author_properties():
     assert response.status_code == 200
     assert 'application/json' in response.headers['Content-Type']
     assert response.json() == {
-        'author': {'name': name, 'id': author.id, 'title': author.title},
+        'author': {
+            'name': name,
+            'id': author.id,
+            'title': author.title,
+            'description': description,
+        },
         'image': {'url': prop_image.value, 'alt': image_alt},
         'properties': [
             {
@@ -316,6 +331,7 @@ def test_author_properties():
     assert_author_properties_html(
         response,
         name,
+        description,
         prop_image.value,
         image_alt,
         born,

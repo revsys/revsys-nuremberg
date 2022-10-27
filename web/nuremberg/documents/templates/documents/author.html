@@ -8,13 +8,14 @@
 <section class="theme-light results">
 
 <h2 data-test="author-name">{{ author.name }}</h2>
+<h4 data-test="author-description">{{ author.description }}</h4>
 
 <img data-test="author-image"
 {% if image %}
     src="{{ image.url }}" alt="{{ image.alt }}"
 {% else %}
     src="{% static 'images/authors/placeholder.png' %}" alt="{% trans 'No image available.' %}"
-{% endif %} width=200 style="float:right" />
+{% endif %} width=200 style="float: right; margin: 20px" />
 
 <ul>
 {% for item in properties %}
