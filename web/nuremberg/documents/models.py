@@ -1,8 +1,14 @@
 import datetime
 import logging
+import operator
+from collections import defaultdict
 
-from django.utils.text import slugify
 from django.db import models
+from django.db.models import Case, Count, Value, When
+from django.db.models.functions import Concat
+from django.utils.functional import cached_property
+from django.utils.text import slugify
+
 from nuremberg.core.storages import DocumentStorage
 
 
@@ -267,6 +273,214 @@ class DocumentDate(models.Model):
         return result
 
 
+class DocumentPersonalAuthorQuerySet(models.QuerySet):
+    def _properties_by_author(self, author, properties, ranks, max_length=10):
+        result = {
+            'author': {
+                'name': author.full_name(),
+                'id': author.id,
+                'title': author.title,
+                'description': '',
+            },
+            'image': None,
+            'properties': [],
+        }
+
+        # Properties grouped by name, then by qualifier
+        grouped_props = defaultdict(lambda: {'rank': 0, 'prop_values': {}})
+        for p in properties:
+            rank = ranks.get(p.name)
+
+            if rank is None or rank < 1:
+                continue
+
+            if not result['author']['description']:
+                # use first non empty property to update author's description
+                result['author']['description'] = p.personal_author_description
+
+            key = p.name
+
+            # handle special cases
+            if key in ('family name', 'given name', 'birth name'):
+                continue
+
+            grouped_props[key]['rank'] = max(rank, grouped_props[key]['rank'])
+            qualifiers = grouped_props[key]['prop_values'].setdefault(
+                p.value, defaultdict(set)
+            )
+            # The qualifier "valid in place" can be suppressed altogether
+            if p.qualifier and p.qualifier != 'valid in place':
+                if not p.qualifier_value:
+                    logging.warning(
+                        'No qualifier value for %s (author: %s, property: %s)',
+                        p.qualifier,
+                        author,
+                        key,
+                    )
+                    continue
+
+                qualifier = p.qualifier
+                # The qualifier "object has role" can be simplified to "role"
+                # (same for "subject has role")
+                if qualifier in ('object has role', 'subject has role'):
+                    qualifier = 'role'
+                elif qualifier == 'point in time':
+                    qualifier = 'date'
+
+                qualifiers[qualifier].add(p.qualifier_value)
+
+        # The properties "date of birth" and "place of birth" can be merged
+        # into a single property thus: "born: 1900-03-19 (Berlin)" -- and
+        # similarly for "date of death" and "place of death" resolving to
+        # "died: 1945-03-09 (Wiesbaden)"
+        for event, display_name in (('birth', 'born'), ('death', 'died')):
+            place_of_event_dict = grouped_props.pop(f'place of {event}', {})
+            place_of_event_rank = place_of_event_dict.get('rank', 0)
+            place_of_event = place_of_event_dict.get('prop_values', {})
+
+            date_of_event_dict = grouped_props.pop(f'date of {event}', {})
+            date_of_event_rank = date_of_event_dict.get('rank', 0)
+            date_of_event = date_of_event_dict.get('prop_values', {})
+
+            if place_of_event and date_of_event:
+                date_and_place = '{date} ({place})'.format(
+                    date=' '.join(date_of_event.keys()),
+                    place=' '.join(place_of_event.keys()),
+                )
+            elif place_of_event:
+                date_and_place = ' '.join(place_of_event.keys())
+            elif date_of_event:
+                date_and_place = ' '.join(date_of_event.keys())
+            else:
+                continue
+
+            # qualifiers for place and date
+            qualifiers = [i.items() for i in place_of_event.values()] + [
+                i.items() for i in date_of_event.values()
+            ]
+            # resulting merge by qualifier name
+            merged_qualifiers = defaultdict(set)
+            for q, qs in [i for items in qualifiers for i in items]:
+                merged_qualifiers[q].update(qs)
+
+            grouped_props[display_name] = {
+                'prop_values': {date_and_place: merged_qualifiers},
+                'rank': max(place_of_event_rank, date_of_event_rank),
+            }
+
+        # The merging of properties and qualifiers should display property
+        # followed by the qualifier in parentheses:
+        # "property: property value (qualifier: qualifier value)"
+        # e.g., "participant in: Nuremberg Medical Trial (role: prosecutor)"
+
+        # For the qualifiers "start time" and "end time" for some property. On
+        # the front end, we'd like to simply see a parenthesized expression
+        # with the two dates separated by "through":
+        # "1933-10-15 through 1936-11-01"
+
+        for prop_name, prop_items in grouped_props.items():
+            for prop_value, qualifiers in prop_items['prop_values'].items():
+                prop_items['prop_values'][prop_value] = sorted_qualifiers = {
+                    # sort the qualifier's values alphabetically
+                    q: sorted(qs)
+                    for q, qs in qualifiers.items()
+                }
+
+                # handle special cases for qualifiers, mostly date related
+                start = sorted_qualifiers.pop('start time', None)
+                end = sorted_qualifiers.pop('end time', None)
+                if start and not end:
+                    sorted_qualifiers['since'] = start
+                elif end and not start:
+                    sorted_qualifiers['until'] = end
+                elif start and end:
+                    sorted_qualifiers['period'] = start + end
+
+        image_urls = grouped_props.pop('image', {}).get('prop_values', {})
+        if image_urls:
+            first_image, qualifiers = list(image_urls.items())[0]
+            # XXX: we need to properly handle "media legend" for images
+            result['image'] = {
+                'url': first_image,
+                'alt': dict(qualifiers).pop(
+                    'media legend', [f'Image of {author.full_name()}']
+                )[0],
+            }
+
+        # All other grouped props are mapped directly to the end result
+
+        # If a given author doesn't have at least 10 ranked properties, display
+        # only the ranked properties
+        result['properties'] = sorted(
+            (
+                {
+                    'rank': props['rank'],
+                    'name': name,
+                    # list of entities ordered by their rank DESC then name ASC
+                    'prop_values': sorted(
+                        (
+                            {
+                                'value': value,
+                                'qualifiers': sorted(qualifiers.items()),
+                            }
+                            for value, qualifiers in props[
+                                'prop_values'
+                            ].items()
+                        ),
+                        key=operator.itemgetter('value'),
+                    ),
+                }
+                for name, props in grouped_props.items()
+            ),
+            key=operator.itemgetter('rank'),
+            reverse=True,
+        )[:max_length]
+
+        return result
+
+    def properties(self, max_length=10):
+        # Given than ranks are not available via DB relationships (yet?), we
+        # cache them all to avoid many queries when iterating over every author
+        # property. This is total 3 queries! \o/
+        ranks = dict(
+            PersonalAuthorPropertyRank.objects.all().values_list(
+                'name', 'rank'
+            )
+        )
+        return [
+            self._properties_by_author(
+                author, author.properties.all(), ranks, max_length
+            )
+            for author in self.prefetch_related('properties')
+        ]
+
+    def properties_by_author_name(self, author_name, max_length=10):
+        matches = (
+            self.annotate(
+                db_full_name=Case(
+                    When(first_name__isnull=True, then='last_name'),
+                    When(last_name__isnull=True, then='first_name'),
+                    default=Concat('first_name', Value(' '), 'last_name'),
+                ),
+            )
+            .filter(db_full_name=author_name)
+            .annotate(prolific=Count('documents'))  # XXX: To Be Reviewed
+            .order_by('-prolific')
+        ).properties(max_length)
+        if matches:
+            result = matches[0]
+        else:
+            result = {
+                'author': {'name': author_name},
+                'image': None,
+                'properties': [],
+            }
+        return result
+
+
+DocumentPersonalAuthorManager = DocumentPersonalAuthorQuerySet.as_manager
+
+
 class DocumentPersonalAuthor(models.Model):
     id = models.AutoField(primary_key=True, db_column='PersonalAuthorID')
     last_name = models.CharField(max_length=35, db_column='AuthLName')
@@ -279,6 +493,8 @@ class DocumentPersonalAuthor(models.Model):
         through='DocumentsToPersonalAuthors',
         through_fields=('author', 'document'),
     )
+
+    objects = DocumentPersonalAuthorManager()
 
     class Meta:
         managed = False
@@ -394,23 +610,27 @@ class PersonalAuthorProperty(models.Model):
         verbose_name_plural = 'Personal author properties'
 
     def __str__(self):
-        return 'Property {} for {}: {} ({}: {})'.format(
+        qualifier = (
+            f' ({self.qualifier}: {self.qualifier_value})'
+            if self.qualifier
+            else ''
+        )
+        return 'Property {} for {}: {}{}'.format(
             self.name,
             self.personal_author.full_name(),
             self.value,
-            self.qualifier,
-            self.qualifier_value,
+            qualifier,
         )
 
-    @property
+    @cached_property
     def rank(self):
-        try:
-            result = PersonalAuthorPropertyRank.objects.get(
-                name=self.name
-            ).rank
-        except PersonalAuthorPropertyRank.DoesNotExist:
-            result = None
-        return result
+        result = (
+            PersonalAuthorPropertyRank.objects.filter(name=self.name)
+            .order_by('rank')
+            .last()
+        )
+        if result:
+            return result.rank
 
 
 class DocumentCase(models.Model):

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{{ author.name }}{% endblock %}
+
+{% block content %}
+<section class="theme-light results">
+
+<h2 data-test="author-name">{{ author.name }}</h2>
+<h4 data-test="author-description">{{ author.description }}</h4>
+
+<img data-test="author-image"
+{% if image %}
+    src="{{ image.url }}" alt="{{ image.alt }}"
+{% else %}
+    src="{% static 'images/authors/placeholder.png' %}" alt="{% trans 'No image available.' %}"
+{% endif %} width=200 style="float: right; margin: 20px" />
+
+<ul>
+{% for item in properties %}
+  <li data-test="author-property">
+    <strong>{{ item.name|capfirst }}:</strong>
+    {% for prop in item.prop_values %}
+        {% if prop.qualifiers %}
+          {{ prop.value }}
+          <small>({% for q, qs in prop.qualifiers %}{{ q }}: {% if q == 'period' %}{{ qs|join:' through ' }}{% else %}{{ qs|join:'; ' }}{% endif %}{% if not forloop.last %}; {% endif %}{% endfor %})</small>{% if not forloop.last %}; {% endif %}
+        {% else %}
+          {{ prop.value }}{% if not forloop.last %}; {% endif %}
+        {% endif %}
+    {% endfor %}
+  </li>
+{% empty %}
+  <li data-test="author-property">
+    {% trans 'Additional biographical details not yet available.' %}
+  </li>
+{% endfor %}
+</ul>
+
+</section>
+{% endblock %}

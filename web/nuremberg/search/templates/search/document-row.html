@@ -135,9 +135,14 @@
       </a>
     {% else %}
       {% for author in result.authors %}
+      <div class="dropdown">
         <p>
-          <a href="{% search_query author=author %}">{{author}}</a>
+          <a href="{% search_query author=author %}">{{ author }}</a>
+          <div class="dropdown-content">
+            <p><a href="{% url 'documents:author' author_name=author %}">See details</a> for {{ author }}</p>
+          </div>
         </p>
+      </div>
       {% endfor %}
     {% endif %}
   </td>
