@@ -3,10 +3,11 @@ import logging
 import operator
 from collections import defaultdict
 
-from django.utils.text import slugify
 from django.db import models
 from django.db.models import Case, Count, Value, When
 from django.db.models.functions import Concat
+from django.utils.functional import cached_property
+from django.utils.text import slugify
 
 from nuremberg.core.storages import DocumentStorage
 
@@ -272,40 +273,25 @@ class DocumentDate(models.Model):
         return result
 
 
-class DocumentPersonalAuthorManager(models.Manager):
-    def properties(self, author_name, max_length=10):
-        author = (
-            self.annotate(
-                db_full_name=Case(
-                    When(first_name__isnull=True, then='last_name'),
-                    When(last_name__isnull=True, then='first_name'),
-                    default=Concat('first_name', Value(' '), 'last_name'),
-                ),
-            )
-            .filter(db_full_name=author_name)
-            .annotate(prolific=Count('documents'))  # XXX: To Be Reviewed
-            .order_by('-prolific')
-            .first()
-        )
-
+class DocumentPersonalAuthorQuerySet(models.QuerySet):
+    def _properties_by_author(self, author, properties, ranks, max_length=10):
         result = {
-            'author': {'name': author_name},
+            'author': {
+                'name': author.full_name(),
+                'id': author.id,
+                'title': author.title,
+                'description': '',
+            },
             'image': None,
             'properties': [],
         }
-        if not author:
-            return result
-
-        result['author'].update(
-            {'id': author.id, 'title': author.title, 'description': ''}
-        )
 
         # Properties grouped by name, then by qualifier
         grouped_props = defaultdict(lambda: {'rank': 0, 'prop_values': {}})
-        # if rank would be available, we could filter and sort by rank. Since
-        # for now it's not, order by ID to have a reliable description in tests
-        for p in author.properties.all().order_by('id'):
-            if p.rank is None or p.rank < 1:
+        for p in properties:
+            rank = ranks.get(p.name)
+
+            if rank is None or rank < 1:
                 continue
 
             if not result['author']['description']:
@@ -318,9 +304,7 @@ class DocumentPersonalAuthorManager(models.Manager):
             if key in ('family name', 'given name', 'birth name'):
                 continue
 
-            grouped_props[key]['rank'] = max(
-                p.rank, grouped_props[key]['rank']
-            )
+            grouped_props[key]['rank'] = max(rank, grouped_props[key]['rank'])
             qualifiers = grouped_props[key]['prop_values'].setdefault(
                 p.value, defaultdict(set)
             )
@@ -419,7 +403,7 @@ class DocumentPersonalAuthorManager(models.Manager):
             result['image'] = {
                 'url': first_image,
                 'alt': dict(qualifiers).pop(
-                    'media legend', [f'Image of {author_name}']
+                    'media legend', [f'Image of {author.full_name()}']
                 )[0],
             }
 
@@ -453,6 +437,48 @@ class DocumentPersonalAuthorManager(models.Manager):
         )[:max_length]
 
         return result
+
+    def properties(self, max_length=10):
+        # Given than ranks are not available via DB relationships (yet?), we
+        # cache them all to avoid many queries when iterating over every author
+        # property. This is total 3 queries! \o/
+        ranks = dict(
+            PersonalAuthorPropertyRank.objects.all().values_list(
+                'name', 'rank'
+            )
+        )
+        return [
+            self._properties_by_author(
+                author, author.properties.all(), ranks, max_length
+            )
+            for author in self.prefetch_related('properties')
+        ]
+
+    def properties_by_author_name(self, author_name, max_length=10):
+        matches = (
+            self.annotate(
+                db_full_name=Case(
+                    When(first_name__isnull=True, then='last_name'),
+                    When(last_name__isnull=True, then='first_name'),
+                    default=Concat('first_name', Value(' '), 'last_name'),
+                ),
+            )
+            .filter(db_full_name=author_name)
+            .annotate(prolific=Count('documents'))  # XXX: To Be Reviewed
+            .order_by('-prolific')
+        ).properties(max_length)
+        if matches:
+            result = matches[0]
+        else:
+            result = {
+                'author': {'name': author_name},
+                'image': None,
+                'properties': [],
+            }
+        return result
+
+
+DocumentPersonalAuthorManager = DocumentPersonalAuthorQuerySet.as_manager
 
 
 class DocumentPersonalAuthor(models.Model):
@@ -596,7 +622,7 @@ class PersonalAuthorProperty(models.Model):
             qualifier,
         )
 
-    @property
+    @cached_property
     def rank(self):
         result = (
             PersonalAuthorPropertyRank.objects.filter(name=self.name)
