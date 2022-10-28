@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from django.http import JsonResponse
 from django.views.generic import View
 
@@ -23,15 +23,9 @@ class Show(View):
         )
 
 
-def author_properties(request, author_name):
-    # XXX: Using the author name as author key could be flaky. Though currently
-    # author names are reasonable "unique", we can't guarantee this condition.
-    # But, in order to obtain an author ID, we should change the document
-    # search indexes so they also store author ID in addition to author name,
-    # and then return both in the search response.
-    result = DocumentPersonalAuthor.objects.properties_by_author_name(
-        author_name
-    )
+def author_properties(request, author_id, author_slug=None):
+    author = get_object_or_404(DocumentPersonalAuthor, id=author_id)
+    result = author.metadata()
 
     if request.accepts('text/html'):
         response = render(request, 'documents/author.html', result)

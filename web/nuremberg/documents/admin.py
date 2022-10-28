@@ -56,7 +56,7 @@ class PersonalAuthorPropertyInline(admin.TabularInline):
 
 class ReadOnlyAdmin(admin.ModelAdmin):
     def get_readonly_fields(self, request, obj=None):
-        return [f.name for f in obj._meta.fields]
+        return [f.name for f in obj._meta.fields] + self.readonly_fields
 
     def has_add_permission(self, request, obj=None):
         return False
@@ -74,6 +74,7 @@ class DocumentAdmin(ReadOnlyAdmin):
     ordering = ('-image_count',)
     search_fields = ('title', 'literal_title')
     list_filter = ('language', 'source')
+    readonly_fields = ['slug']
 
 
 class DocumentGroupAuthorAdmin(ReadOnlyAdmin):
@@ -98,7 +99,8 @@ class PersonalAuthorPropertyAdmin(ReadOnlyAdmin):
         'name',
         'value',
         'rank',
-        'personal_author_description',
+        'qualifier',
+        'qualifier_value',
     )
     list_filter = ('personal_author_name', 'name')
     search_fields = (

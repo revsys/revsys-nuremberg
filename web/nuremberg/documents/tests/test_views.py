@@ -3,7 +3,7 @@ from django.urls import reverse
 from model_bakery import baker
 
 from nuremberg.core.tests.acceptance_helpers import PyQuery, client
-from nuremberg.documents.models import Document
+from nuremberg.documents.models import Document, DocumentPersonalAuthor
 from .helpers import make_author
 
 
@@ -141,32 +141,59 @@ def assert_author_properties_html(
 
 
 def test_author_properties_not_found():
-    name = 'not existent'
+    missing = 9999
+    assert DocumentPersonalAuthor.objects.filter(id=missing).first() is None
 
     # request JSON
     response = client.get(
-        reverse('documents:author', kwargs={'author_name': name}),
+        reverse('documents:author', kwargs={'author_id': missing}),
+        HTTP_ACCEPT='application/json',
+    )
+
+    assert response.status_code == 404
+
+    # request HTML
+    response = client.get(
+        reverse('documents:author', kwargs={'author_id': missing})
+    )
+
+    assert response.status_code == 404
+
+
+def test_author_properties_empty_properties():
+    author = make_author()
+    assert author.properties.all().count() == 0
+
+    # request JSON
+    response = client.get(
+        reverse('documents:author', kwargs={'author_id': author.id}),
         HTTP_ACCEPT='application/json',
     )
 
     assert response.status_code == 200
     assert 'application/json' in response.headers['Content-Type']
     assert response.json() == {
-        'author': {'name': name},
+        'author': {
+            'name': author.full_name(),
+            'id': author.id,
+            'slug': author.slug,
+            'title': author.title,
+            'description': '',
+        },
         'image': None,
         'properties': [],
     }
 
     # request HTML
     response = client.get(
-        reverse('documents:author', kwargs={'author_name': 'not existent'})
+        reverse('documents:author', kwargs={'author_id': author.id})
     )
 
     image_url = '/static/images/authors/placeholder.png'
     image_alt = 'No image available.'
     assert_author_properties_html(
         response,
-        name,
+        author.full_name(),
         '',
         image_url,
         image_alt,
@@ -176,7 +203,6 @@ def test_author_properties_not_found():
 
 def test_author_properties():
     author = make_author()
-    name = author.full_name()
     description = 'A summary of the author'
     prop_image = baker.make(
         'PersonalAuthorProperty',
@@ -185,7 +211,7 @@ def test_author_properties():
         name='image',
         value='https://link-to-image-1.jpg',
     )
-    image_alt = f'Image of {name}'
+    image_alt = f'Image of {author.full_name()}'
     # other props, birth and occupation
     rank_place_of_birth = baker.make(
         'PersonalAuthorPropertyRank', name='place of birth', rank=28
@@ -274,7 +300,7 @@ def test_author_properties():
 
     # request JSON
     response = client.get(
-        reverse('documents:author', kwargs={'author_name': name}),
+        reverse('documents:author', kwargs={'author_id': author.id}),
         HTTP_ACCEPT='application/json',
     )
 
@@ -282,8 +308,9 @@ def test_author_properties():
     assert 'application/json' in response.headers['Content-Type']
     assert response.json() == {
         'author': {
-            'name': name,
+            'name': author.full_name(),
             'id': author.id,
+            'slug': author.slug,
             'title': author.title,
             'description': description,
         },
@@ -319,7 +346,7 @@ def test_author_properties():
 
     # request HTML (default)
     response = client.get(
-        reverse('documents:author', kwargs={'author_name': name})
+        reverse('documents:author', kwargs={'author_id': author.id})
     )
 
     # occupation values are shown alphabetically ordered
@@ -330,7 +357,25 @@ def test_author_properties():
     )
     assert_author_properties_html(
         response,
-        name,
+        author.full_name(),
+        description,
+        prop_image.value,
+        image_alt,
+        born,
+        occupation,
+    )
+
+    # request HTML using also author slug in URL
+    response = client.get(
+        reverse(
+            'documents:author',
+            kwargs={'author_id': author.id, 'author_slug': author.slug},
+        )
+    )
+
+    assert_author_properties_html(
+        response,
+        author.full_name(),
         description,
         prop_image.value,
         image_alt,
