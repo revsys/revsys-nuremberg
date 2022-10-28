@@ -33,6 +33,7 @@ class PersonalAuthorPropertyInline(admin.TabularInline):
     fields = (
         'name',
         'value',
+        'qualifier_with_value',
         'property_rank',
         'personal_author_description',
         'wikidata_id',
@@ -43,6 +44,11 @@ class PersonalAuthorPropertyInline(admin.TabularInline):
     @admin.display(description='Rank')
     def property_rank(self, object):
         return object.rank
+
+    @admin.display(description='Qualifier')
+    def qualifier_with_value(self, object):
+        if object.qualifier:
+            return f'{object.qualifier}: {object.qualifier_value}'
 
 
 # ModelAdmins

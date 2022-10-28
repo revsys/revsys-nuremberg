@@ -1,4 +1,4 @@
-from django.urls import re_path
+from django.urls import path, re_path
 from . import views
 
 app_name = 'documents'
@@ -9,4 +9,5 @@ urlpatterns = [
         name='show',
     ),
     re_path(r'^(?P<document_id>\d+)[-\w]*$', views.Show.as_view()),
+    path('authors/<str:author_name>', views.author_properties, name='author'),
 ]

@@ -1,8 +1,10 @@
 import pytest
 from django.urls import reverse
+from model_bakery import baker
 
 from nuremberg.core.tests.acceptance_helpers import PyQuery, client
 from nuremberg.documents.models import Document
+from .helpers import make_author
 
 
 pytestmark = pytest.mark.django_db
@@ -88,8 +90,8 @@ def test_document_3799():
     page = document(3799)
 
     assert (
-        'Journal and office records of Hans Frank, Governor General of Poland, 1939-1944'
-        in page('h1').text()
+        'Journal and office records of Hans Frank, Governor General of Poland'
+        ', 1939-1944' in page('h1').text()
     )
 
     images = page('.document-image img')
@@ -104,3 +106,234 @@ def test_document_3799():
     assert 'Language of Text: German' in info
     assert 'Source of Text: Photostat' in info
     assert 'HLSL Item No.: 3799' in info
+
+
+def assert_author_properties_html(
+    response, name, description, image_url, image_alt, *properties
+):
+    assert response.status_code == 200
+    assert 'text/html' in response.headers['Content-Type']
+
+    content = PyQuery(response.content)
+
+    # name is shown
+    assert content.find('[data-test="author-name"]').text() == name
+
+    # description is shown
+    assert (
+        content.find('[data-test="author-description"]').text() == description
+    )
+
+    # image is shown
+    image = content.find('[data-test="author-image"]')
+    assert len(image) == 1
+    assert image[0].attrib['src'] == image_url
+    assert image[0].attrib['alt'] == image_alt
+
+    # other attributes
+    items = content.find('[data-test="author-property"]')
+    assert len(items) == len(properties)
+    items = [  # remove html-insignificant spaces or \n
+        ' '.join(j.strip() for j in i.text_content().strip().split())
+        for i in items
+    ]
+    assert items == list(properties)
+
+
+def test_author_properties_not_found():
+    name = 'not existent'
+
+    # request JSON
+    response = client.get(
+        reverse('documents:author', kwargs={'author_name': name}),
+        HTTP_ACCEPT='application/json',
+    )
+
+    assert response.status_code == 200
+    assert 'application/json' in response.headers['Content-Type']
+    assert response.json() == {
+        'author': {'name': name},
+        'image': None,
+        'properties': [],
+    }
+
+    # request HTML
+    response = client.get(
+        reverse('documents:author', kwargs={'author_name': 'not existent'})
+    )
+
+    image_url = '/static/images/authors/placeholder.png'
+    image_alt = 'No image available.'
+    assert_author_properties_html(
+        response,
+        name,
+        '',
+        image_url,
+        image_alt,
+        'Additional biographical details not yet available.',
+    )
+
+
+def test_author_properties():
+    author = make_author()
+    name = author.full_name()
+    description = 'A summary of the author'
+    prop_image = baker.make(
+        'PersonalAuthorProperty',
+        personal_author_description='',
+        personal_author=author,
+        name='image',
+        value='https://link-to-image-1.jpg',
+    )
+    image_alt = f'Image of {name}'
+    # other props, birth and occupation
+    rank_place_of_birth = baker.make(
+        'PersonalAuthorPropertyRank', name='place of birth', rank=28
+    )
+    rank_date_of_birth = baker.make(
+        'PersonalAuthorPropertyRank', name='date of birth', rank=27
+    )
+    prop_place_of_birth = baker.make(
+        'PersonalAuthorProperty',
+        personal_author=author,
+        personal_author_description='',
+        name=rank_place_of_birth.name,
+        value='A city',
+        qualifier='',
+        qualifier_value='',
+    )
+    prop_date_of_birth = baker.make(
+        'PersonalAuthorProperty',
+        personal_author=author,
+        # description is taken from any property that has it
+        personal_author_description=description,
+        name=rank_date_of_birth.name,
+        value='1979-01-01',
+        qualifier='',
+        qualifier_value='',
+    )
+    rank_occupation = baker.make(
+        'PersonalAuthorPropertyRank', name='occupation', rank=26
+    )
+    baker.make(
+        'PersonalAuthorProperty',
+        personal_author=author,
+        name=rank_occupation.name,
+        value='soldier',
+        qualifier='',
+        qualifier_value='',
+    )
+    baker.make(
+        'PersonalAuthorProperty',
+        personal_author=author,
+        name=rank_occupation.name,
+        value='politician',
+        qualifier='',
+        qualifier_value='',
+    )
+    baker.make(
+        'PersonalAuthorProperty',
+        personal_author=author,
+        name=rank_occupation.name,
+        value='politician',
+        qualifier='start time',
+        qualifier_value='1925-01-01',
+    )
+    baker.make(
+        'PersonalAuthorProperty',
+        personal_author=author,
+        name=rank_occupation.name,
+        value='politician',
+        qualifier='end time',
+        qualifier_value='1925-08-08',
+    )
+    baker.make(
+        'PersonalAuthorProperty',
+        personal_author=author,
+        name=rank_occupation.name,
+        value='politician',
+        qualifier='member of',
+        qualifier_value='something',
+    )
+    baker.make(
+        'PersonalAuthorProperty',
+        personal_author=author,
+        name=rank_occupation.name,
+        value='writer',
+        qualifier='',
+        qualifier_value='',
+    )
+    baker.make(
+        'PersonalAuthorProperty',
+        personal_author=author,
+        name=rank_occupation.name,
+        value='writer',
+        qualifier='point in time',
+        qualifier_value='1923-11-09',
+    )
+
+    # request JSON
+    response = client.get(
+        reverse('documents:author', kwargs={'author_name': name}),
+        HTTP_ACCEPT='application/json',
+    )
+
+    assert response.status_code == 200
+    assert 'application/json' in response.headers['Content-Type']
+    assert response.json() == {
+        'author': {
+            'name': name,
+            'id': author.id,
+            'title': author.title,
+            'description': description,
+        },
+        'image': {'url': prop_image.value, 'alt': image_alt},
+        'properties': [
+            {
+                'name': 'born',
+                'rank': 28,
+                'prop_values': [
+                    {'value': '1979-01-01 (A city)', 'qualifiers': []},
+                ],
+            },
+            {
+                'name': 'occupation',
+                'rank': 26,
+                'prop_values': [
+                    {
+                        'value': 'politician',
+                        'qualifiers': [
+                            ['member of', ['something']],
+                            ['period', ['1925-01-01', '1925-08-08']],
+                        ],
+                    },
+                    {'value': 'soldier', 'qualifiers': []},
+                    {
+                        'value': 'writer',
+                        'qualifiers': [['date', ['1923-11-09']]],
+                    },
+                ],
+            },
+        ],
+    }
+
+    # request HTML (default)
+    response = client.get(
+        reverse('documents:author', kwargs={'author_name': name})
+    )
+
+    # occupation values are shown alphabetically ordered
+    born = f'Born: {prop_date_of_birth.value} ({prop_place_of_birth.value})'
+    occupation = (
+        f'Occupation: politician (member of: something; period: 1925-01-01 '
+        f'through 1925-08-08); soldier; writer (date: 1923-11-09)'
+    )
+    assert_author_properties_html(
+        response,
+        name,
+        description,
+        prop_image.value,
+        image_alt,
+        born,
+        occupation,
+    )
