@@ -29,7 +29,9 @@ def author_properties(request, author_name):
     # But, in order to obtain an author ID, we should change the document
     # search indexes so they also store author ID in addition to author name,
     # and then return both in the search response.
-    result = DocumentPersonalAuthor.objects.properties(author_name)
+    result = DocumentPersonalAuthor.objects.properties_by_author_name(
+        author_name
+    )
 
     if request.accepts('text/html'):
         response = render(request, 'documents/author.html', result)

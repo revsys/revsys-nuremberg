@@ -39,7 +39,7 @@ def test_document_date_valid_as_date(day, month, year):
 def test_author_properties_no_match():
     name = 'Does Not Exist'
 
-    result = DocumentPersonalAuthor.objects.properties(name)
+    result = DocumentPersonalAuthor.objects.properties_by_author_name(name)
 
     assert result == {
         'author': {'name': name},
@@ -60,7 +60,7 @@ def test_author_properties_no_property_match_uses_title():
         == 0
     )
 
-    result = DocumentPersonalAuthor.objects.properties(name)
+    result = DocumentPersonalAuthor.objects.properties_by_author_name(name)
 
     assert result == {
         'author': {
@@ -86,7 +86,7 @@ def test_author_properties_uses_title_even_if_empty_first_name():
         == 0
     )
 
-    result = DocumentPersonalAuthor.objects.properties(name)
+    result = DocumentPersonalAuthor.objects.properties_by_author_name(name)
 
     assert result == {
         'author': {
@@ -112,7 +112,7 @@ def test_author_properties_uses_title_even_if_empty_last_name():
         == 0
     )
 
-    result = DocumentPersonalAuthor.objects.properties(name)
+    result = DocumentPersonalAuthor.objects.properties_by_author_name(name)
 
     assert result == {
         'author': {
@@ -138,7 +138,7 @@ def test_author_properties_no_property_match_empty_title():
         == 0
     )
 
-    result = DocumentPersonalAuthor.objects.properties(name)
+    result = DocumentPersonalAuthor.objects.properties_by_author_name(name)
 
     assert result == {
         'author': {
@@ -217,7 +217,7 @@ def test_author_properties_uses_property_ranks():
     )
     assert prop_5.rank == 5
 
-    result = DocumentPersonalAuthor.objects.properties(name)
+    result = DocumentPersonalAuthor.objects.properties_by_author_name(name)
 
     # order is given by higher rank first, then value
     expected = [
@@ -317,7 +317,7 @@ def test_author_properties_groups_qualifiers():
         qualifier_value='ignored',
     )
 
-    result = DocumentPersonalAuthor.objects.properties(name)
+    result = DocumentPersonalAuthor.objects.properties_by_author_name(name)
 
     # order is given by higher rank first, then value
     expected = [
@@ -382,7 +382,7 @@ def test_author_properties_extracts_image():
     )
     assert prop_image_2.rank == 30
 
-    result = DocumentPersonalAuthor.objects.properties(name)
+    result = DocumentPersonalAuthor.objects.properties_by_author_name(name)
 
     # Default alt if no 'media legend' qualifier is present
     image = {'url': prop_image_1.value, 'alt': f'Image of {name}'}
@@ -408,7 +408,7 @@ def test_author_properties_extracts_image():
         qualifier_value='The Legend for Image 2',
     )
 
-    result = DocumentPersonalAuthor.objects.properties(name)
+    result = DocumentPersonalAuthor.objects.properties_by_author_name(name)
     assert result == {
         'author': author_data,
         'image': image,
@@ -426,7 +426,7 @@ def test_author_properties_extracts_image():
         qualifier_value=legend,
     )
 
-    result = DocumentPersonalAuthor.objects.properties(name)
+    result = DocumentPersonalAuthor.objects.properties_by_author_name(name)
 
     image['alt'] = legend
     assert result == {
@@ -465,7 +465,7 @@ def test_author_properties_groups_birth_data():
         qualifier_value='',
     )
 
-    result = DocumentPersonalAuthor.objects.properties(name)
+    result = DocumentPersonalAuthor.objects.properties_by_author_name(name)
 
     born = f'{prop_date_of_birth.value} ({prop_place_of_birth.value})'
     properties = [
@@ -516,7 +516,7 @@ def test_author_properties_groups_death_data():
         qualifier_value='',
     )
 
-    result = DocumentPersonalAuthor.objects.properties(name)
+    result = DocumentPersonalAuthor.objects.properties_by_author_name(name)
 
     died = f'{prop_date_of_death.value} ({prop_place_of_death.value})'
     properties = [
@@ -572,7 +572,7 @@ def test_author_properties_name_data_ignored():
         value='Birth Name',
     )
 
-    result = DocumentPersonalAuthor.objects.properties(name)
+    result = DocumentPersonalAuthor.objects.properties_by_author_name(name)
 
     assert result == {
         'author': {
@@ -726,7 +726,7 @@ def test_author_properties_dates_and_qualifiers():
         qualifier_value='another value',
     )
 
-    result = DocumentPersonalAuthor.objects.properties(name)
+    result = DocumentPersonalAuthor.objects.properties_by_author_name(name)
 
     born = f'{prop_date_of_birth.value} ({prop_place_of_birth.value})'
     died = f'{prop_date_of_death.value} ({prop_place_of_death.value})'
