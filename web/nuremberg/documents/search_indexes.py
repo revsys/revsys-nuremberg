@@ -24,7 +24,7 @@ class DocumentIndex(indexes.SearchIndex, indexes.Indexable):
     )  # not really a facet, just an exact key
 
     slug = indexes.CharField(model_attr='slug', indexed=False)
-    title = indexes.CharField(model_attr='title')
+    title = indexes.CharField(model_attr='title', default='')
     literal_title = indexes.CharField(model_attr='literal_title', null=True)
 
     total_pages = indexes.IntegerField(
