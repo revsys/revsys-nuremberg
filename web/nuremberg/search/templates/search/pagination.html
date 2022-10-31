@@ -8,7 +8,10 @@
       {% endif %}
       {% for page_number in page_obj.page_range %}
         {% if page_number %}
-          <a class="page-number {% if page_number == page_obj.number %}current{% endif %}" href="{% result_page page_number%}">{{page_number}}</a>
+          <a class="page-number {% if page_number == page_obj.number %}current{% endif %}"
+             href="{% result_page page_number%}"
+             {% if forloop.first %}data-test="search-result-first-page"{% endif %}
+             {% if forloop.last %}data-test="search-result-last-page"{% endif %}>{{page_number}}</a>
         {% else %}
           ...
         {% endif %}
