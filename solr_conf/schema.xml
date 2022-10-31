@@ -158,6 +158,10 @@
     
     
     
+    <field name="authors_properties" type="string" indexed="false" stored="true" multiValued="false" />
+    
+    
+    
     <field name="defendants" type="text_en" indexed="true" stored="true" multiValued="true" />
     
     

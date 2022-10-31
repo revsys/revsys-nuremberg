@@ -4,8 +4,6 @@ import operator
 from collections import defaultdict
 
 from django.db import models
-from django.db.models import Case, Count, Value, When
-from django.db.models.functions import Concat
 from django.utils.functional import cached_property
 from django.utils.text import slugify
 
@@ -264,7 +262,10 @@ class DocumentDate(models.Model):
             result = datetime.date(self.year, self.month, self.day)
         except (TypeError, ValueError) as e:
             logging.warning(
-                str(e) + ' (got year %r, month %r, day %r)',
+                'Error parsing date for document %s: %s '
+                '(got year %r, month %r, day %r)',
+                getattr(self, 'document', None),
+                e,
                 self.year,
                 self.month,
                 self.day,
@@ -274,21 +275,81 @@ class DocumentDate(models.Model):
 
 
 class DocumentPersonalAuthorQuerySet(models.QuerySet):
-    def _properties_by_author(self, author, properties, ranks, max_length=10):
+    def metadata(self, max_length=10):
+        # Given than ranks are not available via DB relationships (yet?), we
+        # cache them all to avoid many queries when iterating over every author
+        # property. This is total 3 queries! \o/
+        ranks = dict(
+            PersonalAuthorPropertyRank.objects.all().values_list(
+                'name', 'rank'
+            )
+        )
+        return [
+            author.metadata(ranks, max_length)
+            for author in self.prefetch_related('properties')
+        ]
+
+
+DocumentPersonalAuthorManager = DocumentPersonalAuthorQuerySet.as_manager
+
+
+class DocumentPersonalAuthor(models.Model):
+    id = models.AutoField(primary_key=True, db_column='PersonalAuthorID')
+    last_name = models.CharField(max_length=35, db_column='AuthLName')
+    first_name = models.CharField(max_length=25, db_column='AuthFName')
+    title = models.CharField(max_length=100, db_column='AuthTitle')
+
+    documents = models.ManyToManyField(
+        Document,
+        related_name='personal_authors',
+        through='DocumentsToPersonalAuthors',
+        through_fields=('author', 'document'),
+    )
+
+    objects = DocumentPersonalAuthorManager()
+
+    class Meta:
+        managed = False
+        db_table = 'tblPersonalAuthors'
+
+    def __str__(self):
+        return self.full_name()
+
+    @cached_property
+    def slug(self):
+        return slugify(self.full_name())
+
+    def full_name(self):
+        if self.first_name and self.last_name:
+            return '{} {}'.format(self.first_name, self.last_name)
+        else:
+            return self.first_name or self.last_name or 'Unknown'
+
+    def metadata(self, ranks=None, max_length=10):
         result = {
             'author': {
-                'name': author.full_name(),
-                'id': author.id,
-                'title': author.title,
+                'name': self.full_name(),
+                'id': self.id,
+                'slug': self.slug,
+                'title': self.title,
                 'description': '',
             },
             'image': None,
             'properties': [],
         }
 
+        if ranks is None:  # reuse rank information between exploded properties
+            ranks = dict(
+                PersonalAuthorPropertyRank.objects.all().values_list(
+                    'name', 'rank'
+                )
+            )
+
         # Properties grouped by name, then by qualifier
         grouped_props = defaultdict(lambda: {'rank': 0, 'prop_values': {}})
-        for p in properties:
+
+        # use all() with no modifiers, make use of potential prefetch_related
+        for p in self.properties.all():
             rank = ranks.get(p.name)
 
             if rank is None or rank < 1:
@@ -314,7 +375,7 @@ class DocumentPersonalAuthorQuerySet(models.QuerySet):
                     logging.warning(
                         'No qualifier value for %s (author: %s, property: %s)',
                         p.qualifier,
-                        author,
+                        self,
                         key,
                     )
                     continue
@@ -403,7 +464,7 @@ class DocumentPersonalAuthorQuerySet(models.QuerySet):
             result['image'] = {
                 'url': first_image,
                 'alt': dict(qualifiers).pop(
-                    'media legend', [f'Image of {author.full_name()}']
+                    'media legend', [f'Image of {self.full_name()}']
                 )[0],
             }
 
@@ -437,77 +498,6 @@ class DocumentPersonalAuthorQuerySet(models.QuerySet):
         )[:max_length]
 
         return result
-
-    def properties(self, max_length=10):
-        # Given than ranks are not available via DB relationships (yet?), we
-        # cache them all to avoid many queries when iterating over every author
-        # property. This is total 3 queries! \o/
-        ranks = dict(
-            PersonalAuthorPropertyRank.objects.all().values_list(
-                'name', 'rank'
-            )
-        )
-        return [
-            self._properties_by_author(
-                author, author.properties.all(), ranks, max_length
-            )
-            for author in self.prefetch_related('properties')
-        ]
-
-    def properties_by_author_name(self, author_name, max_length=10):
-        matches = (
-            self.annotate(
-                db_full_name=Case(
-                    When(first_name__isnull=True, then='last_name'),
-                    When(last_name__isnull=True, then='first_name'),
-                    default=Concat('first_name', Value(' '), 'last_name'),
-                ),
-            )
-            .filter(db_full_name=author_name)
-            .annotate(prolific=Count('documents'))  # XXX: To Be Reviewed
-            .order_by('-prolific')
-        ).properties(max_length)
-        if matches:
-            result = matches[0]
-        else:
-            result = {
-                'author': {'name': author_name},
-                'image': None,
-                'properties': [],
-            }
-        return result
-
-
-DocumentPersonalAuthorManager = DocumentPersonalAuthorQuerySet.as_manager
-
-
-class DocumentPersonalAuthor(models.Model):
-    id = models.AutoField(primary_key=True, db_column='PersonalAuthorID')
-    last_name = models.CharField(max_length=35, db_column='AuthLName')
-    first_name = models.CharField(max_length=25, db_column='AuthFName')
-    title = models.CharField(max_length=100, db_column='AuthTitle')
-
-    documents = models.ManyToManyField(
-        Document,
-        related_name='personal_authors',
-        through='DocumentsToPersonalAuthors',
-        through_fields=('author', 'document'),
-    )
-
-    objects = DocumentPersonalAuthorManager()
-
-    class Meta:
-        managed = False
-        db_table = 'tblPersonalAuthors'
-
-    def __str__(self):
-        return self.full_name()
-
-    def full_name(self):
-        if self.first_name and self.last_name:
-            return '{} {}'.format(self.first_name, self.last_name)
-        else:
-            return self.first_name or self.last_name or 'Unknown'
 
 
 class DocumentsToPersonalAuthors(models.Model):

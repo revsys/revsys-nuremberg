@@ -36,20 +36,45 @@ def test_document_date_valid_as_date(day, month, year):
     assert d.as_date() == datetime.date(year, month, day)
 
 
-def test_author_properties_no_match():
-    name = 'Does Not Exist'
+def test_author_slug_full_name():
+    author = make_author(
+        first_name='First Name: So Many #$ different Characters! ♡',
+        last_name=' Last ↦ Name',
+        title='Some Title',
+    )
 
-    result = DocumentPersonalAuthor.objects.properties_by_author_name(name)
+    assert author.slug == 'first-name-so-many-different-characters-last-name'
 
-    assert result == {
-        'author': {'name': name},
-        'image': None,
-        'properties': [],
-    }
+
+def test_author_slug_no_first_name():
+    author = make_author(
+        first_name='',
+        last_name='Only Last Name',
+        title='Some Title',
+    )
+
+    assert author.slug == 'only-last-name'
+
+
+def test_author_slug_no_last_name():
+    author = make_author(
+        first_name='Only First Name',
+        last_name='',
+        title='Some Title',
+    )
+
+    assert author.slug == 'only-first-name'
+
+
+def test_author_properties_no_author():
+    last_id = DocumentPersonalAuthor.objects.all().order_by('id').last().id
+    empty_qs = DocumentPersonalAuthor.objects.filter(id=last_id + 1)
+
+    assert empty_qs.count() == 0
+    assert empty_qs.metadata() == []
 
 
 def test_author_properties_no_property_match_uses_title():
-    name = 'No Properties'
     author = make_author(
         first_name='No',
         last_name='Properties',
@@ -60,12 +85,13 @@ def test_author_properties_no_property_match_uses_title():
         == 0
     )
 
-    result = DocumentPersonalAuthor.objects.properties_by_author_name(name)
+    result = author.metadata()
 
     assert result == {
         'author': {
-            'name': name,
+            'name': author.full_name(),
             'id': author.id,
+            'slug': author.slug,
             'title': author.title,
             'description': '',
         },
@@ -75,7 +101,6 @@ def test_author_properties_no_property_match_uses_title():
 
 
 def test_author_properties_uses_title_even_if_empty_first_name():
-    name = 'Does Not Exist'
     author = make_author(
         first_name='Does Not Exist',
         last_name=None,
@@ -86,12 +111,13 @@ def test_author_properties_uses_title_even_if_empty_first_name():
         == 0
     )
 
-    result = DocumentPersonalAuthor.objects.properties_by_author_name(name)
+    result = author.metadata()
 
     assert result == {
         'author': {
-            'name': name,
+            'name': author.full_name(),
             'id': author.id,
+            'slug': author.slug,
             'title': author.title,
             'description': '',
         },
@@ -101,7 +127,6 @@ def test_author_properties_uses_title_even_if_empty_first_name():
 
 
 def test_author_properties_uses_title_even_if_empty_last_name():
-    name = 'Does Not Exist'
     author = make_author(
         first_name=None,
         last_name='Does Not Exist',
@@ -112,12 +137,13 @@ def test_author_properties_uses_title_even_if_empty_last_name():
         == 0
     )
 
-    result = DocumentPersonalAuthor.objects.properties_by_author_name(name)
+    result = author.metadata()
 
     assert result == {
         'author': {
-            'name': name,
+            'name': author.full_name(),
             'id': author.id,
+            'slug': author.slug,
             'title': author.title,
             'description': '',
         },
@@ -127,7 +153,6 @@ def test_author_properties_uses_title_even_if_empty_last_name():
 
 
 def test_author_properties_no_property_match_empty_title():
-    name = 'Does Not Exist'
     author = make_author(
         first_name='Does Not',
         last_name='Exist',
@@ -138,12 +163,13 @@ def test_author_properties_no_property_match_empty_title():
         == 0
     )
 
-    result = DocumentPersonalAuthor.objects.properties_by_author_name(name)
+    result = author.metadata()
 
     assert result == {
         'author': {
-            'name': name,
+            'name': author.full_name(),
             'id': author.id,
+            'slug': author.slug,
             'title': author.title,
             'description': '',
         },
@@ -154,7 +180,6 @@ def test_author_properties_no_property_match_empty_title():
 
 def test_author_properties_uses_property_ranks():
     author = make_author(first_name='Some', last_name='Name')
-    name = author.full_name()
 
     rank0 = baker.make(
         'PersonalAuthorPropertyRank', name='ignore due to rank 0', rank=0
@@ -217,7 +242,7 @@ def test_author_properties_uses_property_ranks():
     )
     assert prop_5.rank == 5
 
-    result = DocumentPersonalAuthor.objects.properties_by_author_name(name)
+    result = author.metadata()
 
     # order is given by higher rank first, then value
     expected = [
@@ -237,8 +262,9 @@ def test_author_properties_uses_property_ranks():
     ]
     assert result == {
         'author': {
-            'name': name,
+            'name': author.full_name(),
             'id': author.id,
+            'slug': author.slug,
             'title': author.title,
             'description': prop_1_1.personal_author_description,
         },
@@ -247,9 +273,8 @@ def test_author_properties_uses_property_ranks():
     }
 
 
-def test_author_properties_groups_qualifiers():
+def test_author_properties_groups_qualifiers(django_assert_num_queries):
     author = make_author()
-    name = author.full_name()
 
     rank = baker.make('PersonalAuthorPropertyRank', name='a property', rank=10)
     first = baker.make(
@@ -317,7 +342,8 @@ def test_author_properties_groups_qualifiers():
         qualifier_value='ignored',
     )
 
-    result = DocumentPersonalAuthor.objects.properties_by_author_name(name)
+    with django_assert_num_queries(2):  # fetch ranks and properties
+        result = author.metadata()
 
     # order is given by higher rank first, then value
     expected = [
@@ -342,8 +368,9 @@ def test_author_properties_groups_qualifiers():
     ]
     assert result == {
         'author': {
-            'name': name,
+            'name': author.full_name(),
             'id': author.id,
+            'slug': author.slug,
             'title': author.title,
             'description': first.personal_author_description,
         },
@@ -358,7 +385,6 @@ def test_author_properties_extracts_image():
         last_name='Name',
         title='Sir Someone',
     )
-    name = author.full_name()
 
     rank_image = baker.make(
         'PersonalAuthorPropertyRank', name='image', rank=30
@@ -382,13 +408,17 @@ def test_author_properties_extracts_image():
     )
     assert prop_image_2.rank == 30
 
-    result = DocumentPersonalAuthor.objects.properties_by_author_name(name)
+    result = author.metadata()
 
     # Default alt if no 'media legend' qualifier is present
-    image = {'url': prop_image_1.value, 'alt': f'Image of {name}'}
+    image = {
+        'url': prop_image_1.value,
+        'alt': f'Image of {author.full_name()}',
+    }
     author_data = {
-        'name': name,
+        'name': author.full_name(),
         'id': author.id,
+        'slug': author.slug,
         'title': author.title,
         'description': prop_image_1.personal_author_description,
     }
@@ -408,7 +438,7 @@ def test_author_properties_extracts_image():
         qualifier_value='The Legend for Image 2',
     )
 
-    result = DocumentPersonalAuthor.objects.properties_by_author_name(name)
+    result = author.metadata()
     assert result == {
         'author': author_data,
         'image': image,
@@ -426,7 +456,7 @@ def test_author_properties_extracts_image():
         qualifier_value=legend,
     )
 
-    result = DocumentPersonalAuthor.objects.properties_by_author_name(name)
+    result = author.metadata()
 
     image['alt'] = legend
     assert result == {
@@ -437,11 +467,8 @@ def test_author_properties_extracts_image():
 
 
 def test_author_properties_groups_birth_data():
-    name = 'John Doe'
-    author = make_author(
-        first_name=name,
-        last_name=None,
-    )
+    author = make_author()
+
     rank_place_of_birth = baker.make(
         'PersonalAuthorPropertyRank', name='place of birth', rank=24
     )
@@ -465,7 +492,7 @@ def test_author_properties_groups_birth_data():
         qualifier_value='',
     )
 
-    result = DocumentPersonalAuthor.objects.properties_by_author_name(name)
+    result = author.metadata()
 
     born = f'{prop_date_of_birth.value} ({prop_place_of_birth.value})'
     properties = [
@@ -477,8 +504,9 @@ def test_author_properties_groups_birth_data():
     ]
     assert result == {
         'author': {
-            'name': name,
+            'name': author.full_name(),
             'id': author.id,
+            'slug': author.slug,
             'title': author.title,
             'description': prop_place_of_birth.personal_author_description,
         },
@@ -488,11 +516,8 @@ def test_author_properties_groups_birth_data():
 
 
 def test_author_properties_groups_death_data():
-    name = 'John Doe'
-    author = make_author(
-        first_name=None,
-        last_name=name,
-    )
+    author = make_author()
+
     rank_place_of_death = baker.make(
         'PersonalAuthorPropertyRank', name='place of death', rank=24
     )
@@ -516,7 +541,7 @@ def test_author_properties_groups_death_data():
         qualifier_value='',
     )
 
-    result = DocumentPersonalAuthor.objects.properties_by_author_name(name)
+    result = author.metadata()
 
     died = f'{prop_date_of_death.value} ({prop_place_of_death.value})'
     properties = [
@@ -528,8 +553,9 @@ def test_author_properties_groups_death_data():
     ]
     assert result == {
         'author': {
-            'name': name,
+            'name': author.full_name(),
             'id': author.id,
+            'slug': author.slug,
             'title': author.title,
             'description': prop_place_of_death.personal_author_description,
         },
@@ -539,7 +565,6 @@ def test_author_properties_groups_death_data():
 
 
 def test_author_properties_name_data_ignored():
-    name = 'John Doe'
     author = make_author(
         first_name='John',
         last_name='Doe',
@@ -572,12 +597,13 @@ def test_author_properties_name_data_ignored():
         value='Birth Name',
     )
 
-    result = DocumentPersonalAuthor.objects.properties_by_author_name(name)
+    result = author.metadata()
 
     assert result == {
         'author': {
-            'name': name,
+            'name': author.full_name(),
             'id': author.id,
+            'slug': author.slug,
             'title': author.title,
             'description': first.personal_author_description,
         },
@@ -588,7 +614,7 @@ def test_author_properties_name_data_ignored():
 
 def test_author_properties_dates_and_qualifiers():
     author = make_author()
-    name = author.full_name()
+
     rank_place_of_birth = baker.make(
         'PersonalAuthorPropertyRank', name='place of birth', rank=26
     )
@@ -726,7 +752,7 @@ def test_author_properties_dates_and_qualifiers():
         qualifier_value='another value',
     )
 
-    result = DocumentPersonalAuthor.objects.properties_by_author_name(name)
+    result = author.metadata()
 
     born = f'{prop_date_of_birth.value} ({prop_place_of_birth.value})'
     died = f'{prop_date_of_death.value} ({prop_place_of_death.value})'
@@ -766,8 +792,9 @@ def test_author_properties_dates_and_qualifiers():
     ]
     assert result == {
         'author': {
-            'name': name,
+            'name': author.full_name(),
             'id': author.id,
+            'slug': author.slug,
             'title': author.title,
             'description': prop_place_of_birth.personal_author_description,
         },
