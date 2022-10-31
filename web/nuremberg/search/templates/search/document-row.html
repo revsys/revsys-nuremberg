@@ -134,14 +134,13 @@
         <img src="{{result.thumb_url}}" alt="Thumbnail of a photograph: {{result.literal_title}}" />
       </a>
     {% else %}
-      {% for author in result.authors %}
+      {% for author_prop in result.authors_properties %}
       <div class="dropdown">
-        <p>
-          <a href="{% search_query author=author %}">{{ author }}</a>
+          <p><a href="{% search_query author=author_prop.author.name %}">{{ author_prop.author.name }}</a></p>
           <div class="dropdown-content">
-            <p><a href="{% url 'documents:author' author_name=author %}">See details</a> for {{ author }}</p>
+            <p><a href="{% url 'documents:author' author_id=author_prop.author.id author_slug=author_prop.author.slug %}" style="float: right">See more details</a></p>
+            {% include 'documents/_author_properties.html' with author=author_prop.author image=author_prop.image properties=author_prop.properties %}
           </div>
-        </p>
       </div>
       {% endfor %}
     {% endif %}
