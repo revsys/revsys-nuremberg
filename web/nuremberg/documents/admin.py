@@ -2,8 +2,12 @@ from django.contrib import admin
 
 from .models import (
     Document,
+    DocumentActivity,
+    DocumentCase,
     DocumentImage,
+    DocumentImageType,
     DocumentPersonalAuthor,
+    DocumentSource,
     DocumentsToPersonalAuthors,
     DocumentGroupAuthor,
     PersonalAuthorProperty,
@@ -56,7 +60,7 @@ class PersonalAuthorPropertyInline(admin.TabularInline):
 
 class ReadOnlyAdmin(admin.ModelAdmin):
     def get_readonly_fields(self, request, obj=None):
-        return [f.name for f in obj._meta.fields] + self.readonly_fields
+        return [f.name for f in obj._meta.fields] + list(self.readonly_fields)
 
     def has_add_permission(self, request, obj=None):
         return False
@@ -112,9 +116,13 @@ class PersonalAuthorPropertyAdmin(ReadOnlyAdmin):
 
 
 admin.site.register(Document, DocumentAdmin)
+admin.site.register(DocumentActivity, ReadOnlyAdmin)
+admin.site.register(DocumentCase, ReadOnlyAdmin)
 admin.site.register(DocumentImage, ReadOnlyAdmin)
+admin.site.register(DocumentImageType, ReadOnlyAdmin)
 admin.site.register(DocumentPersonalAuthor, DocumentPersonalAuthorAdmin)
 admin.site.register(DocumentGroupAuthor, DocumentGroupAuthorAdmin)
+admin.site.register(DocumentSource, ReadOnlyAdmin)
 admin.site.register(PersonalAuthorProperty, PersonalAuthorPropertyAdmin)
 admin.site.register(
     PersonalAuthorPropertyRank, PersonalAuthorPropertyRankAdmin
