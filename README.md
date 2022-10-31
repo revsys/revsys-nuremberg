@@ -54,7 +54,8 @@ tests, templates, JavaScript code, and static assets for the corresponding
 feature set:
 
 - `nuremberg`: Top-level namespace for organizational purposes only.
-- `.core`: Top-level URL routing, test frameworks, base templates and middleware, and site-wide style files.
+- `.core`: Top-level URL routing, test frameworks, base templates and
+middleware, and site-wide style files.
 - `.settings`: Environment-specific Django settings files.
 - `.content`: Files for static pages with project information, etc.
 - `.documents`: Files for displaying digitized document images.
@@ -71,7 +72,8 @@ persistent, greatly speeding up setup and teardown time.
 
 ### Running tests
 
-Make sure you have initialized the database and solr index as described in [Setup](#setup) above. Then run:
+Make sure you have initialized the database and solr index as described in
+[Setup](#setup) above. Then run:
 
 ```
 docker compose exec web pytest
@@ -157,7 +159,8 @@ local user should be removed. To do so open a python shell using
     (0, {})
     >>>
 
-Then, zip the sqlite DB creating a new zip file in the `dumps` folder, and re-point the existing `latest` symlink to it:
+Then, zip the sqlite DB creating a new zip file in the `dumps` folder, and
+re-point the existing `latest` symlink to it:
 
     cd web/
     zip -FS ../dumps/nuremberg_prod_dump_`date -I`.sqlite3.zip nuremberg_dev.db
@@ -166,7 +169,8 @@ Then, zip the sqlite DB creating a new zip file in the `dumps` folder, and re-po
 
 Review the changes and potentially:
 
- 1. Confirm that the symlink `dumps/nuremberg_prod_dump_latest.sqlite3.zip` is pointing to a valid zipfile:
+ 1. Confirm that the symlink `dumps/nuremberg_prod_dump_latest.sqlite3.zip` is
+ pointing to a valid zipfile:
 
         ls -la `realpath dumps/nuremberg_prod_dump_latest.sqlite3.zip`
 
@@ -189,7 +193,8 @@ docker compose exec web python manage.py build_solr_schema --configure-dir=solr_
 ```
 
 This will generate both `schema.xml` and `solrconfig.xml` under the `solr_conf`
-directory. To use the updated config files, run `docker compose down` to dispose of the existing solr container and `docker compose up -d` to start a fresh one.
+directory. To use the updated config files, run `docker compose down` to dispose
+of the existing solr container and `docker compose up -d` to start a fresh one.
 
 ### Reindexing
 
@@ -203,12 +208,60 @@ docker compose exec web python manage.py rebuild_index
 
 Do this any time you make changes to `search_indexes.py` or `schema.xml`.
 
-In the past, when this site was under active development and more frequent reindexing was required, `manage.py update_index` was run via a `cron` script or similar to automate reindexing on a nightly or hourly
-basis using `--age 24` or `--age 1`. (Note: This will restrict reindexing only
-for indexes that have an `updated_at` field defined; currently, `photographs`
-does not, but completely reindexing that model is fast anyway.)
+In the past, when this site was under active development and more frequent
+reindexing was required, `manage.py update_index` was run via a `cron` script or
+similar to automate reindexing on a nightly or hourly basis using `--age 24` or
+`--age 1`. (Note: This will restrict reindexing only for indexes that have an
+`updated_at` field defined; currently, `photographs` does not, but completely
+reindexing that model is fast anyway.)
 
-For more fine-grained information on indexing progress, use `--batch-size 100 --verbosity 2` or similar.
+For more fine-grained information on indexing progress, use `--batch-size 100
+--verbosity 2` or similar.
+
+### Updating the stored Solr snapshot
+
+After making changes to the Solr schema and reindexing its index, it's advised
+to update the snapshopt of such index used to speed up tests and potentially
+local setup. To do so, ensure that services were started as described in
+[Setup](#setup) and that the Solr index is up to date. Then:
+
+```
+curl http://localhost:8983/solr/nuremberg_dev/replication?command=backup
+```
+
+Wait until the snapshot is completed (check for `snapshotCompletedAt` and the
+resulting `directoryName`):
+
+```
+curl http://localhost:8983/solr/nuremberg_dev/replication?command=details
+```
+
+And then compress the resulting snapshot directory and move the tarball to the
+host's `dumps` folder (as an example we are assuming the `directoryName` is
+`snapshot.20221031122944123`):
+
+```
+docker compose exec solr tar czvf /var/solr/data/snapshot.20221031122944123.tar.gz -C /var/solr/data/nuremberg_dev/data/ snapshot.20221031122944123
+docker compose cp solr:/var/solr/data/snapshot.20221031122944123.tar.gz dumps/nuremberg_solr_snapshot_`date -I`.tar.gz
+```
+
+For more information about Solr Backups, see the [the full docs for Solr snapshot API](https://solr.apache.org/guide/8_11/making-and-restoring-backups.html#standalone-mode-backups).
+
+Lastly, re-point the symlink to the latest Solr backup with this command:
+
+```
+ln -fs nuremberg_solr_snapshot_`date -I`.tar.gz dumps/nuremberg_solr_snapshot_latest.tar.gz
+```
+
+Review the changes and potentially:
+
+ 1. Confirm that the symlink `dumps/nuremberg_solr_snapshot_latest.tar.gz` is
+ pointing to a valid zipfile:
+
+        ls -la `realpath dumps/nuremberg_solr_snapshot_latest.tar.gz`
+
+ 2. Remove older dump(s)
+ 3. Stage and commit your changes to the git repo
 
 ### Deploying
 
