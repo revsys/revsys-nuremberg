@@ -627,6 +627,20 @@ class DocumentCase(models.Model):
     id = models.AutoField(primary_key=True, db_column='CaseID')
     name = models.CharField(max_length=100, db_column='Case_temp')
 
+    documents = models.ManyToManyField(
+        Document,
+        related_name='cases',
+        through='DocumentsToCases',
+        through_fields=('case', 'document'),
+    )
+
+    class Meta:
+        managed = False
+        db_table = 'tblCases'
+
+    def __str__(self):
+        return self.name
+
     @property
     def tag_name(self):
         # cheating for now
@@ -639,17 +653,6 @@ class DocumentCase(models.Model):
 
     def short_name(self):
         return self.name.split(' -')[0].replace('.', ':').replace(' 0', ' ')
-
-    documents = models.ManyToManyField(
-        Document,
-        related_name='cases',
-        through='DocumentsToCases',
-        through_fields=('case', 'document'),
-    )
-
-    class Meta:
-        managed = False
-        db_table = 'tblCases'
 
 
 class DocumentsToCases(models.Model):
@@ -755,6 +758,10 @@ class DocumentActivity(models.Model):
     class Meta:
         managed = False
         db_table = 'tblActivities'
+        verbose_name_plural = 'Document activities'
+
+    def __str__(self):
+        return self.name
 
     @property
     def short_name(self):
