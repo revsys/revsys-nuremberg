@@ -81,6 +81,10 @@ class DocumentAdmin(ReadOnlyAdmin):
     readonly_fields = ['slug']
 
 
+class DocumentImageAdmin(ReadOnlyAdmin):
+    list_filter = ('scale', 'image_type')
+
+
 class DocumentGroupAuthorAdmin(ReadOnlyAdmin):
     search_fields = ('name',)
 
@@ -118,7 +122,7 @@ class PersonalAuthorPropertyAdmin(ReadOnlyAdmin):
 admin.site.register(Document, DocumentAdmin)
 admin.site.register(DocumentActivity, ReadOnlyAdmin)
 admin.site.register(DocumentCase, ReadOnlyAdmin)
-admin.site.register(DocumentImage, ReadOnlyAdmin)
+admin.site.register(DocumentImage, DocumentImageAdmin)
 admin.site.register(DocumentImageType, ReadOnlyAdmin)
 admin.site.register(DocumentPersonalAuthor, DocumentPersonalAuthorAdmin)
 admin.site.register(DocumentGroupAuthor, DocumentGroupAuthorAdmin)
