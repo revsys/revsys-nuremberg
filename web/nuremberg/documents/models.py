@@ -945,3 +945,25 @@ class DocumentExhibitCode(models.Model):
                 name, self.defense_number, self.defense_suffix or ''
             )
         return ''
+
+
+class DocumentText(models.Model):
+    id = models.AutoField(db_column='RecordID', primary_key=True)
+    title = models.CharField(db_column='Title', max_length=1000)
+    evidence_code_tag = models.CharField(db_column='DocID', max_length=100)
+    # could this be an FK to DocumentEvidencePrefix? (tblNMTCodes)
+    evidence_code_series = models.CharField(
+        db_column='DocCodeSeries', max_length=100
+    )
+    evidence_code_num = models.CharField(
+        db_column='DocCodeNum', max_length=100
+    )
+    content = models.TextField(db_column='DocText', blank=True, null=True)
+    source_citation = models.CharField(
+        db_column='SourceCitation', max_length=500
+    )
+    load_timestamp = models.DateTimeField(db_column='LoadDateTime')
+
+    class Meta:
+        managed = False
+        db_table = 'tblNurembergDocTexts'
