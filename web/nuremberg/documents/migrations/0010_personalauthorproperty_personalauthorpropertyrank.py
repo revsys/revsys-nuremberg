@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
                 ('value', models.CharField(db_column='Entity', max_length=200)),
                 ('qualifier', models.CharField(db_column='Qualifier', max_length=100)),
                 ('qualifier_value', models.CharField(db_column='QualValue', max_length=200)),
-                ('loadtimestamp', models.DateTimeField(db_column='LoadTimestamp')),
+                ('load_timestamp', models.DateTimeField(db_column='LoadTimestamp')),
             ],
             options={
                 'verbose_name_plural': 'Personal author properties',
@@ -37,7 +37,7 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(db_column='Property', max_length=200, unique=True)),
                 ('instance_count', models.IntegerField(db_column='InstanceCount')),
                 ('rank', models.IntegerField(db_column='PropertyRank')),
-                ('loadtimestamp', models.DateTimeField(db_column='LoadTimeStamp')),
+                ('load_timestamp', models.DateTimeField(db_column='LoadTimeStamp')),
             ],
             options={
                 'db_table': 'tblNurAuthorsWikidataPropertiesRanked',
