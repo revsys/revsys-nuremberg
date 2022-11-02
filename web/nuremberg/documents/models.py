@@ -4,6 +4,7 @@ import operator
 from collections import defaultdict
 
 from django.db import models
+from django.db.models.functions import Concat
 from django.utils.functional import cached_property
 from django.utils.text import slugify
 
@@ -78,6 +79,33 @@ class Document(models.Model):
         except:
             testing = "descriptive-title-missing"
             return testing
+
+    def full_texts(self):
+        """Fetch the DocumentText for this instance, if available.
+
+        There is a one-to-many relationship between full-text docs and our
+        documents described by metadata, deriving from the fact that each
+        full-text doc -- with a few exceptions -- represents only one version
+        of a given document, which often has up to four versions in our
+        collection.
+
+        The four versions all bear the same document code (also known as
+        "Evidence File code" or "EF code", e.g., PS-398 or NOKW-222).
+
+        """
+        # ToDo: improve query by not needing the annotation and filtering
+        # instead by:
+        #   DocumentEvidenceCode.number
+        #   DocumentEvidenceCode.prefix.code
+        # (may need some extra prefetching for DocumentEvidencePrefix)
+        evidence_codes = self.evidence_codes.all()
+        result = DocumentText.objects.annotate(
+            evidence_code=Concat(
+                'evidence_code_series', models.Value('-'), 'evidence_code_num'
+            ),
+        ).filter(evidence_code__in=[str(e) for e in evidence_codes])
+        # XXX: sort in a meaningful way in the unlikely case there are multiple
+        return result
 
 
 class DocumentImage(models.Model):
@@ -165,8 +193,9 @@ class DocumentImage(models.Model):
         return self.find_url(self.FULL)
 
     def image_tag(self):
-        return '<a href="{0}"><img src="{0}" alt="Scanned document page {1}" width=100 /></a>'.format(
-            self.url, self.page_number
+        return (
+            f'<a href="{self.url}"><img src="{self.url}" '
+            f'alt="Scanned document page {self.page_number}" width=100 /></a>'
         )
 
     image_tag.allow_tags = True
@@ -805,6 +834,9 @@ class DocumentEvidencePrefix(models.Model):
         managed = False
         db_table = 'tblNMTCodes'
 
+    def __str__(self):
+        return self.code
+
 
 class DocumentEvidenceCode(models.Model):
     id = models.AutoField(
@@ -967,3 +999,69 @@ class DocumentText(models.Model):
     class Meta:
         managed = False
         db_table = 'tblNurembergDocTexts'
+
+    def __str__(self):
+        return f'{self.title}'
+
+    def documents(self):
+        """Fetch the most relevant Document for this DocumentText.
+
+        As there can be multiple versions available for this metadata, we would
+        like to use the metadata from the highest-ranked item from the
+        following priority tree, if the full-text document is in English.
+        If the full-text document is in German, d. and e. rise (in that order)
+        to just below a.:
+
+            a. Exhibit document (from any trial)
+            b. English translation (EF doc)
+            c. Staff Evidence analysis (EF doc)
+            d. German typescript (EF doc)
+            e. German photostat (EF doc)
+
+        If no correlation can be found, then simply list the Title, DocID and
+        Source from the full-text data table.
+
+        In case of "a tie" for multiple documents with exhibit codes for the
+        same evidence code, the following trial priority should be used:
+
+            IMT
+            NMT 11
+            NMT 12
+            NMT 6
+            NMT 10
+            NMT 9
+            NMT 7
+            NMT 8
+            NMT 1
+            NMT 3
+            NMT 4
+            NMT 5
+            NMT 2
+
+        """
+        # For now we can't use `self.evidence_code_tag` because the ordering
+        # of series and number varies (some entries have series-num, other have
+        # num-series).
+        matches = (
+            Document.objects.filter(
+                evidence_codes__number=self.evidence_code_num,
+                evidence_codes__prefix__code=self.evidence_code_series,
+            )
+            .annotate(
+                # XXX: ToDo, use trial exhibit priority as given above
+                exhibit_codes_count=models.Count('exhibit_codes'),
+                source_weigth=models.Case(
+                    models.When(source_id=1, then=10),  # Case Files/English
+                    models.When(
+                        source_id=9, then=9
+                    ),  # Staff Evidence Analysis
+                    models.When(source_id=11, then=8),  # Typescript--German
+                    models.When(source_id=5, then=7),  # Photostat
+                    default=models.Value(1),
+                ),
+            )
+            .order_by('-exhibit_codes_count', '-source_weigth', '-id')
+        )
+        # XXX: the ordering '-id' was added temporarly just to break ties in a
+        # reproduceable manner. See for example full-text with id 729.
+        return matches
