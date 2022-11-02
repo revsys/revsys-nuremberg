@@ -557,7 +557,7 @@ class PersonalAuthorPropertyRank(models.Model):
     name = models.CharField(db_column='Property', max_length=200, unique=True)
     instance_count = models.IntegerField(db_column='InstanceCount')
     rank = models.IntegerField(db_column='PropertyRank')
-    loadtimestamp = models.DateTimeField(db_column='LoadTimeStamp')
+    load_timestamp = models.DateTimeField(db_column='LoadTimeStamp')
 
     class Meta:
         managed = False
@@ -592,7 +592,7 @@ class PersonalAuthorProperty(models.Model):
     qualifier = models.CharField(db_column='Qualifier', max_length=100)
     qualifier_value = models.CharField(db_column='QualValue', max_length=200)
 
-    loadtimestamp = models.DateTimeField(db_column='LoadTimestamp')
+    load_timestamp = models.DateTimeField(db_column='LoadTimestamp')
 
     class Meta:
         managed = False
