@@ -72,6 +72,15 @@
         {% endfor %}
         &nbsp;
       </p>
+      {% if mode == 'image' and full_text %}
+      <p class="trial-flags">
+        <a href="{% url 'documents:show' document_id=full_text.id slug=document.slug %}?mode=text{% if query %}&q={% encode_string query %}{% endif %}">Full-text View</a>
+      </p>
+      {% elif mode == 'text' %}
+      <p class="trial-flags">
+        <a href="{% url 'documents:show' document_id=document.id slug=document.slug %}?mode=image{% if query %}&q={% encode_string query %}{% endif %}">Image View</a>
+      </p>
+      {% endif %}
       <div class="print-controls">
         <div>
           <button class="download-pdf">PDF</button>
@@ -178,6 +187,11 @@
       {% endwith %}
     </div>
     <div id="content"></div>
+    {% if mode == 'text' %}
+    <div id="document-viewport" class="main-column">
+      <p>{{ full_text.content }}</p>
+    </div>
+    {% else %}
     <div id="document-viewport" class="main-column">
       <div class="viewport-content scrollable" data-document-id="{{document.id}}">
         {% block viewport %}
@@ -214,5 +228,6 @@
       {% endblock %}
     </div>
   </div>
+  {% endif %}
 </section>
 {% endblock %}
