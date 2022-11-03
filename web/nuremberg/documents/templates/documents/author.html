@@ -7,7 +7,7 @@
 {% block content %}
 <section class="theme-light results">
 
-{% include 'documents/_author_properties.html' %}
+{% include 'documents/_author_properties.html' with properties=properties max_qualifiers=None max_qualifier_values=5 %}
 
 </section>
 {% endblock %}

@@ -81,8 +81,16 @@ class DocumentIndex(indexes.SearchIndex, indexes.Indexable):
         ] + [author.full_name() for author in document.personal_authors.all()]
 
     def prepare_authors_properties(self, document):
-        result = document.personal_authors.all().order_by('id').properties()
-        return json.dumps(result)
+        result = [
+            author.metadata() for author in document.group_authors.all()
+        ] + document.personal_authors.all().order_by('id').metadata(
+            max_properties=8,
+            max_property_values=4,
+            max_qualifiers=3,
+            max_qualifier_values=3,
+        )
+        # json modifiers for the most compact json representation
+        return json.dumps(result, indent=None, separators=(',', ':'))
 
     def prepare_trial_activities(self, document):
         return [activity.short_name for activity in document.activities.all()]
