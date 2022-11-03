@@ -278,6 +278,22 @@ def test_author_properties():
         personal_author=author,
         name=rank_occupation.name,
         value='politician',
+        qualifier='start time',
+        qualifier_value='1930-05-25',
+    )
+    baker.make(
+        'PersonalAuthorProperty',
+        personal_author=author,
+        name=rank_occupation.name,
+        value='politician',
+        qualifier='end time',
+        qualifier_value='1930-08-31',
+    )
+    baker.make(
+        'PersonalAuthorProperty',
+        personal_author=author,
+        name=rank_occupation.name,
+        value='politician',
         qualifier='member of',
         qualifier_value='something',
     )
@@ -331,7 +347,13 @@ def test_author_properties():
                         'value': 'politician',
                         'qualifiers': [
                             ['member of', ['something']],
-                            ['period', ['1925-01-01', '1925-08-08']],
+                            [
+                                'period',
+                                [
+                                    ['1925-01-01', '1925-08-08'],
+                                    ['1930-05-25', '1930-08-31'],
+                                ],
+                            ],
                         ],
                     },
                     {'value': 'soldier', 'qualifiers': []},
@@ -352,8 +374,9 @@ def test_author_properties():
     # occupation values are shown alphabetically ordered
     born = f'Born: {prop_date_of_birth.value} ({prop_place_of_birth.value})'
     occupation = (
-        f'Occupation: politician (member of: something; period: 1925-01-01 '
-        f'through 1925-08-08); soldier; writer (date: 1923-11-09)'
+        'Occupation: politician (member of: something; period: 1925-01-01 '
+        'through 1925-08-08, 1930-05-25 through 1930-08-31); soldier; '
+        'writer (date: 1923-11-09)'
     )
     assert_author_properties_html(
         response,

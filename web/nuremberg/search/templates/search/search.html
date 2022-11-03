@@ -67,7 +67,7 @@
           Loading results...
         </div>
         <div class="results-count">
-          <p class="hint">
+          <p class="hint" data-test="search-result-pages-summary">
             Results {{page_obj.start_index}}-{{page_obj.end_index}} of {{paginator.count}} for
             <strong>
               {{form.auto_query|default:"*"}}

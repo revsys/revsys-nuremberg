@@ -27,12 +27,13 @@ def test_search_page(query):
     assert search_bar
     assert search_bar.val() == '*'
 
-    assert 'Results 1-15 of 14553 for *' in page('p').text()
+    summary_selector = '[data-test="search-result-pages-summary"]'
+    assert 'Results 1-15 of 14553 for *' in page(summary_selector).text()
     assert 'Document (14329)' in page('.facet').text()
 
     page = follow_link(page('.facet p').with_text('Transcript').find('a'))
 
-    assert 'Results 1-5 of 5 for *' in page('p').text()
+    assert 'Results 1-5 of 5 for *' in page(summary_selector).text()
     assert 'Document' not in page('.facet').text()
     filter_link = (
         page('.applied-filters')
