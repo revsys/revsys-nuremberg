@@ -4,6 +4,7 @@ import operator
 from collections import defaultdict
 
 from django.db import models
+from django.db.models import Case, Count, Value, When
 from django.db.models.functions import Concat
 from django.utils.functional import cached_property
 from django.utils.text import slugify
@@ -101,7 +102,7 @@ class Document(models.Model):
         evidence_codes = self.evidence_codes.all()
         result = DocumentText.objects.annotate(
             evidence_code=Concat(
-                'evidence_code_series', models.Value('-'), 'evidence_code_num'
+                'evidence_code_series', Value('-'), 'evidence_code_num'
             ),
         ).filter(evidence_code__in=[str(e) for e in evidence_codes])
         # XXX: sort in a meaningful way in the unlikely case there are multiple
@@ -990,11 +991,11 @@ class DocumentText(models.Model):
     evidence_code_num = models.CharField(
         db_column='DocCodeNum', max_length=100
     )
-    content = models.TextField(db_column='DocText', blank=True, null=True)
     source_citation = models.CharField(
         db_column='SourceCitation', max_length=500
     )
     load_timestamp = models.DateTimeField(db_column='LoadDateTime')
+    content = models.TextField(db_column='DocText', blank=True, null=True)
 
     class Meta:
         managed = False
@@ -1039,29 +1040,50 @@ class DocumentText(models.Model):
             NMT 2
 
         """
-        # For now we can't use `self.evidence_code_tag` because the ordering
-        # of series and number varies (some entries have series-num, other have
-        # num-series).
+        # Calculate trial exhibit priority as explained above
+        cases_score = Case(
+            When(exhibit_codes__case__name__startswith='IMT', then=100),
+            When(exhibit_codes__case__name__startswith='NMT 11', then=12),
+            When(exhibit_codes__case__name__startswith='NMT 12', then=11),
+            When(exhibit_codes__case__name__startswith='NMT 06', then=10),
+            When(exhibit_codes__case__name__startswith='NMT 10', then=9),
+            When(exhibit_codes__case__name__startswith='NMT 09', then=8),
+            When(exhibit_codes__case__name__startswith='NMT 07', then=7),
+            When(exhibit_codes__case__name__startswith='NMT 08', then=6),
+            When(exhibit_codes__case__name__startswith='NMT 01', then=5),
+            When(exhibit_codes__case__name__startswith='NMT 03', then=4),
+            When(exhibit_codes__case__name__startswith='NMT 04', then=3),
+            When(exhibit_codes__case__name__startswith='NMT 05', then=2),
+            When(exhibit_codes__case__name__startswith='NMT 02', then=1),
+            default=Value(0),
+        )
+        # Calculate document source priority as explained above
+        source_score = Case(
+            When(source_id=1, then=10),  # Case Files/English
+            When(source_id=9, then=9),  # Staff Evidence Analysis
+            When(source_id=11, then=8),  # Typescript--German
+            When(source_id=5, then=7),  # Photostat
+            default=Value(0),
+        )
+        # We can't use `self.evidence_code_tag` because the ordering of series
+        # and number varies (some have series-num, others have num-series).
         matches = (
             Document.objects.filter(
                 evidence_codes__number=self.evidence_code_num,
                 evidence_codes__prefix__code=self.evidence_code_series,
             )
             .annotate(
-                # XXX: ToDo, use trial exhibit priority as given above
-                exhibit_codes_count=models.Count('exhibit_codes'),
-                source_weigth=models.Case(
-                    models.When(source_id=1, then=10),  # Case Files/English
-                    models.When(
-                        source_id=9, then=9
-                    ),  # Staff Evidence Analysis
-                    models.When(source_id=11, then=8),  # Typescript--German
-                    models.When(source_id=5, then=7),  # Photostat
-                    default=models.Value(1),
-                ),
+                exhibit_codes_count=Count('exhibit_codes'),
+                cases_score=cases_score,
+                source_score=source_score,
             )
-            .order_by('-exhibit_codes_count', '-source_weigth', '-id')
+            .order_by(
+                '-exhibit_codes_count',
+                '-cases_score',
+                '-source_score',
+            )
         )
-        # XXX: the ordering '-id' was added temporarly just to break ties in a
-        # reproduceable manner. See for example full-text with id 729.
+        # XXX: ToDo: match full-text language with document language. Right now
+        # I'm not sure we have a way of knowing the full-text language from the
+        # data in the DB, I have asked about this.
         return matches
