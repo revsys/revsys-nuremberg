@@ -99,18 +99,15 @@
         </p>
         {% with document.personal_authors.all as personal_authors %}
         <h2 class="h6">Author{{personal_authors|length|pluralize}}</h2>
-        {% for author in personal_authors %}
-          <p>
-            <a href="{% search_query author=author.full_name %}" aria-label="search for author {{author.full_name}}">{{author.first_name}} {{author.last_name}}</a>
-            ({{author.title}})
-          </p>
+        {% for author_prop in personal_authors.metadata %}
+          {% include 'documents/_author_properties_hover.html' with include_title=True %}
         {% empty %}
           <p> Unknown </p>
         {% endfor %}
         {% endwith %}
         {% with document.group_authors.all as group_authors %}
         {% if group_authors %}
-          <h2 class="h6">Institutional Author{{group_authors|length|pluralize</h2>
+          <h2 class="h6">Institutional Author{{group_authors|length|pluralize}}</h2>
           {% for author in group_authors %}
             <p>
               <a href="{% search_query author=author.short_name %}" aria-label="search for author {{author.name}}">{{author.name}}</a>
