@@ -261,10 +261,10 @@ class DocumentDate(models.Model):
         try:
             result = datetime.date(self.year, self.month, self.day)
         except (TypeError, ValueError) as e:
-            logging.warning(
+            logger.info(
                 'Error parsing date for document %s: %s '
                 '(got year %r, month %r, day %r)',
-                getattr(self, 'document', None),
+                getattr(getattr(self, 'document', None), 'id', None),
                 e,
                 self.year,
                 self.month,
@@ -275,7 +275,7 @@ class DocumentDate(models.Model):
 
 
 class DocumentPersonalAuthorQuerySet(models.QuerySet):
-    def metadata(self, max_length=10):
+    def metadata(self, **kwargs):
         # Given than ranks are not available via DB relationships (yet?), we
         # cache them all to avoid many queries when iterating over every author
         # property. This is total 3 queries! \o/
@@ -285,7 +285,7 @@ class DocumentPersonalAuthorQuerySet(models.QuerySet):
             )
         )
         return [
-            author.metadata(ranks, max_length)
+            author.metadata(ranks, **kwargs)
             for author in self.prefetch_related('properties')
         ]
 
@@ -325,7 +325,14 @@ class DocumentPersonalAuthor(models.Model):
         else:
             return self.first_name or self.last_name or 'Unknown'
 
-    def metadata(self, ranks=None, max_length=10):
+    def metadata(
+        self,
+        ranks=None,
+        max_properties=None,
+        max_property_values=None,
+        max_qualifiers=None,
+        max_qualifier_values=None,
+    ):
         result = {
             'author': {
                 'name': self.full_name(),
@@ -372,7 +379,7 @@ class DocumentPersonalAuthor(models.Model):
             # The qualifier "valid in place" can be suppressed altogether
             if p.qualifier and p.qualifier != 'valid in place':
                 if not p.qualifier_value:
-                    logging.warning(
+                    logger.info(
                         'No qualifier value for %s (author: %s, property: %s)',
                         p.qualifier,
                         self,
@@ -429,21 +436,11 @@ class DocumentPersonalAuthor(models.Model):
                 'rank': max(place_of_event_rank, date_of_event_rank),
             }
 
-        # The merging of properties and qualifiers should display property
-        # followed by the qualifier in parentheses:
-        # "property: property value (qualifier: qualifier value)"
-        # e.g., "participant in: Nuremberg Medical Trial (role: prosecutor)"
-
-        # For the qualifiers "start time" and "end time" for some property. On
-        # the front end, we'd like to simply see a parenthesized expression
-        # with the two dates separated by "through":
-        # "1933-10-15 through 1936-11-01"
-
         for prop_name, prop_items in grouped_props.items():
             for prop_value, qualifiers in prop_items['prop_values'].items():
                 prop_items['prop_values'][prop_value] = sorted_qualifiers = {
                     # sort the qualifier's values alphabetically
-                    q: sorted(qs)
+                    q: sorted(qs)[:max_qualifier_values]
                     for q, qs in qualifiers.items()
                 }
 
@@ -455,7 +452,7 @@ class DocumentPersonalAuthor(models.Model):
                 elif end and not start:
                     sorted_qualifiers['until'] = end
                 elif start and end:
-                    sorted_qualifiers['period'] = start + end
+                    sorted_qualifiers['period'] = list(zip(start, end))
 
         image_urls = grouped_props.pop('image', {}).get('prop_values', {})
         if image_urls:
@@ -482,20 +479,22 @@ class DocumentPersonalAuthor(models.Model):
                         (
                             {
                                 'value': value,
-                                'qualifiers': sorted(qualifiers.items()),
+                                'qualifiers': sorted(qualifiers.items())[
+                                    :max_qualifiers
+                                ],
                             }
                             for value, qualifiers in props[
                                 'prop_values'
                             ].items()
                         ),
                         key=operator.itemgetter('value'),
-                    ),
+                    )[:max_property_values],
                 }
                 for name, props in grouped_props.items()
             ),
             key=operator.itemgetter('rank'),
             reverse=True,
-        )[:max_length]
+        )[:max_properties]
 
         return result
 
@@ -536,6 +535,17 @@ class DocumentGroupAuthor(models.Model):
 
     def short_name(self):
         return self.name.split(' (')[0]
+
+    def metadata(self):
+        name = self.short_name()
+        return {
+            'author': {
+                'name': name,
+                'id': self.id,
+                'slug': slugify(name),
+                'title': self.name if self.name is not None else '',
+            }
+        }
 
 
 class DocumentsToGroupAuthors(models.Model):
