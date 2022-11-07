@@ -4,8 +4,10 @@ import pytest
 from model_bakery import baker
 
 from nuremberg.documents.models import (
+    Document,
     DocumentDate,
     DocumentPersonalAuthor,
+    DocumentText,
     PersonalAuthorProperty,
 )
 from .helpers import make_author
@@ -34,6 +36,41 @@ def test_document_date_invalid_date(day, month, year):
 def test_document_date_valid_as_date(day, month, year):
     d = DocumentDate.objects.create(day=day, month=month, year=year)
     assert d.as_date() == datetime.date(year, month, day)
+
+
+def test_document_retrieve_full_text_empty():
+    doc = baker.make('Document')
+
+    assert doc.full_texts().count() == 0
+
+
+def test_document_retrieve_full_text_no_evidence_code_match():
+    baker.make(
+        'DocumentText', evidence_code_series='FF', evidence_code_num='123'
+    )
+    evidence_codes = [
+        baker.make('DocumentEvidenceCode', prefix__code='Z', number='123'),
+        baker.make('DocumentEvidenceCode', prefix__code='FF', number='12'),
+    ]
+    doc = baker.make('Document', evidence_codes=evidence_codes)
+    assert sorted(str(e) for e in doc.evidence_codes.all()) == [
+        'FF-12',
+        'Z-123',
+    ]
+
+    assert doc.full_texts().count() == 0
+
+
+def test_document_retrieve_full_text_real():
+    for doc_id in [30, 3058, 2539]:
+        doc = Document.objects.get(id=doc_id)
+
+        result = doc.full_texts()
+
+        assert result.count() == 1
+        result = result.get()
+        assert isinstance(result, DocumentText)
+        assert result.id == 729
 
 
 def test_author_slug_full_name():
@@ -801,3 +838,67 @@ def test_author_properties_dates_and_qualifiers():
         'image': None,
         'properties': properties,
     }
+
+
+def test_document_text_retrieve_documents_empty():
+    doc_text = baker.make(
+        'DocumentText', evidence_code_series='FF', evidence_code_num='123'
+    )
+    assert doc_text.documents().count() == 0
+
+
+def test_document_text_retrieve_documents_no_evidence_code_match():
+    doc_text = baker.make(
+        'DocumentText', evidence_code_series='FF', evidence_code_num='123'
+    )
+    evidence_codes = [
+        baker.make('DocumentEvidenceCode', prefix__code='Z', number='123'),
+        baker.make('DocumentEvidenceCode', prefix__code='FF', number='12'),
+    ]
+    doc = baker.make('Document', evidence_codes=evidence_codes)
+    assert sorted(str(e) for e in doc.evidence_codes.all()) == [
+        'FF-12',
+        'Z-123',
+    ]
+    assert doc_text.documents().count() == 0
+
+
+@pytest.mark.skip(reason='Need to sort out object persistence with bakery')
+def test_document_text_retrieve_documents_simple():
+    doc_text = baker.make(
+        'DocumentText',
+        evidence_code_series='FF',
+        evidence_code_num='123',
+        evidence_code_tag='Not relevant',
+    )
+    evidence_codes = [
+        baker.make('DocumentEvidenceCode', prefix__code='Z', number='123'),
+        baker.make('DocumentEvidenceCode', prefix__code='FF', number='123'),
+    ]
+    doc = baker.make(Document, evidence_codes=evidence_codes)
+
+    # We may have an issue with the fact that tests are using the real DB.
+    # The following assert passes OK
+    assert [e.document.id for e in evidence_codes] == [doc.id, doc.id]
+    assert sorted(str(e) for e in doc.evidence_codes.all()) == [
+        'FF-123',
+        'Z-123',
+    ]
+    # but the following fails!
+    assert Document.objects.filter(id=doc.id).count() == 1
+
+    result = doc_text.documents()
+
+    assert result.count() == 1
+    assert result.get() == doc
+
+
+def test_document_text_retrieve_documents_real():
+    doc_text_729 = DocumentText.objects.get(id=729)
+
+    result = doc_text_729.documents()
+
+    assert result.count() == 3
+    # Document 2539 has no exhibit code, the other two have 1 exhibit each.
+    # But document 30 was used in trial NMT 1 while document 3058 in NMT 2
+    assert [d.id for d in result] == [30, 3058, 2539]
