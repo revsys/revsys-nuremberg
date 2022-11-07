@@ -9,6 +9,10 @@ from nuremberg.core.tests.acceptance_helpers import (
 from nuremberg.search.templatetags.search_url import search_url
 
 
+SEARCH_TOTAL_RESULTS = 15547
+SEARCH_TOTAL_DOCUMENTS = 15323
+SEARCH_TOTAL_WORKERS = 790
+SEARCH_SUMMARY_SELECTOR = '[data-test="search-result-pages-summary"]'
 pytestmark = pytest.mark.django_db
 
 
@@ -27,13 +31,15 @@ def test_search_page(query):
     assert search_bar
     assert search_bar.val() == '*'
 
-    summary_selector = '[data-test="search-result-pages-summary"]'
-    assert 'Results 1-15 of 14553 for *' in page(summary_selector).text()
-    assert 'Document (14329)' in page('.facet').text()
+    assert (
+        f'Results 1-15 of {SEARCH_TOTAL_RESULTS} for *'
+        in page(SEARCH_SUMMARY_SELECTOR).text()
+    )
+    assert f'Document ({SEARCH_TOTAL_DOCUMENTS})' in page('.facet').text()
 
     page = follow_link(page('.facet p').with_text('Transcript').find('a'))
 
-    assert 'Results 1-5 of 5 for *' in page(summary_selector).text()
+    assert 'Results 1-5 of 5 for *' in page(SEARCH_SUMMARY_SELECTOR).text()
     assert 'Document' not in page('.facet').text()
     filter_link = (
         page('.applied-filters')
@@ -120,7 +126,10 @@ def test_keyword_search(query):
     search_bar = page('input[type="search"]')
     page = go_to(search_bar.submit_value('experiments'))
 
-    assert 'Results 1-15 of 1522 for experiments' in page('p').text()
+    assert (
+        'Results 1-15 of 1523 for experiments'
+        in page(SEARCH_SUMMARY_SELECTOR).text()
+    )
     assert len(page('.document-row')) == 15
 
     page = follow_link(
@@ -165,24 +174,24 @@ def count_results(query):
 def test_field_search(count_results):
 
     # TODO: these tests are pretty brittle to indexing changes, consider beefing them up
-    count_results('workers', 780)
+    count_results('workers', SEARCH_TOTAL_WORKERS)
     count_results('workers author:fritz', 80)
-    count_results('workers date:january', 32)
-    count_results('workers -trial:(nmt 4)', 663)
+    count_results('workers date:january', 33)
+    count_results('workers -trial:(nmt 4)', 673)
     count_results('workers evidence:NO-190', 5, 5)
     count_results('workers source:typescript language:german', 37)
     count_results(
         'workers source:typescript language:german -author:Milch', 28
     )
     count_results('workers trial:(nmt 2 | nmt 4)', 263)
-    count_results('workers date:unknown', 186)
-    count_results('workers date:none', 186)
-    count_results('workers -date:none', 598)
-    count_results('workers -date:none notafield:(no matches)', 598)
+    count_results('workers date:unknown', 188)
+    count_results('workers date:none', 188)
+    count_results('workers -date:none', 606)
+    count_results('workers -date:none notafield:(no matches)', 606)
     count_results('workers trial:(nmt 2 | nmt 4) author:speer|fritz', 37)
     count_results('workers author:"hitler adolf"', 0, 0, 0)
     count_results('workers author:"adolf hitler"', 11, 11)
-    count_results('workers exhibit:prosecution', 170)
+    count_results('workers exhibit:prosecution', 176)
     count_results('* author:hitler -author:adolf', 0, 0, 0)
     count_results('* exhibit:handloser', 81)
     count_results('malaria', 100)
@@ -195,10 +204,11 @@ def test_field_search(count_results):
 
 def test_document_search(query):
     page = query('workers')
-    assert 'Results 1-15 of 780 for workers' in page.text()
+    assert f'Results 1-15 of {SEARCH_TOTAL_WORKERS} for workers' in page.text()
     page = follow_link(
         page('.document-row a').with_text(
-            'Instructions to employment offices concerning the replacement of Jewish workers in Germany'
+            'Instructions to employment offices concerning the replacement of '
+            'Jewish workers in Germany'
         )
     )
 
@@ -207,7 +217,7 @@ def test_document_search(query):
     assert search_bar.val() == 'workers'
 
     page = go_to(search_bar.submit_value('instructions'))
-    assert 'Results 1-15 of 722 for instructions' in page.text()
+    assert 'Results 1-15 of 752 for instructions' in page.text()
 
     q = 'instructions for air force medical'
     page = go_to(search_bar.submit_value(q))
@@ -233,7 +243,7 @@ def test_landing_search(query):
     assert search_bar
 
     page = go_to(search_bar.submit_value('workers'))
-    assert 'Results 1-15 of 780 for workers' in page.text()
+    assert f'Results 1-15 of {SEARCH_TOTAL_WORKERS} for workers' in page.text()
 
     page = go_to(reverse('content:landing'))
 
@@ -295,11 +305,14 @@ def test_transcript_snippets(query):
 def test_pagination(query):
     page = query('')
 
-    assert 'Results 1-15 of 14553 for *' in page.text()
+    assert f'Results 1-15 of {SEARCH_TOTAL_RESULTS} for *' in page.text()
 
-    page = follow_link(page('a.page-number').with_text('971'))
+    page = follow_link(page('[data-test="search-result-last-page"]'))
 
-    assert 'Results 14551-14553 of 14553 for *' in page.text()
+    assert (
+        f'Results 15541-{SEARCH_TOTAL_RESULTS} of {SEARCH_TOTAL_RESULTS} for *'
+        in page.text()
+    )
 
 
 def test_sort(query):
@@ -350,6 +363,5 @@ def test_sort(query):
         )
     )
     assert '0 pages' in page.text()
-    previous_to_last = int(last_page_link.text()) - 1
-    page = follow_link(page('a.page-number').with_text(str(previous_to_last)))
+    page = follow_link(page('[data-test="search-result-last-page"]'))
     assert '492 pages' in page.text()
