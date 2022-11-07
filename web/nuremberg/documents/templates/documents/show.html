@@ -107,7 +107,7 @@
         {% endwith %}
         {% with document.group_authors.all as group_authors %}
         {% if group_authors %}
-          <h2 class="h6">Institutional Author{{group_authors|length|pluralize</h2>
+          <h2 class="h6">Institutional Author{{group_authors|length|pluralize}}</h2>
           {% for author in group_authors %}
             <p>
               <a href="{% search_query author=author.short_name %}" aria-label="search for author {{author.name}}">{{author.name}}</a>
