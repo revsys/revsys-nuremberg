@@ -55,8 +55,3 @@ def author_properties(request, author_id, author_slug=None):
         response = JsonResponse(data=result)
 
     return response
-
-
-def full_text(request, text_id):
-    response = JsonResponse(data={})
-    return response

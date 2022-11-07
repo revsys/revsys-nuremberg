@@ -10,11 +10,6 @@ urlpatterns = [
     ),
     re_path(r'^(?P<document_id>\d+)[-\w]*$', views.Show.as_view()),
     path(
-        'text/<int:text_id>',
-        views.full_text,
-        name='full-text',
-    ),
-    path(
         'authors/<int:author_id>-<str:author_slug>',
         views.author_properties,
         name='author',

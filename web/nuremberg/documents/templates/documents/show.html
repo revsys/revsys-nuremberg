@@ -188,8 +188,10 @@
     </div>
     <div id="content"></div>
     {% if mode == 'text' %}
-    <div id="document-viewport" class="main-column">
-      <p>{{ full_text.content }}</p>
+    <div class="main-column">
+      <div class="document-text">
+      {{ full_text.content|linebreaks }}
+      </div>
     </div>
     {% else %}
     <div id="document-viewport" class="main-column">
