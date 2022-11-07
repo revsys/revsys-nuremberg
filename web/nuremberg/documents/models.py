@@ -1083,7 +1083,7 @@ class DocumentText(models.Model):
                 '-source_score',
             )
         )
-        # XXX: ToDo: match full-text language with document language. Right now
-        # I'm not sure we have a way of knowing the full-text language from the
-        # data in the DB, I have asked about this.
+        # XXX: ToDo: match full-text language with document language. Currently
+        # there is no way of knowing the full-text doc's lang.
+        # A future dump of this table will include that piece of information.
         return matches
