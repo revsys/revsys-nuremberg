@@ -4,12 +4,14 @@ from .models import (
     Document,
     DocumentActivity,
     DocumentCase,
+    DocumentEvidenceCode,
+    DocumentGroupAuthor,
     DocumentImage,
     DocumentImageType,
     DocumentPersonalAuthor,
     DocumentSource,
     DocumentsToPersonalAuthors,
-    DocumentGroupAuthor,
+    DocumentText,
     PersonalAuthorProperty,
     PersonalAuthorPropertyRank,
 )
@@ -18,11 +20,17 @@ from .models import (
 # Inlines
 
 
+class DocumentEvidenceCodeInline(admin.TabularInline):
+    model = DocumentEvidenceCode
+    classes = ['collapse']
+
+
 class DocumentImageInline(admin.TabularInline):
     model = DocumentImage
     fields = ('page_number', 'physical_page_number', 'image_tag')
     readonly_fields = fields
     extra = 0
+    classes = ['collapse']
 
 
 class PersonalAuthorsInline(admin.StackedInline):
@@ -74,7 +82,11 @@ class ReadOnlyAdmin(admin.ModelAdmin):
 
 class DocumentAdmin(ReadOnlyAdmin):
     list_display = ('id', 'title', 'image_count')
-    inlines = [PersonalAuthorsInline, DocumentImageInline]
+    inlines = [
+        PersonalAuthorsInline,
+        DocumentEvidenceCodeInline,
+        DocumentImageInline,
+    ]
     ordering = ('-image_count',)
     search_fields = ('title', 'literal_title')
     list_filter = ('language', 'source')
@@ -93,6 +105,12 @@ class DocumentPersonalAuthorAdmin(ReadOnlyAdmin):
     list_display = ('full_name', 'title')
     search_fields = ('first_name', 'last_name')
     inlines = [PersonalAuthorPropertyInline]
+
+
+class DocumentTextAdmin(ReadOnlyAdmin):
+    list_display = ('title', 'evidence_code_series', 'evidence_code_num')
+    list_filter = ['evidence_code_series']
+    search_fields = ['evidence_code_tag']
 
 
 class PersonalAuthorPropertyRankAdmin(ReadOnlyAdmin):
@@ -122,11 +140,12 @@ class PersonalAuthorPropertyAdmin(ReadOnlyAdmin):
 admin.site.register(Document, DocumentAdmin)
 admin.site.register(DocumentActivity, ReadOnlyAdmin)
 admin.site.register(DocumentCase, ReadOnlyAdmin)
+admin.site.register(DocumentGroupAuthor, DocumentGroupAuthorAdmin)
 admin.site.register(DocumentImage, DocumentImageAdmin)
 admin.site.register(DocumentImageType, ReadOnlyAdmin)
 admin.site.register(DocumentPersonalAuthor, DocumentPersonalAuthorAdmin)
-admin.site.register(DocumentGroupAuthor, DocumentGroupAuthorAdmin)
 admin.site.register(DocumentSource, ReadOnlyAdmin)
+admin.site.register(DocumentText, DocumentTextAdmin)
 admin.site.register(PersonalAuthorProperty, PersonalAuthorPropertyAdmin)
 admin.site.register(
     PersonalAuthorPropertyRank, PersonalAuthorPropertyRankAdmin
