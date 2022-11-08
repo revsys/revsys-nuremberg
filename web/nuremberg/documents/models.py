@@ -94,12 +94,17 @@ class Document(models.Model):
         "Evidence File code" or "EF code", e.g., PS-398 or NOKW-222).
 
         """
-        # ToDo: improve query by not needing the annotation and filtering
-        # instead by:
+        # ToDo: improve query by not needing the annotation and filtering.
+        # Consider using instead:
         #   DocumentEvidenceCode.number
         #   DocumentEvidenceCode.prefix.code
         # (may need some extra prefetching for DocumentEvidencePrefix)
-        evidence_codes = self.evidence_codes.all()
+
+        # Do not use the plain `str` of DocumentEvidenceCode since for codes
+        # with a suffix, the `str` representation will not match (like PS-343a)
+        evidence_codes = [
+            f'{e.prefix.code}-{e.number}' for e in self.evidence_codes.all()
+        ]
         result = DocumentText.objects.annotate(
             evidence_code=Concat(
                 'evidence_code_series', Value('-'), 'evidence_code_num'
@@ -1040,7 +1045,22 @@ class DocumentText(models.Model):
             NMT 2
 
         """
-        # Calculate trial exhibit priority as explained above
+        # Ensure that the evidence code number is an int to avoid ValueError
+        # exceptions when filtering below.
+        try:
+            evidence_code_number = int(self.evidence_code_num)
+        except ValueError:
+            logger.exception(
+                'DocumentText: Can not search for related documents for text '
+                '%s and evidence code %s (number: %s, series: %s)',
+                self.id,
+                self.evidence_code_tag,
+                self.evidence_code_series,
+                self.evidence_code_num,
+            )
+            return Document.objects.none()
+
+        # Calculate trial exhibit priority as explained in the docstring
         cases_score = Case(
             When(exhibit_codes__case__name__startswith='IMT', then=100),
             When(exhibit_codes__case__name__startswith='NMT 11', then=12),
@@ -1067,9 +1087,10 @@ class DocumentText(models.Model):
         )
         # We can't use `self.evidence_code_tag` because the ordering of series
         # and number varies (some have series-num, others have num-series).
+
         matches = (
             Document.objects.filter(
-                evidence_codes__number=self.evidence_code_num,
+                evidence_codes__number=evidence_code_number,
                 evidence_codes__prefix__code=self.evidence_code_series,
             )
             .annotate(
