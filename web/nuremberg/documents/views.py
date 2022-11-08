@@ -1,25 +1,47 @@
-from django.shortcuts import get_object_or_404, render
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, render
 from django.views.generic import View
 
-from .models import Document, DocumentPersonalAuthor
+from .models import Document, DocumentPersonalAuthor, DocumentText
 
 
 class Show(View):
     template_name = 'documents/show.html'
 
-    def get(self, request, document_id, *args, **kwargs):
+    def get_document(self, document_id):
         document = (
-            Document.objects.prefetch_related('images')
+            Document.objects.prefetch_related(
+                'activities', 'evidence_codes', 'exhibit_codes', 'images'
+            )
             .select_related('language')
             .select_related('source')
             .get(id=document_id)
         )
+        return document
+
+    def get_full_text(self, text_id):
+        full_text = DocumentText.objects.get(id=text_id)
+        return full_text
+
+    def get(self, request, document_id, *args, **kwargs):
+        mode = request.GET.get('mode', 'image')
+
+        if mode == 'text':
+            full_text = self.get_full_text(document_id)
+            document = full_text.documents().first()
+        else:
+            document = self.get_document(document_id)
+            full_text = document.full_texts().first()
 
         return render(
             request,
             self.template_name,
-            {'document': document, 'query': request.GET.get('q')},
+            {
+                'document': document,
+                'full_text': full_text,
+                'mode': mode,
+                'query': request.GET.get('q'),
+            },
         )
 
 
