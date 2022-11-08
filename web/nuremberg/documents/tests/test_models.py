@@ -61,7 +61,7 @@ def test_document_retrieve_full_text_no_evidence_code_match():
     assert doc.full_texts().count() == 0
 
 
-def test_document_retrieve_full_text_real():
+def test_document_retrieve_full_text_real_729():
     for doc_id in [30, 3058, 2539]:
         doc = Document.objects.get(id=doc_id)
 
@@ -71,6 +71,19 @@ def test_document_retrieve_full_text_real():
         result = result.get()
         assert isinstance(result, DocumentText)
         assert result.id == 729
+
+
+def test_document_retrieve_full_text_real_473():
+    docs = [49, 58, 1437, 3067, 3107, 2442, 2443, 2445, 2447, 2444, 2446]
+    for doc_id in docs:
+        doc = Document.objects.get(id=doc_id)
+
+        result = doc.full_texts()
+
+        assert result.count() == 1
+        result = result.get()
+        assert isinstance(result, DocumentText)
+        assert result.id == 473
 
 
 def test_author_slug_full_name():
@@ -893,7 +906,19 @@ def test_document_text_retrieve_documents_simple():
     assert result.get() == doc
 
 
-def test_document_text_retrieve_documents_real():
+def test_document_text_retrieve_documents_evidence_code_not_number():
+    doc_text = baker.make(
+        'DocumentText',
+        evidence_code_series='FF',
+        evidence_code_num='407-IX',
+    )
+
+    result = doc_text.documents()
+
+    assert result.count() == 0
+
+
+def test_document_text_retrieve_documents_real_729():
     doc_text_729 = DocumentText.objects.get(id=729)
 
     result = doc_text_729.documents()
@@ -902,3 +927,29 @@ def test_document_text_retrieve_documents_real():
     # Document 2539 has no exhibit code, the other two have 1 exhibit each.
     # But document 30 was used in trial NMT 1 while document 3058 in NMT 2
     assert [d.id for d in result] == [30, 3058, 2539]
+
+
+def test_document_text_retrieve_documents_real_473():
+    doc_text_473 = DocumentText.objects.get(id=473)
+
+    result = doc_text_473.documents()
+
+    assert result.count() == 11
+    # Documents 2442 to 24465 have no exhibit code.
+    # All remaining have the same source (Case Files/English), but 3067 and
+    # 3107 were used in a trial case with lower score than the rest (NMT 2).
+    # That leaves 49, 58 and 1437 all with the same score... we need to break
+    # that tie.
+    assert [d.id for d in result] == [
+        49,
+        58,
+        1437,
+        3067,
+        3107,
+        2442,
+        2443,
+        2445,
+        2447,
+        2444,
+        2446,
+    ]
