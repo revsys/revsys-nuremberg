@@ -6,11 +6,13 @@ from haystack.inputs import AutoQuery
 
 
 class EmptyFacetsSearchForm(SearchForm):
-    """
+    """Extended search form to support empty facets and year periods.
+
     This reimplementation of FacetedSearchForm enables two additional features:
 
     - filtering by missing facet values (like Date: Unknown)
     - date_year range filtering like 1940-1945, as a search filter
+
     """
 
     applied_filters = []
@@ -69,29 +71,33 @@ class EmptyFacetsSearchForm(SearchForm):
 
 
 class FieldedSearchForm(SearchForm):
-    """
+    """Natural fielded search form.
+
     This form enables natural fielded search with the format:
+
     general search terms field:field search terms -field:excluded field search terms
 
     The relevant logic is in `parse_query` and `apply_field_query`.
 
-    The query is parsed into one `auto_query` and many `field_queries`. Each field_query
-    is tagged to render whether it is included, excluded, or ignored.
+    The query is parsed into one `auto_query` and many `field_queries`. Each
+    field_query is tagged to render whether it is included, excluded, or
+    ignored.
 
-    You can add an additional search field by adding its name to `search_fields`,
-    along with the Solr index key if different.
+    You can add an additional search field by adding its name to
+    `search_fields`, along with the Solr index key if different.
 
+    To enable grouping of TranscriptPage index objects under a single
+    transcript, we use an experiment modification to the Haystack Solr Backend.
+    Many search parameters are replaced with their group-query equivalents. Be
+    cautious when modifying grouping parameters, as the results can be
+    counter-intuitive.
 
-    To enable grouping of TranscriptPage index objects under a single transcript,
-    we use an experiment modification to the Haystack Solr Backend. Many search parameters
-    are replaced with their group-query equivalents. Be cautious when modifying grouping
-    parameters, as the results can be counter-intuitive.
+    NOTE: Transcript search results require all keywords to match on a single
+    page.
 
-    NOTE: Transcript search results require all keywords to match on a single page.
+    Highlighting is used in transcript search results, and as a way to count
+    "occurrences" within transcript search.
 
-
-    Highlighting is used in transcript search results, and as a way to count "occurrences"
-    within transcript search.
     """
 
     auto_query = None
@@ -147,11 +153,12 @@ class FieldedSearchForm(SearchForm):
             sqs = sqs.filter(
                 material_type='Transcript', transcript_id=self.transcript_id
             ).order_by(sort)
-            # we use snippets to count "occurrences" of a match in transcript search results
+            # use snippets to count "occurrences" of a match in transcript
+            # search results
             highlight_snippets = 10
         else:
-            # we use grouping by document/transcript id to cluster all transcript page results together
-            # weirdly it uses a separate sort field
+            # use grouping by document/transcript id to cluster all transcript
+            # page results together weirdly it uses a separate sort field
             if sort.startswith('-'):
                 sort = sort[1:] + ' desc'
             else:
@@ -182,13 +189,12 @@ class FieldedSearchForm(SearchForm):
             sqs = self.apply_field_query(sqs, field_query)
 
         if self.highlight_query:
+            hlq = AutoQuery(self.highlight_query).prepare(sqs.query)
             sqs = sqs.highlight(
                 **{
                     'hl.snippets': highlight_snippets,
                     'hl.fragsize': 150,
-                    'hl.q': 'material_type:transcripts AND highlight:({})'.format(
-                        AutoQuery(self.highlight_query).prepare(sqs.query)
-                    ),
+                    'hl.q': f'material_type:transcripts AND highlight:({hlq})',
                     'hl.fl': 'highlight',
                     'hl.requireFieldMatch': 'true',
                     'hl.simple.pre': '<mark>',
@@ -199,8 +205,10 @@ class FieldedSearchForm(SearchForm):
         return sqs
 
     def parse_query_phrases(self, full_query):  # pragma: no cover
-        """
-        Parser that extracts unmarked phrase queries for fields, eg: date:January 2
+        """Parser that extracts unmarked phrase queries for fields.
+
+        eg: date:January 2
+
         """
         sections = deque(re.split(r'(\-?\w+)\:', full_query))
         auto_query = sections.popleft()
@@ -210,9 +218,11 @@ class FieldedSearchForm(SearchForm):
         return (auto_query, field_queries)
 
     def parse_query_keywords(self, full_query):
-        """
-        Parser that extracts single field keyword queries, () keyword groups or "" exact matches
+        """Parser that extracts single field keyword queries
+
+        Also extract () keyword groups or "" exact matches.
         e.g. date:(January 2)
+
         """
         sections = re.split(
             r'((?:\-?\w+)\s*\:\s*(?:"[^"]+"|\([^:]+\)|[\w\-\+\.\|]+))',
@@ -246,8 +256,8 @@ class FieldedSearchForm(SearchForm):
         if field_key == True:
             field_key = field
 
-        # the solr backend aggressively quotes OR queries,
-        # so we must build an OR query manually to keep our loose keyword search
+        # the solr backend aggressively quotes OR queries, so we must build an
+        # OR query manually to keep our loose keyword search
         if field_key:
             values = re.split(r'[|]', value)
             query_list = []
