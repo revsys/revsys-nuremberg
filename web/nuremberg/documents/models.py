@@ -1105,7 +1105,7 @@ class DocumentText(models.Model):
         try:
             evidence_code_number = int(self.evidence_code_num)
         except ValueError:
-            logger.exception(
+            logger.info(
                 'DocumentText: Can not search for related documents for text '
                 '%s and evidence code %s (number: %s, series: %s)',
                 self.id,
