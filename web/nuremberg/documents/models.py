@@ -1000,7 +1000,7 @@ class DocumentText(models.Model):
         db_column='SourceCitation', max_length=500
     )
     load_timestamp = models.DateTimeField(db_column='LoadDateTime')
-    content = models.TextField(db_column='DocText', blank=True, null=True)
+    text = models.TextField(db_column='DocText', blank=True, null=True)
 
     class Meta:
         managed = False
