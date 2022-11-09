@@ -190,7 +190,7 @@
     {% if mode == 'text' %}
     <div class="main-column">
       <div class="document-text">
-      {{ full_text.text|linebreaks }}
+      {{ full_text.text|safe|linebreaks }}
       </div>
     </div>
     {% else %}

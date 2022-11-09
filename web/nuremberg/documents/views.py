@@ -1,8 +1,15 @@
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.views.generic import View
+from haystack.utils import Highlighter
 
 from .models import Document, DocumentPersonalAuthor, DocumentText
+
+
+class DocumentHighlighter(Highlighter):
+    def find_window(self, highlight_locations):
+        # Do not truncate the text at all -- show everything, from start to end
+        return (0, len(self.text_block))
 
 
 class Show(View):
@@ -23,8 +30,13 @@ class Show(View):
         full_text = DocumentText.objects.get(id=text_id)
         return full_text
 
+    def highlight_query(self, text, query):
+        highlight = DocumentHighlighter(query, html_tag='mark')
+        return highlight.highlight(text)
+
     def get(self, request, document_id, *args, **kwargs):
         mode = request.GET.get('mode', 'image')
+        query = request.GET.get('q')
 
         if mode == 'text':
             full_text = self.get_full_text(document_id)
@@ -36,6 +48,8 @@ class Show(View):
                 hlsl_item_id = None
             else:
                 hlsl_item_id = document.id
+            if query:
+                full_text.text = self.highlight_query(full_text.text, query)
         else:
             document = self.get_document(document_id)
             full_text = document.full_texts().first()
@@ -51,7 +65,7 @@ class Show(View):
                 'hlsl_item_id': hlsl_item_id,
                 'mode': mode,
                 'evidence_codes': evidence_codes,
-                'query': request.GET.get('q'),
+                'query': query,
             },
         )
 
