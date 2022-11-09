@@ -76,6 +76,12 @@
       <p class="trial-flags">
         <a href="{% url 'documents:show' document_id=full_text.id slug=document.slug %}?mode=text{% if query %}&q={% encode_string query %}{% endif %}">Full-text View</a>
       </p>
+      {% elif mode == 'text' and document.image_count %}
+      <p class="trial-flags">
+        <a href="{% url 'documents:show' document_id=document.id slug=document.slug %}?mode=image{% if query %}&q={% encode_string query %}{% endif %}">Image View</a>
+      </p>
+      {% endif %}
+      {% if mode != 'text' %}
       <div class="print-controls">
         <div>
           <button class="download-pdf">PDF</button>
@@ -89,10 +95,6 @@
           <div class="pdf-loading hide">Downloading images for PDF... <span class="progress"></span></div>
         </div>
       </div>
-      {% elif mode == 'text' and document.image_count %}
-      <p class="trial-flags">
-        <a href="{% url 'documents:show' document_id=document.id slug=document.slug %}?mode=image{% if query %}&q={% encode_string query %}{% endif %}">Image View</a>
-      </p>
       {% endif %}
       <h1 class="h3" aria-role="heading" aria-level="1">{{document.title}}</h1>
       <div class="h5">{{document.literal_title}}</div>
