@@ -1039,10 +1039,15 @@ class DocumentText(models.Model):
 
     @cached_property
     def total_pages(self):
+        if not self.text:
+            return 0
+
         # Some texts have both `680—PS` and `680-PS` as apparent page separator
         secondary_tag = self.evidence_code_tag.replace('-', '—')
-        return self.text.count(self.evidence_code_tag) + self.text.count(
-            secondary_tag
+        return (
+            self.text.count(self.evidence_code_tag)
+            + self.text.count(secondary_tag)
+            + 1
         )
 
     @cached_property
