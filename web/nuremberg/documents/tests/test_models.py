@@ -2,6 +2,7 @@ import datetime
 
 import pytest
 from model_bakery import baker
+from django.utils.text import slugify
 
 from nuremberg.documents.models import (
     Document,
@@ -38,10 +39,24 @@ def test_document_date_valid_as_date(day, month, year):
     assert d.as_date() == datetime.date(year, month, day)
 
 
+def test_document_total_pages():
+    doc = baker.make('Document')
+
+    assert doc.total_pages == doc.image_count
+
+
+def test_document_source_name():
+    doc = baker.make('Document', source__name='foo')
+
+    assert doc.source_name == 'foo'
+
+
 def test_document_retrieve_full_text_empty():
     doc = baker.make('Document')
 
     assert doc.full_texts().count() == 0
+    assert doc.full_text is None
+    assert doc.text == ''
 
 
 def test_document_retrieve_full_text_no_evidence_code_match():
@@ -59,6 +74,8 @@ def test_document_retrieve_full_text_no_evidence_code_match():
     ]
 
     assert doc.full_texts().count() == 0
+    assert doc.full_text is None
+    assert doc.text == ''
 
 
 def test_document_retrieve_full_text_real_729():
@@ -68,9 +85,12 @@ def test_document_retrieve_full_text_real_729():
         result = doc.full_texts()
 
         assert result.count() == 1
+
         result = result.get()
         assert isinstance(result, DocumentText)
         assert result.id == 729
+        assert doc.full_text == result
+        assert doc.text == result.text
 
 
 def test_document_retrieve_full_text_real_473():
@@ -81,9 +101,12 @@ def test_document_retrieve_full_text_real_473():
         result = doc.full_texts()
 
         assert result.count() == 1
+
         result = result.get()
         assert isinstance(result, DocumentText)
         assert result.id == 473
+        assert doc.full_text == result
+        assert doc.text == result.text
 
 
 def test_author_slug_full_name():
@@ -853,11 +876,96 @@ def test_author_properties_dates_and_qualifiers():
     }
 
 
+def test_document_text_evidence_code():
+    doc_text = baker.make(
+        'DocumentText',
+        evidence_code_series='FF',
+        evidence_code_num='123-85-X',
+        evidence_code_tag='Not relevant',
+    )
+
+    assert doc_text.evidence_code == 'FF-123-85-X'
+
+
+def test_document_text_slug():
+    doc_text = baker.make(
+        'DocumentText',
+        title='Something & Something/ELSE !@#',
+    )
+
+    assert doc_text.slug == 'something-somethingelse'
+
+
+def test_document_text_source_name():
+    doc_text = baker.make(
+        'DocumentText',
+        source_citation='Lorem ipsum dolor sit amet, consectetur adipiscing.',
+    )
+
+    assert doc_text.source_name == doc_text.source_citation
+
+
+def test_document_text_total_pages_text_none():
+    doc_text = baker.make('DocumentText', text=None)
+    assert doc_text.total_pages == 0
+
+
+def test_document_text_total_pages_empty_text():
+    doc_text = baker.make('DocumentText', text='')
+
+    assert doc_text.total_pages == 0
+
+
+def test_document_text_total_pages():
+    doc_text = baker.make(
+        'DocumentText',
+        evidence_code_series='XY',
+        evidence_code_num='456',
+        evidence_code_tag='123-AZ',
+        text='Something',
+    )
+
+    assert doc_text.total_pages == 1
+
+    doc_text.text = (
+        'Lorem ipsum dolor sit amet, 123-AZ consectetur adipiscing elit. '
+        'Praesent laoreet purus quis imperdiet gravida. '
+        'Ut viverra mi eget tortor iaculis elementum. '
+        'Phasellus semper rutrum mattis. Morbi nec vehicula diam. '
+        'Mauris rutrum consequat augue a vehicula. Fusce vitae lacus ipsum.'
+    )
+    del doc_text.total_pages  # invalidate cached property
+    assert doc_text.total_pages == 2
+
+    doc_text.text = (
+        'Lorem ipsum dolor sit amet, consectetur adipiscing elit. 123-AZ'
+        'Praesent laoreet purus quis imperdiet gravida. 123-AZ'
+        'Ut viverra mi eget tortor iaculis elementum. 123-AZ'
+        'Phasellus semper rutrum mattis. Morbi nec vehicula diam. 123-AZ'
+        'Mauris rutrum consequat augue a vehicula. Fusce vitae lacus ipsum.'
+    )
+    del doc_text.total_pages  # invalidate cached property
+    assert doc_text.total_pages == 5
+
+    doc_text.text = (
+        'Lorem ipsum dolor sit amet, consectetur adipiscing elit. 123-AZ'
+        'Praesent laoreet purus quis imperdiet gravida. 123-AZ'
+        'Ut viverra mi eget tortor iaculis elementum. 123—AZ'  # an emdash
+        'Phasellus semper rutrum mattis. Morbi nec vehicula diam. 123-AZ'
+        'Mauris rutrum consequat augue a vehicula. Fusce vitae lacus ipsum.'
+    )
+    del doc_text.total_pages  # invalidate cached property
+    assert doc_text.total_pages == 5
+
+
 def test_document_text_retrieve_documents_empty():
     doc_text = baker.make(
         'DocumentText', evidence_code_series='FF', evidence_code_num='123'
     )
+
     assert doc_text.documents().count() == 0
+    assert doc_text.document is None
+    assert doc_text.slug == slugify(doc_text.title)
 
 
 def test_document_text_retrieve_documents_no_evidence_code_match():
@@ -874,6 +982,8 @@ def test_document_text_retrieve_documents_no_evidence_code_match():
         'Z-123',
     ]
     assert doc_text.documents().count() == 0
+    assert doc_text.document is None
+    assert doc_text.slug == slugify(doc_text.title)
 
 
 @pytest.mark.skip(reason='Need to sort out object persistence with bakery')
@@ -904,6 +1014,7 @@ def test_document_text_retrieve_documents_simple():
 
     assert result.count() == 1
     assert result.get() == doc
+    assert doc_text.document == doc
 
 
 def test_document_text_retrieve_documents_evidence_code_not_number():
@@ -916,6 +1027,7 @@ def test_document_text_retrieve_documents_evidence_code_not_number():
     result = doc_text.documents()
 
     assert result.count() == 0
+    assert doc_text.document is None
 
 
 def test_document_text_retrieve_documents_real_729():
@@ -927,6 +1039,7 @@ def test_document_text_retrieve_documents_real_729():
     # Document 2539 has no exhibit code, the other two have 1 exhibit each.
     # But document 30 was used in trial NMT 1 while document 3058 in NMT 2
     assert [d.id for d in result] == [30, 3058, 2539]
+    assert doc_text_729.document == Document.objects.get(id=30)
 
 
 def test_document_text_retrieve_documents_real_473():
@@ -953,3 +1066,4 @@ def test_document_text_retrieve_documents_real_473():
         2444,
         2446,
     ]
+    assert doc_text_473.document == Document.objects.get(id=49)
