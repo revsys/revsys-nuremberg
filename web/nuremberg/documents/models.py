@@ -37,6 +37,22 @@ class Document(models.Model):
     def __str__(self):
         return "#{0} - {1}".format(self.id, self.title)
 
+    @cached_property
+    def full_text(self):
+        return self.full_texts().first()
+
+    @cached_property
+    def source_name(self):
+        return self.source.name
+
+    @cached_property
+    def text(self):
+        return self.full_text.text if self.full_text is not None else ''
+
+    @cached_property
+    def total_pages(self):
+        return self.image_count
+
     def page_range(self):
         return range(1, (self.image_count or 0) + 1)
 
@@ -1008,6 +1024,30 @@ class DocumentText(models.Model):
 
     def __str__(self):
         return f'{self.title}'
+
+    @cached_property
+    def evidence_code(self):
+        return f'{self.evidence_code_series}-{self.evidence_code_num}'
+
+    @cached_property
+    def slug(self):
+        return self.document.slug if self.document else slugify(self.title)
+
+    @cached_property
+    def source_name(self):
+        return self.source_citation
+
+    @cached_property
+    def total_pages(self):
+        # Some texts have both `680—PS` and `680-PS` as apparent page separator
+        secondary_tag = self.evidence_code_tag.replace('-', '—')
+        return self.text.count(self.evidence_code_tag) + self.text.count(
+            secondary_tag
+        )
+
+    @cached_property
+    def document(self):
+        return self.documents().first()
 
     def documents(self):
         """Fetch the most relevant Document for this DocumentText.

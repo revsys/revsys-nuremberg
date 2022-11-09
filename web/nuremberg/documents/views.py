@@ -29,9 +29,13 @@ class Show(View):
         if mode == 'text':
             full_text = self.get_full_text(document_id)
             document = full_text.documents().first()
+            evidence_codes = [full_text.evidence_code]
+            if document is None:
+                document = full_text
         else:
             document = self.get_document(document_id)
             full_text = document.full_texts().first()
+            evidence_codes = document.evidence_codes.all()
 
         return render(
             request,
@@ -40,6 +44,7 @@ class Show(View):
                 'document': document,
                 'full_text': full_text,
                 'mode': mode,
+                'evidence_codes': evidence_codes,
                 'query': request.GET.get('q'),
             },
         )
