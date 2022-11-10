@@ -15,21 +15,6 @@ class DocumentHighlighter(Highlighter):
 class Show(View):
     template_name = 'documents/show.html'
 
-    def get_document(self, document_id):
-        document = (
-            Document.objects.prefetch_related(
-                'activities', 'evidence_codes', 'exhibit_codes', 'images'
-            )
-            .select_related('language')
-            .select_related('source')
-            .get(id=document_id)
-        )
-        return document
-
-    def get_full_text(self, text_id):
-        full_text = DocumentText.objects.get(id=text_id)
-        return full_text
-
     def highlight_query(self, text, query):
         highlight = DocumentHighlighter(query, html_tag='mark')
         return highlight.highlight(text)
@@ -39,7 +24,7 @@ class Show(View):
         query = request.GET.get('q')
 
         if mode == 'text':
-            full_text = self.get_full_text(document_id)
+            full_text = get_object_or_404(DocumentText, id=document_id)
             document = full_text.documents().first()
             evidence_codes = [full_text.evidence_code]
             if document is None:
@@ -51,7 +36,14 @@ class Show(View):
             if query:
                 full_text.text = self.highlight_query(full_text.text, query)
         else:
-            document = self.get_document(document_id)
+            document = get_object_or_404(
+                Document.objects.prefetch_related(
+                    'activities', 'evidence_codes', 'exhibit_codes', 'images'
+                )
+                .select_related('language')
+                .select_related('source'),
+                id=document_id,
+            )
             full_text = document.full_texts().first()
             evidence_codes = document.evidence_codes.all()
             hlsl_item_id = document_id
