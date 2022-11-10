@@ -45,6 +45,14 @@ def test_document_total_pages():
     assert doc.total_pages == doc.image_count
 
 
+def test_document_language_name():
+    doc = baker.make('Document')
+    assert doc.language_name == doc.language.name
+
+    doc = baker.make('Document', language__name='Foo')
+    assert doc.language_name == 'Foo'
+
+
 def test_document_source_name():
     doc = baker.make('Document', source__name='foo')
 
@@ -885,6 +893,12 @@ def test_document_text_evidence_code():
     )
 
     assert doc_text.evidence_code == 'FF-123-85-X'
+
+
+def test_document_text_language_name():
+    doc_text = baker.make('DocumentText')
+
+    assert doc_text.language_name == 'English'
 
 
 def test_document_text_slug():
