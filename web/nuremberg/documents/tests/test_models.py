@@ -11,7 +11,7 @@ from nuremberg.documents.models import (
     DocumentText,
     PersonalAuthorProperty,
 )
-from .helpers import make_author
+from .helpers import make_author, make_document
 
 
 pytestmark = pytest.mark.django_db
@@ -71,15 +71,9 @@ def test_document_retrieve_full_text_no_evidence_code_match():
     baker.make(
         'DocumentText', evidence_code_series='FF', evidence_code_num='123'
     )
-    evidence_codes = [
-        baker.make('DocumentEvidenceCode', prefix__code='Z', number='123'),
-        baker.make('DocumentEvidenceCode', prefix__code='FF', number='12'),
-    ]
-    doc = baker.make('Document', evidence_codes=evidence_codes)
-    assert sorted(str(e) for e in doc.evidence_codes.all()) == [
-        'FF-12',
-        'Z-123',
-    ]
+    evidence_codes = ['FF-12', 'Z-123']
+    doc = make_document(evidence_codes=evidence_codes)
+    assert sorted(str(e) for e in doc.evidence_codes.all()) == evidence_codes
 
     assert doc.full_texts().count() == 0
     assert doc.full_text is None
@@ -986,21 +980,17 @@ def test_document_text_retrieve_documents_no_evidence_code_match():
     doc_text = baker.make(
         'DocumentText', evidence_code_series='FF', evidence_code_num='123'
     )
-    evidence_codes = [
-        baker.make('DocumentEvidenceCode', prefix__code='Z', number='123'),
-        baker.make('DocumentEvidenceCode', prefix__code='FF', number='12'),
-    ]
-    doc = baker.make('Document', evidence_codes=evidence_codes)
-    assert sorted(str(e) for e in doc.evidence_codes.all()) == [
-        'FF-12',
-        'Z-123',
-    ]
+    evidence_codes = ['Z-123', 'FF-12']
+    doc = make_document(evidence_codes=evidence_codes)
+
+    assert sorted(str(e) for e in doc.evidence_codes.all()) == sorted(
+        evidence_codes
+    )
     assert doc_text.documents().count() == 0
     assert doc_text.document is None
     assert doc_text.slug == slugify(doc_text.title)
 
 
-@pytest.mark.skip(reason='Need to sort out object persistence with bakery')
 def test_document_text_retrieve_documents_simple():
     doc_text = baker.make(
         'DocumentText',
@@ -1008,20 +998,12 @@ def test_document_text_retrieve_documents_simple():
         evidence_code_num='123',
         evidence_code_tag='Not relevant',
     )
-    evidence_codes = [
-        baker.make('DocumentEvidenceCode', prefix__code='Z', number='123'),
-        baker.make('DocumentEvidenceCode', prefix__code='FF', number='123'),
-    ]
-    doc = baker.make(Document, evidence_codes=evidence_codes)
+    evidence_codes = ['Z-123', 'FF-123']
+    doc = make_document(evidence_codes=evidence_codes)
 
-    # We may have an issue with the fact that tests are using the real DB.
-    # The following assert passes OK
-    assert [e.document.id for e in evidence_codes] == [doc.id, doc.id]
-    assert sorted(str(e) for e in doc.evidence_codes.all()) == [
-        'FF-123',
-        'Z-123',
-    ]
-    # but the following fails!
+    assert sorted(str(e) for e in doc.evidence_codes.all()) == sorted(
+        evidence_codes
+    )
     assert Document.objects.filter(id=doc.id).count() == 1
 
     result = doc_text.documents()

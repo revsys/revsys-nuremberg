@@ -74,11 +74,11 @@
       </p>
       {% if mode == 'image' and full_text %}
       <p class="trial-flags">
-        <a href="{% url 'documents:show' document_id=full_text.id slug=document.slug %}?mode=text{% if query %}&q={% encode_string query %}{% endif %}">Full-text View</a>
+        <a data-test="full-text-view" href="{% url 'documents:show' document_id=full_text.id slug=full_text.slug %}?mode=text{% if query %}&q={% encode_string query %}{% endif %}">Full-text View</a>
       </p>
       {% elif mode == 'text' and document.image_count %}
       <p class="trial-flags">
-        <a href="{% url 'documents:show' document_id=document.id slug=document.slug %}?mode=image{% if query %}&q={% encode_string query %}{% endif %}">Image View</a>
+        <a data-test="image-view" href="{% url 'documents:show' document_id=document.id slug=document.slug %}?mode=image{% if query %}&q={% encode_string query %}{% endif %}">Image View</a>
       </p>
       {% endif %}
       {% if mode != 'text' %}
@@ -189,7 +189,7 @@
     <div id="content"></div>
     {% if mode == 'text' %}
     <div class="main-column">
-      <div class="document-text">
+      <div class="document-text" data-test="document-text-viewport">
       {{ full_text.text|safe|linebreaks }}
       </div>
     </div>
