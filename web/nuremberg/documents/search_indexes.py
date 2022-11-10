@@ -151,8 +151,10 @@ class DocumentTextIndex(indexes.SearchIndex, indexes.Indexable):
         return 'load_timestamp'
 
     def index_queryset(self, using=None):
-        # ToDo: filter those DocumentText that have no matching document
-        pass
+        # Filter those DocumentText that have no matching document. The ones
+        # with at least one matching document will be indexed along with the
+        # class above DocumentIndex
+        return DocumentText.objects.no_matching_document()
 
     def prepare_grouping_key(self, obj):
         # This is a hack to group transcripts but not other objects.
