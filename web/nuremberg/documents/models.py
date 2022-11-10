@@ -42,6 +42,10 @@ class Document(models.Model):
         return self.full_texts().first()
 
     @cached_property
+    def language_name(self):
+        return self.language.name
+
+    @cached_property
     def source_name(self):
         return self.source.name
 
@@ -1028,6 +1032,12 @@ class DocumentText(models.Model):
     @cached_property
     def evidence_code(self):
         return f'{self.evidence_code_series}-{self.evidence_code_num}'
+
+    @cached_property
+    def language_name(self):
+        # Temporary default until a new dump of this table is provided with
+        # lang information.
+        return 'English'
 
     @cached_property
     def slug(self):

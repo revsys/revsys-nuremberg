@@ -31,11 +31,16 @@ class Show(View):
             document = full_text.documents().first()
             evidence_codes = [full_text.evidence_code]
             if document is None:
+                # For texts without a matching document, ignore `HLSL Item No.`
                 document = full_text
+                hlsl_item_id = None
+            else:
+                hlsl_item_id = document.id
         else:
             document = self.get_document(document_id)
             full_text = document.full_texts().first()
             evidence_codes = document.evidence_codes.all()
+            hlsl_item_id = document_id
 
         return render(
             request,
@@ -43,6 +48,7 @@ class Show(View):
             {
                 'document': document,
                 'full_text': full_text,
+                'hlsl_item_id': hlsl_item_id,
                 'mode': mode,
                 'evidence_codes': evidence_codes,
                 'query': request.GET.get('q'),
