@@ -144,7 +144,7 @@
         </p>
         <p>
           <strong>Language of Text:</strong>
-          {{document.language.name}}
+          {{document.language_name}}
         </p>
         <p>
           <strong>Source of Text:</strong>
@@ -172,7 +172,7 @@
         {% endwith %}
         <p>
           <strong>HLSL Item No.:</strong>
-          {{document.id}}
+          {{hlsl_item_id|default:'Unknown'}}
         </p>
       {% endblock %}
       {% with document.activities.all as activities %}
