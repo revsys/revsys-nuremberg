@@ -95,8 +95,8 @@ class FieldedSearchForm(SearchForm):
     NOTE: Transcript search results require all keywords to match on a single
     page.
 
-    Highlighting is used in transcript search results, and as a way to count
-    "occurrences" within transcript search.
+    Highlighting is used in transcript and document text search results, and as
+    a way to count "occurrences" within transcript search.
 
     """
 
@@ -269,7 +269,8 @@ class FieldedSearchForm(SearchForm):
                         '(-{}: [* TO *] AND *:*)'.format(field_key)
                     )
                 else:
-                    # to enable snippets for exhibit codes we must add them to the highlight query
+                    # to enable snippets for exhibit codes we must add them to
+                    # the highlight query
                     if field_key in (
                         'exhibit_codes',
                         'evidence_codes',
