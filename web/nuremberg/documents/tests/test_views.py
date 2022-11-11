@@ -1,24 +1,46 @@
+from urllib.parse import urlencode
+
 import pytest
 from django.urls import reverse
 from model_bakery import baker
 
 from nuremberg.core.tests.acceptance_helpers import PyQuery, client
-from nuremberg.documents.models import Document, DocumentPersonalAuthor
-from .helpers import make_author
+from nuremberg.documents.models import (
+    Document,
+    DocumentPersonalAuthor,
+    DocumentText,
+)
+from .helpers import make_author, make_document, make_random_text
 
 
 pytestmark = pytest.mark.django_db
 
 
-def document(document_id):
-    response = client.get(
-        reverse('documents:show', kwargs={'document_id': document_id})
-    )
+def document_show_url(document_id, slug=None, **qs):
+    kwargs = {'document_id': document_id}
+    if slug is not None:
+        kwargs['slug'] = slug
+    url = reverse('documents:show', kwargs=kwargs)
+    if qs:
+        url += f'?{urlencode(qs)}'
+    return url
+
+
+def get_document(document_id=None, url=None, status_code=200, **qs):
+    if url is None:
+        assert document_id is not None
+        url = document_show_url(document_id, **qs)
+
+    response = client.get(url)
+
+    assert response.status_code == status_code
+    assert 'text/html' in response.headers['Content-Type']
+
     return PyQuery(response.content)
 
 
 def test_document_1():
-    page = document(1)
+    page = get_document(1)
 
     assert Document.objects.get(id=1).title in page('h1').text()
 
@@ -40,7 +62,7 @@ def test_document_1():
 
 
 def test_document_2():
-    page = document(2)
+    page = get_document(2)
 
     assert (
         'Argument: prosecution closing argument against all defendants'
@@ -63,7 +85,7 @@ def test_document_2():
 
 
 def test_document_400():
-    page = document(400)
+    page = get_document(400)
 
     assert (
         'Decree concerning the administration of Polish territories'
@@ -87,7 +109,7 @@ def test_document_400():
 
 
 def test_document_3799():
-    page = document(3799)
+    page = get_document(3799)
 
     assert (
         'Journal and office records of Hans Frank, Governor General of Poland'
@@ -404,4 +426,84 @@ def test_author_properties():
         image_alt,
         born,
         occupation,
+    )
+
+
+def test_document_image_not_found():
+    assert Document.objects.filter(id=0).count() == 0
+    get_document(document_id=0, status_code=404)
+
+
+def test_document_text_not_found():
+    assert DocumentText.objects.filter(id=0).count() == 0
+    get_document(document_id=0, status_code=404, mode='text')
+
+
+def test_document_details_no_full_text():
+    doc = make_document(evidence_codes=[])
+
+    content = get_document(doc.id)
+    assert content.find('[data-test="full-text-view"]') == []
+    assert content.find('[data-test="image-view"]') == []
+
+
+def test_document_details_mode_text():
+    doc = make_document(evidence_codes=['PPSS-123456'])
+    full_text = baker.make(
+        'DocumentText',
+        text=make_random_text(150),
+        evidence_code_series='PPSS',
+        evidence_code_num='123456',
+    )
+
+    content = get_document(doc.id)
+    links = content.find('[data-test="full-text-view"]')
+    assert len(links) == 1
+
+    text_view_url = document_show_url(
+        full_text.id, slug=full_text.slug, mode='text'
+    )
+    [link] = links
+    assert link.attrib['href'] == text_view_url
+    assert link.text.strip() == 'Full-text View'
+    assert content.find('[data-test="image-view"]') == []
+
+    content = get_document(url=text_view_url)
+    assert (
+        content.find('[data-test="document-text-viewport"]').text()
+        == full_text.text
+    )
+
+
+def test_document_details_mode_text_term_higlighting():
+    doc = make_document(evidence_codes=['PPSS-123456'])
+    text = make_random_text(150)
+    full_text = baker.make(
+        'DocumentText',
+        text=text,
+        evidence_code_series='PPSS',
+        evidence_code_num='123456',
+    )
+
+    q = 'lorem ipsum'
+    content = get_document(doc.id, q=q)
+    links = content.find('[data-test="full-text-view"]')
+    assert len(links) == 1
+
+    text_view_url = document_show_url(
+        full_text.id, slug=full_text.slug, mode='text', q=q
+    )
+    [link] = links
+    assert link.attrib['href'] == text_view_url
+    assert link.text.strip() == 'Full-text View'
+    assert content.find('[data-test="image-view"]') == []
+
+    # if a search term is carried from the search page, highlight the matches
+    content = get_document(url=text_view_url)
+    highlithed = full_text.text.replace(
+        'Lorem', '<mark class="highlighted">Lorem</mark>'
+    ).replace('ipsum', '<mark class="highlighted">ipsum</mark>')
+    assert (
+        content.find('[data-test="document-text-viewport"]').html().strip()
+        == f'<p>{highlithed}</p>'
     )
