@@ -1017,10 +1017,7 @@ class DocumentTextQuerySet(models.QuerySet):
                     Case(
                         When(suffix='', then=Value('')),
                         When(suffix__isnull=True, then=Value('')),
-                        When(
-                            suffix__isnull=False,
-                            then=Concat(Value('-'), 'suffix'),
-                        ),
+                        When(suffix__isnull=False, then='suffix'),
                     ),
                     output_field=models.CharField(),
                 )
@@ -1174,10 +1171,6 @@ class DocumentText(models.Model):
         )
         # We can't use `self.evidence_code_tag` because the ordering of series
         # and number varies (some have series-num, others have num-series).
-
-        # XXX: improve the query: if a document has multiple evidence code, and
-        # one code matches the prefix and other code matches the number, it'll
-        # get selected when it shouldn't.
         matches = (
             Document.objects.prefetch_related(
                 'cases',

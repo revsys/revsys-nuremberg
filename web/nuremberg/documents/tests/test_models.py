@@ -11,7 +11,7 @@ from nuremberg.documents.models import (
     DocumentText,
     PersonalAuthorProperty,
 )
-from .helpers import make_author, make_document
+from .helpers import make_author, make_document, make_document_text
 
 
 pytestmark = pytest.mark.django_db
@@ -73,7 +73,6 @@ def test_document_retrieve_full_text_no_evidence_code_match():
     )
     evidence_codes = ['FF-12', 'Z-123']
     doc = make_document(evidence_codes=evidence_codes)
-    assert sorted(str(e) for e in doc.evidence_codes.all()) == evidence_codes
 
     assert doc.full_texts().count() == 0
     assert doc.full_text is None
@@ -980,12 +979,8 @@ def test_document_text_retrieve_documents_no_evidence_code_match():
     doc_text = baker.make(
         'DocumentText', evidence_code_series='FF', evidence_code_num='123'
     )
-    evidence_codes = ['Z-123', 'FF-12']
-    doc = make_document(evidence_codes=evidence_codes)
+    make_document(evidence_codes=['Z-123', 'FF-12'])
 
-    assert sorted(str(e) for e in doc.evidence_codes.all()) == sorted(
-        evidence_codes
-    )
     assert doc_text.documents().count() == 0
     assert doc_text.document is None
     assert doc_text.slug == slugify(doc_text.title)
@@ -1001,16 +996,26 @@ def test_document_text_retrieve_documents_simple():
     evidence_codes = ['Z-123', 'FF-123']
     doc = make_document(evidence_codes=evidence_codes)
 
-    assert sorted(str(e) for e in doc.evidence_codes.all()) == sorted(
-        evidence_codes
-    )
-    assert Document.objects.filter(id=doc.id).count() == 1
-
     result = doc_text.documents()
 
     assert result.count() == 1
     assert result.get() == doc
     assert doc_text.document == doc
+
+
+def test_document_text_retrieve_documents_proper_evidence_code_matching():
+    doc_text = baker.make(
+        'DocumentText',
+        evidence_code_series='FF',
+        evidence_code_num='123',
+        evidence_code_tag='Not relevant',
+    )
+    make_document(evidence_codes=['Z-123'])
+    make_document(evidence_codes=['FF-12'])
+
+    result = doc_text.documents()
+
+    assert result.count() == 0
 
 
 def test_document_text_retrieve_documents_evidence_code_not_number():
@@ -1063,3 +1068,38 @@ def test_document_text_retrieve_documents_real_473():
         2446,
     ]
     assert doc_text_473.document == Document.objects.get(id=49)
+
+
+def test_document_text_no_matching_documents(django_assert_num_queries):
+    last_text_id = DocumentText.objects.all().order_by('id').last().id
+
+    items = [
+        [],
+        ['AAAA-123456'],
+        ['AAAA-123456', 'BBBB-456789'],
+        ['BBBB-456789'],
+        ['CCCC-9876543210'],
+    ]
+    for codes in items:
+        make_document(evidence_codes=codes)
+        for code in codes:
+            make_document_text(evidence_code=code)
+
+    # none has an evidence code match; also the `tag` is ignored
+    expected = [
+        make_document_text(evidence_code='CCCC-987654321'),
+        make_document_text(evidence_code='BBBB-123456'),
+        make_document_text(evidence_code='AAAA-456789'),
+        make_document_text(evidence_code='AAA-123456'),
+        make_document_text(evidence_code_tag='AAAA-123456'),
+    ]
+
+    # Given that tests are using the real DB, we need to craft a query which
+    # would operate over the instances baked for this test only.
+    result = DocumentText.objects.filter(
+        id__gt=last_text_id
+    ).no_matching_document()
+
+    assert result.count() == len(expected)
+    with django_assert_num_queries(1):
+        assert list(result) == expected
