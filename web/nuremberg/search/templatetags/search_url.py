@@ -138,4 +138,4 @@ def group_merge(results, key):
 
 @register.filter
 def trim_snippet(snippet):
-    return SafeString(snippet.split('<end of text>', 1)[0])
+    return SafeString((snippet.split('<end of text>', 1)[0]).strip())

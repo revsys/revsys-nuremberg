@@ -14,13 +14,21 @@
         {% if result.literal_title %}
           <p>{{result.literal_title|truncatewords:35|truncatechars:300}}</p>
         {% endif %}
-
-        {% if result.material_type == 'Document' %}
-          <p>
-            <strong>HLSL Item No.:</strong>
-            {{result.pk}}
-          </p>
+        {% with result.text|trim_snippet as text %}
+        {% if text %}
+        <p class="snippets">
+            {% for snippet in result.highlighted.highlight %}
+              <span class="ellipsis">[ ... ]</span>
+              {{ snippet|trim_snippet }}
+            {% empty %}
+              <span class="ellipsis">[ ... ]</span>
+              {{ result.text|slice:":150"|trim_snippet }}
+            {% endfor %}
+          <span class="ellipsis">[ ... ]</span>
+        </p>
         {% endif %}
+        {% endwith %}
+        <p><strong>HLSL Item No.:</strong> {{result.pk}}</p>
       </a>
     {% elif result.material_type == 'Photograph' %}
       <a class="unstyled" href="{% url 'photographs:show' photograph_id=result.pk slug=result.slug %}{% if query %}?q={% encode_string query %}{% endif %}">

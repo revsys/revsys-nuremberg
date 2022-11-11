@@ -1041,7 +1041,7 @@ class DocumentText(models.Model):
 
     @cached_property
     def slug(self):
-        return self.document.slug if self.document else slugify(self.title)
+        return self.document.slug() if self.document else slugify(self.title)
 
     @cached_property
     def source_name(self):
