@@ -9,9 +9,11 @@ from nuremberg.core.tests.acceptance_helpers import (
 from nuremberg.search.templatetags.search_url import search_url
 
 
-SEARCH_TOTAL_RESULTS = 15547
-SEARCH_TOTAL_DOCUMENTS = 15323
-SEARCH_TOTAL_WORKERS = 790
+SEARCH_TOTAL_RESULTS = 17648
+SEARCH_TOTAL_DOCUMENTS = 17424
+SEARCH_TOTAL_WORKERS = 1414
+SEARCH_TOTAL_POLISH_WORKERS = 431
+SEARCH_TOTAL_EXPERIMENTS = 2066
 SEARCH_SUMMARY_SELECTOR = '[data-test="search-result-pages-summary"]'
 pytestmark = pytest.mark.django_db
 
@@ -54,19 +56,22 @@ def test_search_page(query):
 def test_facets(query):
     page = query('polish workers in germany')
 
-    # baseline
-    assert 'Results 1-15 of 41 for polish workers in germany' in page.text()
+    baseline = (  # baseline query
+        f'Results 1-15 of {SEARCH_TOTAL_POLISH_WORKERS} for polish workers in '
+        'germany'
+    )
+    assert baseline in page.text()
 
     # test adding facet
     page = follow_link(page('.facet p').with_text('NMT 2').find('a'))
-    assert 'Results 1-8 of 8 for polish workers in germany' in page.text()
+    assert 'Results 1-15 of 51 for polish workers in germany' in page.text()
     assert 'NMT 2' in page('.applied-filters').with_text('Trial').text()
 
     # test removing facet
     page = follow_link(
         page('.applied-filters').with_text('Trial NMT 2').find('a')
     )
-    assert 'Results 1-15 of 41 for polish workers in germany' in page.text()
+    assert baseline in page.text()
 
     # test unknown facet
     page = follow_link(
@@ -76,7 +81,7 @@ def test_facets(query):
         .with_text('Unknown')
         .find('a')
     )
-    assert 'Results 1-15 of 29 for polish workers in germany' in page.text()
+    assert 'Results 1-15 of 370 for polish workers in germany' in page.text()
     assert 'None' in page('.applied-filters').with_text('Trial').text()
 
     # test multiple facets
@@ -87,7 +92,7 @@ def test_facets(query):
         .with_text('English')
         .find('a')
     )
-    assert 'Results 1-15 of 24 for polish workers in germany' in page.text()
+    assert 'Results 1-15 of 119 for polish workers in germany' in page.text()
     assert 'None' in page('.applied-filters').with_text('Trial').text()
     assert 'English' in page('.applied-filters').with_text('Language').text()
 
@@ -98,7 +103,7 @@ def test_facets(query):
         .with_text('Typescript')
         .find('a')
     )
-    assert 'Results 1-4 of 4 for polish workers in germany' in page.text()
+    assert 'Results 1-15 of 93 for polish workers in germany' in page.text()
     assert 'None' in page('.applied-filters').with_text('Trial').text()
     assert 'English' in page('.applied-filters').with_text('Language').text()
     assert 'Typescript' in page('.applied-filters').with_text('Source').text()
@@ -107,18 +112,18 @@ def test_facets(query):
     date_range = page('.facet').with_text('Date').find('form')
     from_name = date_range.find('input[type=number]').nth(0).attr('name')
     to_name = date_range.find('input[type=number]').nth(1).attr('name')
-    page = go_to(date_range.submit_url({from_name: 1941, to_name: 1942}))
-    assert 'Results 1-2 of 2 for polish workers in germany' in page.text()
+    page = go_to(date_range.submit_url({from_name: 1940, to_name: 1941}))
+    assert 'Results 1-3 of 3 for polish workers in germany' in page.text()
     assert 'None' in page('.applied-filters').with_text('Trial').text()
     assert 'English' in page('.applied-filters').with_text('Language').text()
     assert 'Typescript' in page('.applied-filters').with_text('Source').text()
-    assert '1941-1942' in page('.applied-filters').with_text('Date').text()
+    assert '1940-1941' in page('.applied-filters').with_text('Date').text()
+    assert '1940' in page('.document-row').text()
     assert '1941' in page('.document-row').text()
-    assert '1942' in page('.document-row').text()
 
     # test removing all filters
     page = follow_link(page('a').with_text('Clear all filters'))
-    assert 'Results 1-15 of 41 for polish workers in germany' in page.text()
+    assert baseline in page.text()
 
 
 def test_keyword_search(query):
@@ -127,7 +132,7 @@ def test_keyword_search(query):
     page = go_to(search_bar.submit_value('experiments'))
 
     assert (
-        'Results 1-15 of 1523 for experiments'
+        f'Results 1-15 of {SEARCH_TOTAL_EXPERIMENTS} for experiments'
         in page(SEARCH_SUMMARY_SELECTOR).text()
     )
     assert len(page('.document-row')) == 15
@@ -175,31 +180,31 @@ def test_field_search(count_results):
 
     # TODO: these tests are pretty brittle to indexing changes, consider beefing them up
     count_results('workers', SEARCH_TOTAL_WORKERS)
-    count_results('workers author:fritz', 80)
-    count_results('workers date:january', 33)
-    count_results('workers -trial:(nmt 4)', 673)
+    count_results('workers author:fritz', 82)
+    count_results('workers date:january', 52)
+    count_results('workers -trial:(nmt 4)', 1295)
     count_results('workers evidence:NO-190', 5, 5)
-    count_results('workers source:typescript language:german', 37)
+    count_results('workers source:typescript language:german', 38)
     count_results(
-        'workers source:typescript language:german -author:Milch', 28
+        'workers source:typescript language:german -author:Milch', 29
     )
-    count_results('workers trial:(nmt 2 | nmt 4)', 263)
-    count_results('workers date:unknown', 188)
-    count_results('workers date:none', 188)
-    count_results('workers -date:none', 606)
-    count_results('workers -date:none notafield:(no matches)', 606)
-    count_results('workers trial:(nmt 2 | nmt 4) author:speer|fritz', 37)
+    count_results('workers trial:(nmt 2 | nmt 4)', 276)
+    count_results('workers date:unknown', 481)
+    count_results('workers date:none', 481)
+    count_results('workers -date:none', 937)
+    count_results('workers -date:none notafield:(no matches)', 937)
+    count_results('workers trial:(nmt 2 | nmt 4) author:speer|fritz', 40)
     count_results('workers author:"hitler adolf"', 0, 0, 0)
-    count_results('workers author:"adolf hitler"', 11, 11)
-    count_results('workers exhibit:prosecution', 176)
+    count_results('workers author:"adolf hitler"', 112)
+    count_results('workers exhibit:prosecution', 187)
     count_results('* author:hitler -author:adolf', 0, 0, 0)
     count_results('* exhibit:handloser', 81)
-    count_results('malaria', 100)
-    count_results('freezing', 285)
-    count_results('malaria freezing', 34)
-    count_results('-malaria freezing', 254)
-    count_results('malaria -freezing', 69)
-    count_results('malaria | freezing', 349)
+    count_results('malaria', 107)
+    count_results('freezing', 299)
+    count_results('malaria freezing', 40)
+    count_results('-malaria freezing', 262)
+    count_results('malaria -freezing', 70)
+    count_results('malaria | freezing', 364)
 
 
 def test_document_search(query):
@@ -207,8 +212,8 @@ def test_document_search(query):
     assert f'Results 1-15 of {SEARCH_TOTAL_WORKERS} for workers' in page.text()
     page = follow_link(
         page('.document-row a').with_text(
-            'Instructions to employment offices concerning the replacement of '
-            'Jewish workers in Germany'
+            'Instructions concerning the treatment of Eastern domestic '
+            'workers in Germany'
         )
     )
 
@@ -217,11 +222,11 @@ def test_document_search(query):
     assert search_bar.val() == 'workers'
 
     page = go_to(search_bar.submit_value('instructions'))
-    assert 'Results 1-15 of 752 for instructions' in page.text()
+    assert 'Results 1-15 of 1188 for instructions' in page.text()
 
     q = 'instructions for air force medical'
     page = go_to(search_bar.submit_value(q))
-    assert f'Results 1-3 of 3 for {q}' in page.text()
+    assert f'Results 1-15 of 20 for {q}' in page.text()
     page = follow_link(
         page('.document-row a').with_text(
             'Instructions for air force medical officers regarding freezing'
@@ -233,7 +238,7 @@ def test_document_search(query):
     assert search_bar.val() == q
 
     page = follow_link(page('a').with_text('Back to search results'))
-    assert f'Results 1-3 of 3 for {q}' in page.text()
+    assert f'Results 1-15 of 20 for {q}' in page.text()
 
 
 def test_landing_search(query):
@@ -309,8 +314,9 @@ def test_pagination(query):
 
     page = follow_link(page('[data-test="search-result-last-page"]'))
 
+    i = SEARCH_TOTAL_RESULTS - (SEARCH_TOTAL_RESULTS % 15) + 1
     assert (
-        f'Results 15541-{SEARCH_TOTAL_RESULTS} of {SEARCH_TOTAL_RESULTS} for *'
+        f'Results {i}-{SEARCH_TOTAL_RESULTS} of {SEARCH_TOTAL_RESULTS} for *'
         in page.text()
     )
 
@@ -321,9 +327,7 @@ def test_sort(query):
     assert 'Argument: Final plea for Karl Gebhardt' in page.text()
 
     page = follow_link(page('[data-test="search-result-last-page"]'))
-    assert (
-        'Brief: Prosecution closing brief against Georg Loerner' in page.text()
-    )
+    assert 'TRANSLATION OF DOCUMENT 3786-PS' in page.text()
 
     # test date sorts
     page = query('-date:none')
