@@ -152,6 +152,7 @@ HAYSTACK_CONNECTIONS = {
     'default': {
         'ENGINE': 'nuremberg.search.lib.solr_grouping_backend.GroupedSolrEngine',
         'URL': 'http://solr:8983/solr/nuremberg_dev',
+        'TIMEOUT': 60 * 5,
     }
 }
 HAYSTACK_DEFAULT_OPERATOR = 'AND'
