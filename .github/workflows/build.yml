@@ -34,7 +34,7 @@ jobs:
         uses: docker/login-action@v2
         with:
           registry: registry.revsys.com
-          username: ${{ secrets.REVSYS_DOCKER_REGISTRY_USERNAME }}
+          username: github
           password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
 
       - name: Build and push Docker images
