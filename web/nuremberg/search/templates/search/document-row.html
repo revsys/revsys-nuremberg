@@ -143,7 +143,8 @@
       </a>
     {% else %}
       {% for author_prop in result.authors_properties %}
-        {% include 'documents/_author_properties_hover.html' with include_title=False %}
+        {% get_item authors_metadata author_prop.author.id fallback=author_prop as author_prop %}
+        {% include 'documents/_author_properties_hover.html' with author_prop=author_prop include_title=False %}
       {% endfor %}
     {% endif %}
   </td>

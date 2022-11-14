@@ -397,6 +397,10 @@ class DocumentPersonalAuthor(models.Model):
             'properties': [],
         }
 
+        # If no properties were requested, return early with base metadata
+        if max_properties is not None and max_properties < 1:
+            return result
+
         if ranks is None:  # reuse rank information between exploded properties
             ranks = dict(
                 PersonalAuthorPropertyRank.objects.all().values_list(
