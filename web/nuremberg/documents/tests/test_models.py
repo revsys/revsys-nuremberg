@@ -148,6 +148,25 @@ def test_author_properties_no_author():
     assert empty_qs.metadata() == []
 
 
+def test_author_properties_max_properties_zero(django_assert_num_queries):
+    author = make_author()
+
+    with django_assert_num_queries(0):
+        result = author.metadata(max_properties=0)
+
+    assert result == {
+        'author': {
+            'name': author.full_name(),
+            'id': author.id,
+            'slug': author.slug,
+            'title': author.title,
+            'description': '',
+        },
+        'image': None,
+        'properties': [],
+    }
+
+
 def test_author_properties_no_property_match_uses_title():
     author = make_author(
         first_name='No',

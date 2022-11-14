@@ -84,12 +84,7 @@ class DocumentIndex(indexes.SearchIndex, indexes.Indexable):
     def prepare_authors_properties(self, document):
         result = [
             author.metadata() for author in document.group_authors.all()
-        ] + document.personal_authors.all().order_by('id').metadata(
-            max_properties=8,
-            max_property_values=4,
-            max_qualifiers=3,
-            max_qualifier_values=3,
-        )
+        ] + document.personal_authors.all().metadata(max_properties=0)
         # json modifiers for the most compact json representation
         return json.dumps(result, indent=None, separators=(',', ':'))
 

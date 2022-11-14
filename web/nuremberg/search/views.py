@@ -4,6 +4,7 @@ from haystack.generic_views import (
     FacetedSearchView,
     FacetedSearchMixin,
 )
+from nuremberg.documents.models import DocumentPersonalAuthor
 from .forms import DocumentSearchForm
 from .lib.digg_paginator import DiggPaginator
 from .lib.solr_grouping_backend import GroupedSearchQuerySet
@@ -119,6 +120,22 @@ class Search(FacetedSearchView):
             context['base_template'] = 'search/partial.html'
         else:
             context['base_template'] = None
+
+        # Lastly, fetch author metadata, once per author
+        author_ids = set()
+        for i in context['page_obj'].object_list:
+            if i.documents:
+                author_ids.update(
+                    ap['author']['id']
+                    for sr in i.documents
+                    for ap in (sr.authors_properties or [])
+                )
+        context['authors_metadata'] = {
+            metadata['author']['id']: metadata
+            for metadata in DocumentPersonalAuthor.objects.filter(
+                id__in=author_ids
+            ).metadata()
+        }
 
         return context
 
