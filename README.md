@@ -252,8 +252,11 @@ Review the changes and potentially:
 
  1. Remove older dump(s)
  2. Stage and commit your changes to the git repo
- 3. Update the `init.sh` script so the SOLR_SNAPSHOT_NAME matches the just
-    created snapshot name.
+ 3. Update the `SOLR_SNAPSHOT_NAME` variable in the `init.sh` script
+
+```
+sed -i s/SOLR_SNAPSHOT_NAME=\".*\"/SOLR_SNAPSHOT_NAME=\"`date +%y%m%d`\"/g init.sh
+```
 
 ### Deploying
 
