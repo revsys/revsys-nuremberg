@@ -6,7 +6,8 @@ DOCKER_COMPOSE="docker compose"
 DOCKER_COMPOSE_EXEC="$DOCKER_COMPOSE exec -T"
 SOLR_CORE="nuremberg_dev"
 SOLR_HOME="/var/solr/data/$SOLR_CORE"
-SOLR_SNAPSHOT_NAME=$(basename `realpath dumps/nuremberg_solr_snapshot_latest.tar.gz`)
+SOLR_SNAPSHOT_DIR="dumps/nuremberg_solr_snapshot_latest"
+SOLR_SNAPSHOT_NAME="221115"
 SOLR_URL="http://localhost:8983/solr"
 
 echo "Setting up sqlite"
@@ -34,8 +35,9 @@ if [[ -z ${SOLR_RESTORE_SNAPSHOPT} ]]; then
     echo "Rebuilding Solr index (SLOW)"
     $DOCKER_COMPOSE_EXEC web python manage.py rebuild_index --noinput
 else
-    echo "Restoring Solr snapshot $SOLR_SNAPSHOT_NAME"
-    $DOCKER_COMPOSE cp dumps/$SOLR_SNAPSHOT_NAME solr:$SOLR_HOME/data
-    $DOCKER_COMPOSE_EXEC solr tar xzvf $SOLR_HOME/data/$SOLR_SNAPSHOT_NAME -C $SOLR_HOME/data
-    $DOCKER_COMPOSE_EXEC solr curl -sS "$SOLR_URL/$SOLR_CORE/replication?command=restore"
+    echo "Restoring Solr snapshot from $SOLR_SNAPSHOT_DIR"
+    cat $SOLR_SNAPSHOT_DIR/* | $DOCKER_COMPOSE_EXEC solr tar xzvf - -C $SOLR_HOME/data
+    $DOCKER_COMPOSE_EXEC solr curl -sS "$SOLR_URL/$SOLR_CORE/replication?command=restore&name=$SOLR_SNAPSHOT_NAME"
+    echo "Checking Solr snapshot restore status"
+    $DOCKER_COMPOSE_EXEC solr curl http://localhost:8983/solr/nuremberg_dev/replication?command=details
 fi

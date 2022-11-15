@@ -226,42 +226,37 @@ local setup. To do so, ensure that services were started as described in
 [Setup](#setup) and that the Solr index is up to date. Then:
 
 ```
-curl http://localhost:8983/solr/nuremberg_dev/replication?command=backup
+curl "http://localhost:8983/solr/nuremberg_dev/replication?command=backup&name=`date +%y%m%d`"
 ```
 
-Wait until the snapshot is completed (check for `snapshotCompletedAt` and the
-resulting `directoryName`):
+Wait until the snapshot is completed (check for `snapshotCompletedAt` and
+confirm that `status` is a `success`):
 
 ```
 curl http://localhost:8983/solr/nuremberg_dev/replication?command=details
 ```
 
 And then compress the resulting snapshot directory and move the tarball to the
-host's `dumps` folder (as an example we are assuming the `directoryName` is
-`snapshot.20221031122944123`):
+host's `dumps` folder. The tarball will be split in < 100M files so they can
+be pushed to GitHub, no worries the `init.sh` script will put the pieces
+together when necessary:
 
 ```
-docker compose exec solr tar czvf /var/solr/data/snapshot.20221031122944123.tar.gz -C /var/solr/data/nuremberg_dev/data/ snapshot.20221031122944123
-docker compose cp solr:/var/solr/data/snapshot.20221031122944123.tar.gz dumps/nuremberg_solr_snapshot_`date -I`.tar.gz
+rm dumps/nuremberg_solr_snapshot_latest/*
+docker compose exec solr tar czvf - -C /var/solr/data/nuremberg_dev/data/ snapshot.`date +%y%m%d` | split -b 95M - dumps/nuremberg_solr_snapshot_latest/nuremberg_solr_snapshot_`date +%y%m%d`.tar.gz-part-
 ```
 
 For more information about Solr Backups, see the [the full docs for Solr snapshot API](https://solr.apache.org/guide/8_11/making-and-restoring-backups.html#standalone-mode-backups).
 
-Lastly, re-point the symlink to the latest Solr backup with this command:
-
-```
-ln -fs nuremberg_solr_snapshot_`date -I`.tar.gz dumps/nuremberg_solr_snapshot_latest.tar.gz
-```
-
 Review the changes and potentially:
 
- 1. Confirm that the symlink `dumps/nuremberg_solr_snapshot_latest.tar.gz` is
- pointing to a valid zipfile:
+ 1. Remove older dump(s)
+ 2. Stage and commit your changes to the git repo
+ 3. Update the `SOLR_SNAPSHOT_NAME` variable in the `init.sh` script
 
-        ls -la `realpath dumps/nuremberg_solr_snapshot_latest.tar.gz`
-
- 2. Remove older dump(s)
- 3. Stage and commit your changes to the git repo
+```
+sed -i s/SOLR_SNAPSHOT_NAME=\".*\"/SOLR_SNAPSHOT_NAME=\"`date +%y%m%d`\"/g init.sh
+```
 
 ### Deploying
 
