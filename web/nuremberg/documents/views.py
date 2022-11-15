@@ -68,7 +68,8 @@ class Show(View):
 
 def author_properties(request, author_id, author_slug=None):
     author = get_object_or_404(DocumentPersonalAuthor, id=author_id)
-    result = author.metadata()
+    # result = author.metadata()
+    result = author.extra.as_dict()
 
     if request.accepts('text/html'):
         response = render(request, 'documents/author.html', result)
