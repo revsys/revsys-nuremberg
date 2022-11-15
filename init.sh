@@ -38,6 +38,6 @@ else
     echo "Restoring Solr snapshot from $SOLR_SNAPSHOT_DIR"
     cat $SOLR_SNAPSHOT_DIR/* | $DOCKER_COMPOSE_EXEC solr tar xzvf - -C $SOLR_HOME/data
     $DOCKER_COMPOSE_EXEC solr curl -sS "$SOLR_URL/$SOLR_CORE/replication?command=restore&name=$SOLR_SNAPSHOT_NAME"
-    sleep 3
+    echo "Checking Solr snapshot restore status"
     $DOCKER_COMPOSE_EXEC solr curl http://localhost:8983/solr/nuremberg_dev/replication?command=details
 fi
