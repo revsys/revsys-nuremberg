@@ -9,7 +9,7 @@ from django.db.models.functions import Concat
 from django.utils.functional import cached_property
 from django.utils.text import slugify
 
-from nuremberg.core.storages import DocumentStorage
+from nuremberg.core.storages import AuthorStorage, DocumentStorage
 
 
 logger = logging.getLogger(__name__)
@@ -687,6 +687,29 @@ class PersonalAuthorProperty(models.Model):
         )
         if result:
             return result.rank
+
+
+class DocumentAuthorExtra(models.Model):
+    author = models.OneToOneField(
+        DocumentPersonalAuthor, related_name='extra', on_delete=models.CASCADE
+    )
+    description = models.TextField()
+    image = models.ImageField(null=True, blank=True, storage=AuthorStorage())
+    image_alt = models.CharField(max_length=1024)
+    properties = models.JSONField()
+
+    def as_dict(self):
+        return {
+            'author': {
+                'name': self.author.full_name(),
+                'id': self.author.id,
+                'slug': self.author.slug,
+                'title': self.author.title,
+                'description': self.description,
+            },
+            'image': {'url': self.image.path, 'alt': self.image_alt},
+            'properties': self.properties,
+        }
 
 
 class DocumentCase(models.Model):
