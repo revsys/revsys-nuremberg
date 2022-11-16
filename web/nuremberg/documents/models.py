@@ -10,6 +10,10 @@ from django.utils.functional import cached_property
 from django.utils.text import slugify
 
 from nuremberg.core.storages import AuthorStorage, DocumentStorage
+from nuremberg.documents.helpers import (
+    build_image_path,
+    download_and_store_image,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -331,6 +335,12 @@ class DocumentDate(models.Model):
 
 class DocumentPersonalAuthorQuerySet(models.QuerySet):
     def metadata(self, **kwargs):
+        return [
+            author.metadata(**kwargs)
+            for author in self.select_related('extra')
+        ]
+
+    def _metadata(self, **kwargs):
         # Given than ranks are not available via DB relationships (yet?), we
         # cache them all to avoid many queries when iterating over every author
         # property. This is total 3 queries! \o/
@@ -340,7 +350,7 @@ class DocumentPersonalAuthorQuerySet(models.QuerySet):
             )
         )
         return [
-            author.metadata(ranks, **kwargs)
+            author._metadata(ranks, **kwargs)
             for author in self.prefetch_related('properties')
         ]
 
@@ -377,7 +387,25 @@ class DocumentPersonalAuthor(models.Model):
         else:
             return self.first_name or self.last_name or 'Unknown'
 
-    def metadata(
+    def metadata(self, minimal=False, ranks=None, backfill=False):
+        try:
+            result = self.extra.as_dict(minimal=minimal)
+        except DocumentAuthorExtra.DoesNotExist:
+            result = None
+
+        if result is None:
+            result = self._metadata(
+                ranks=ranks, max_properties=0 if minimal else None
+            )
+            if backfill:
+                # Create the corresponding `extra` instance to backfill entries
+                result = DocumentAuthorExtra.from_metadata(result).as_dict(
+                    minimal=minimal
+                )
+
+        return result
+
+    def _metadata(
         self,
         ranks=None,
         max_properties=None,
@@ -393,8 +421,6 @@ class DocumentPersonalAuthor(models.Model):
                 'title': self.title,
                 'description': '',
             },
-            'image': None,
-            'properties': [],
         }
 
         # If no properties were requested, return early with base metadata
@@ -520,6 +546,8 @@ class DocumentPersonalAuthor(models.Model):
                     'media legend', [f'Image of {self.full_name()}']
                 )[0],
             }
+        else:
+            result['image'] = None
 
         # All other grouped props are mapped directly to the end result
 
@@ -689,6 +717,32 @@ class PersonalAuthorProperty(models.Model):
             return result.rank
 
 
+class DocumentAuthorExtraManager(models.Manager):
+    def bulk_create_from_author_qs(
+        self, author_qs, dry_run=False, force=False
+    ):
+        items = [
+            self.model.from_metadata(metadata, dry_run, force, save=False)
+            for metadata in author_qs._metadata()
+        ]
+        return self.bulk_create(items)
+
+    def bulk_update_from_author_qs(
+        self, author_qs, dry_run=False, force=False
+    ):
+        items = []
+        for author in author_qs.select_related('extra'):
+            metadata = author._metadata()
+            author.extra.update_from_metadata(
+                metadata, dry_run, force, save=False
+            )
+            items.append(author.extra)
+
+        return self.bulk_update(
+            items, fields=['description', 'image', 'image_alt', 'properties']
+        )
+
+
 class DocumentAuthorExtra(models.Model):
     author = models.OneToOneField(
         DocumentPersonalAuthor, related_name='extra', on_delete=models.CASCADE
@@ -698,18 +752,79 @@ class DocumentAuthorExtra(models.Model):
     image_alt = models.CharField(max_length=1024)
     properties = models.JSONField()
 
-    def as_dict(self):
-        return {
+    objects = DocumentAuthorExtraManager()
+
+    @classmethod
+    def process_image(cls, metadata, dry_run, force):
+        if metadata['image'] is None:
+            return None, ''
+
+        image_url = metadata['image']['url']
+        image_alt = metadata['image']['alt']
+        image_name = f'{metadata["author"]["id"]}-{metadata["author"]["slug"]}'
+        image_path = build_image_path(image_url, image_name)
+
+        if dry_run:
+            logger.info(
+                f'Would download {image_url=} to {image_path=}, but dry-run '
+                'was set'
+            )
+        else:
+            download_and_store_image(
+                image_url, image_path, AuthorStorage(), force
+            )
+
+        return image_path, image_alt
+
+    @classmethod
+    def from_metadata(cls, metadata, dry_run=False, force=False, save=True):
+        image_path, image_alt = cls.process_image(metadata, dry_run, force)
+        result = cls(
+            author_id=metadata['author']['id'],
+            description=metadata['author']['description'],
+            image=image_path,
+            image_alt=image_alt,
+            properties=metadata['properties'],
+        )
+        if save:
+            result.save()
+        return result
+
+    def update_from_metadata(
+        self, metadata, dry_run=False, force=False, save=True
+    ):
+        image_path, image_alt = self.process_image(metadata, dry_run, force)
+        self.description = metadata['author']['description']
+        self.image = image_path
+        self.image_alt = image_alt
+        self.properties = metadata['properties']
+        if save:
+            self.save(
+                update_fields=[
+                    'description',
+                    'image',
+                    'image_alt',
+                    'properties',
+                ]
+            )
+
+    def as_dict(self, minimal=False):
+        result = {
             'author': {
                 'name': self.author.full_name(),
                 'id': self.author.id,
                 'slug': self.author.slug,
                 'title': self.author.title,
                 'description': self.description,
-            },
-            'image': {'url': self.image.path, 'alt': self.image_alt},
-            'properties': self.properties,
+            }
         }
+        if not minimal:
+            image = (
+                {'url': self.image.url, 'alt': self.image_alt}
+                if self.image
+                else None
+            )
+        return result
 
 
 class DocumentCase(models.Model):
