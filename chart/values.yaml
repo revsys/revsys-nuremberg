@@ -1,0 +1,112 @@
+image:
+  repository: registry.revsys.com/nuremberg
+  pullPolicy: IfNotPresent
+
+Plug: hlsnp
+
+deploymentEnvironment: prod
+
+imagePullSecret: revsys-docker-registry
+
+publicFqdn: nuremberg.revsys.dev
+
+nameOverride: ""
+
+fullnameOverride: hlsnp
+
+replicaCount: 1
+
+initCommands:
+  - name: migrate
+    command: |-
+      python <<EOF
+      import zipfile
+      zipfile.ZipFile('/code/data/nuremberg_prod_dump_latest.sqlite3.zip').extractall(path='/tmp')
+      EOF
+  - name: renamedb
+    command: mv /tmp/nuremberg_dev.db /tmp/nuremberg.db
+  - name: collectstatic
+    command: './manage.py collectstatic --noinput'
+
+podSecurityContext:
+  fsGroup: 1000
+
+securityContext:
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: false
+  runAsNonRoot: true
+  runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 80
+
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 256Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+
+volumes:
+  -
+    name: tmp
+    emptyDir: {}
+  -
+    name: static
+    emptyDir: {}
+  -
+    name: log
+    emptyDir: {}
+  -
+    name: ngx-server
+    configMap:
+      name: nginx-server-config
+  -
+    name: ngx
+    configMap:
+      name: nginx-config
+  -
+    name: run
+    emptyDir: {}
+
+
+
+volumeMounts:
+  -
+    name: tmp
+    mountPath: /tmp
+  -
+    name: static
+    mountPath: /code/static
+  -
+    name: run
+    mountPath: /run
+
+
+
+ngxVolumeMounts:
+  -
+    name: log
+    mountPath: /var/log/nginx
+  -
+    name: log
+    mountPath: /var/cache/nginx
+  -
+    name: static
+    mountPath: /code/static
+  -
+    name: ngx
+    mountPath: /etc/nginx/conf.d
+  -
+    name: ngx-server
+    mountPath: /etc/nginx
+  -
+    name: run
+    mountPath: /run
+
+

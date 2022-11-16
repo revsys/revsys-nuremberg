@@ -7,10 +7,11 @@ env = environ.Env()
 environ.Env.read_env()
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.dirname(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = env.str('BASE_DIR', os.path.dirname(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 )
 
+LOCAL_DEVELOPMENT = env.bool("LOCAL_DEVELOPMENT", default=False)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.9/howto/deployment/checklist/
@@ -20,7 +21,7 @@ DEBUG = env.bool("DEBUG", default=False)
 
 SECRET_KEY = env.str("SECRET_KEY")
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -87,7 +88,7 @@ WSGI_APPLICATION = 'nuremberg.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': 'nuremberg_dev.db',
+        'NAME': '/tmp/nuremberg.db',
         'USER': 'nuremberg',
     }
 }
@@ -148,13 +149,16 @@ COMPRESS_STORAGE = 'compressor.storage.GzipCompressorFileStorage'
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
+SOLR_URL = 'http://solr:8983/solr/nuremberg-dev' if LOCAL_DEVELOPMENT else env.str('SOLR_URL')
+
 HAYSTACK_CONNECTIONS = {
     'default': {
         'ENGINE': 'nuremberg.search.lib.solr_grouping_backend.GroupedSolrEngine',
-        'URL': 'http://solr:8983/solr/nuremberg_dev',
+        'URL': SOLR_URL,
         'TIMEOUT': 60 * 5,
     }
 }
+
 HAYSTACK_DEFAULT_OPERATOR = 'AND'
 
 LOGGING = {
@@ -170,7 +174,6 @@ LOGGING = {
 }
 
 
-LOCAL_DEVELOPMENT = env.bool("LOCAL_DEVELOPMENT", default=False)
 
 ##############################################################################
 # Deployed Settings
@@ -189,8 +192,8 @@ TRANSCRIPTS_BUCKET = env(
 
 if not LOCAL_DEVELOPMENT:
     DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-    AWS_S3_ACCESS_KEY_ID = env('AWS_S3_ACCESS_KEY_ID')
-    AWS_S3_SECRET_ACCESS_KEY = env('AWS_S3_SECRET_ACCESS_KEY')
+    #AWS_S3_ACCESS_KEY_ID = env('AWS_S3_ACCESS_KEY_ID')
+    #AWS_S3_SECRET_ACCESS_KEY = env('AWS_S3_SECRET_ACCESS_KEY')
     AWS_S3_REGION_NAME = 'sfo2'
     AWS_S3_ENDPOINT_URL = (
         f'https://{AWS_S3_REGION_NAME}.digitaloceanspaces.com'
