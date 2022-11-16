@@ -1,10 +1,6 @@
-from io import BytesIO
-
-import requests
 from django.db import transaction
 from django.core.management.base import BaseCommand
 
-from nuremberg.core.storages import AuthorStorage
 from nuremberg.documents.models import (
     DocumentAuthorExtra,
     DocumentPersonalAuthor,
@@ -45,120 +41,28 @@ class Command(BaseCommand):
             ),
         )
 
-    def do_request(self, url, method='GET', **kwargs):
-        kwargs.setdefault('headers', {'User-Agent': 'Ubuntu; Linux x86_64'})
-        kwargs.setdefault('allow_redirects', True)
-        response = getattr(requests, method.lower())(url, **kwargs)
-        if not response.ok:
-            self.stderr.write(
-                f'Response is not OK, got {response.status_code=}, '
-                f'{response.headers=}'
-            )
-        return response
-
-    def download_and_store_image(self, image_url, image_path, force=False):
-        self.stdout.write(
-            f'Downloading {image_url=} into {image_path=} ({force=})'
-        )
-        response = self.do_request(image_url)
-        if not response.ok:
-            return
-
-        media_storage = AuthorStorage()
-        bucket_name = getattr(media_storage, 'bucket_name', 'local FS')
-
-        if force or not media_storage.exists(image_path):
-            media_storage.save(image_path, BytesIO(response.content))
-            file_url = media_storage.url(image_path)
-            self.stdout.write(
-                f'Saved {image_path=} in {bucket_name=} with {file_url=}'
-            )
-        else:
-            self.stderr.write(
-                f'Can not save {image_path=} in {bucket_name=} because the '
-                f'path already exists (and `force` was unset).'
-            )
-
-    def process_image(self, metadata, dry_run, force):
-        image_path = None
-        image_alt = ''
-
-        if metadata['image'] is None:
-            return image_path, image_alt
-
-        image_url = metadata['image'].get('url')
-        self.stdout.write(f'About to download {image_url=}')
-
-        image_head = self.do_request(image_url, method='HEAD')
-        size = image_head.headers.get('content-length')
-        content_type = image_head.headers.get('content-type')
-        if not content_type.startswith('image/'):
-            self.stderr.write(
-                f'Response is not an image, got {image_head.headers=}'
-            )
-            return image_path, image_alt
-
-        image_suffix = content_type.replace('image/', '')
-        image_path = (
-            f'{metadata["author"]["id"]}-{metadata["author"]["slug"]}.'
-            f'{image_suffix}'
-        )
-
-        image_alt = metadata['image'].get('alt')
-        if dry_run:
-            self.stdout.write(
-                f'Would download {size=} bytes with {content_type=} from '
-                f'{image_head.url=} (but dry-run was requested!)'
-            )
-            return image_path, image_alt
-
-        self.download_and_store_image(image_url, image_path, force)
-
-        return image_path, image_alt
-
     @transaction.atomic
     def backfill(self, qs, dry_run=False, force=False):
-        # Create missing entries
-        extra = []
-        create_qs = qs.filter(extra__isnull=True)
-        for metadata in create_qs.metadata():
-            self.stdout.write(
-                f'Creating extra instance for author {metadata["author"]=}'
-            )
-            image_path, image_alt = self.process_image(
-                metadata, dry_run, force
-            )
-            p = DocumentAuthorExtra(
-                author_id=metadata['author']['id'],
-                description=metadata['author']['description'],
-                image=image_path,
-                image_alt=image_alt,
-                properties=metadata['properties'],
-            )
-            extra.append(p)
-
-        created = len(DocumentAuthorExtra.objects.bulk_create(extra))
-
-        # Update existing entries if requested
-        extra = []
+        # First update existing entries if requested with force=True
         update_qs = qs.none()
         if force:
-            update_qs = qs.filter(extra__isnull=False).select_related('extra')
+            update_qs = qs.filter(extra__isnull=False)
+        self.stdout.write(
+            f'Updating {len(update_qs)} DocumentAuthorExtra instance(s).'
+        )
+        updated = DocumentAuthorExtra.objects.bulk_update_from_author_qs(
+            update_qs, dry_run, force
+        )
 
-        for author in update_qs:
-            metadata = author.metadata()
-            self.stdout.write(f'Updating extra instance for author {author=}')
-            image_path, image_alt = self.process_image(
-                metadata, dry_run, force
+        # Then, create missing DocumentAuthorExtra entries
+        create_qs = qs.filter(extra__isnull=True)
+        self.stdout.write(
+            f'Creating {len(create_qs)} DocumentAuthorExtra instance(s).'
+        )
+        created = len(
+            DocumentAuthorExtra.objects.bulk_create_from_author_qs(
+                create_qs, dry_run, force
             )
-            author.extra.description = metadata['author']['description']
-            author.extra.image = image_path
-            author.extra.image_alt = image_alt
-            author.extra.properties = metadata['properties']
-            extra.append(author.extra)
-
-        updated = DocumentAuthorExtra.objects.bulk_update(
-            extra, fields=['description', 'image', 'image_alt', 'properties']
         )
 
         if dry_run:
@@ -167,6 +71,8 @@ class Command(BaseCommand):
         return created, updated
 
     def handle(self, *args, **options):
+        self.stdout.write(f'Starting backfill for authors ({options=})')
+
         qs = DocumentPersonalAuthor.objects.all()
         model_name = qs.model.__name__
         if options['ids']:
@@ -174,8 +80,6 @@ class Command(BaseCommand):
         if not qs:
             self.stderr.write(f'No {model_name} instances to be processed.')
             return
-
-        self.stdout.write(f'Starting backfill for authors ({options=})')
 
         try:
             created, updated = self.backfill(
