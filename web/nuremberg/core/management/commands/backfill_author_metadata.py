@@ -32,11 +32,6 @@ class Command(BaseCommand):
             help='Author IDs to process (default is all)',
         )
         parser.add_argument(
-            '--check',
-            action='store_true',
-            help='Ensure that the links in properties are valid',
-        )
-        parser.add_argument(
             '--force',
             action='store_true',
             help='Re-download the image/links even if already available',
@@ -122,7 +117,7 @@ class Command(BaseCommand):
         return image_path, image_alt
 
     @transaction.atomic
-    def backfill(self, qs, dry_run=False, force=False, check=False):
+    def backfill(self, qs, dry_run=False, force=False):
         # Create missing entries
         extra = []
         create_qs = qs.filter(extra__isnull=True)
@@ -166,20 +161,6 @@ class Command(BaseCommand):
             extra, fields=['description', 'image', 'image_alt', 'properties']
         )
 
-        # if check:
-        #     for item in qs.model.objects.filter(id__in=[i.id for i in qs]):
-        #         if item.image.url.startswith('/'):
-        #             self.stderr.write(
-        #                 f'Can not validate non absolute URL {item.image.url}.'
-        #             )
-        #             continue
-        #         response = self.do_request(item.image.url, method='HEAD')
-        #         if not response.ok:
-        #             self.stderr.write(
-        #                 f'Image URL at {item.image.url} returned HTTP Code '
-        #                 f'{response.status_code}.'
-        #             )
-
         if dry_run:
             raise DryRunRequested(created=created, updated=updated)
 
@@ -201,7 +182,6 @@ class Command(BaseCommand):
                 qs=qs,
                 dry_run=options['dry_run'],
                 force=options['force'],
-                check=options['check'],
             )
         except DryRunRequested as e:
             self.stdout.write(
