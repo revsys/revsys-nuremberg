@@ -8,7 +8,7 @@ from nuremberg.documents.helpers import (
     do_request,
     download_and_store_image,
 )
-from .helpers import make_random_text
+from .helpers import DummyMemDictStorage, make_random_text
 
 
 def test_do_request(requests_mock, caplog):
@@ -87,24 +87,6 @@ def test_build_image_path_no_content_type_image(requests_mock, caplog):
         "image_headers={'content-type': 'no-image/png'}"
     )
     assert messages == [('ERROR', expected)]
-
-
-class DummyMemDictStorage:
-    def __init__(self):
-        super().__init__()
-        self._paths = {}
-
-    def delete(self, path):
-        self._paths.pop(path)
-
-    def exists(self, path):
-        return path in self._paths
-
-    def open(self, path):
-        return self._paths[path]
-
-    def save(self, path, content):
-        self._paths[path] = content
 
 
 def test_download_and_store_image(requests_mock, caplog):
