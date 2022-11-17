@@ -10,7 +10,12 @@ from nuremberg.documents.models import (
     DocumentPersonalAuthor,
     DocumentText,
 )
-from .helpers import make_author, make_document, make_random_text
+from .helpers import (
+    DummyMemDictStorage,
+    make_author,
+    make_document,
+    make_random_text,
+)
 
 
 pytestmark = pytest.mark.django_db
@@ -223,7 +228,7 @@ def test_author_properties_empty_properties():
     )
 
 
-def test_author_properties(requests_mock):
+def test_author_properties(requests_mock, monkeypatch):
     author = make_author()
     description = 'A summary of the author'
     image_url = 'https://link-to-image-1.jpg'
@@ -235,9 +240,12 @@ def test_author_properties(requests_mock):
         value=image_url,
     )
     # the author view would backfill the DocumentAuthorExtra instance, so the
-    # remote link will be downloaded and stored locally
+    # remote link will be downloaded and stored locally in a dummy storage
     requests_mock.head(image_url, headers={'content-type': 'image/jpeg'})
     requests_mock.get(image_url, content=b'')
+    monkeypatch.setattr(
+        'nuremberg.documents.models.AuthorStorage', DummyMemDictStorage
+    )
     image_alt = f'Image of {author.full_name()}'
     # other props, birth and occupation
     rank_place_of_birth = baker.make(
