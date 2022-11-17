@@ -223,16 +223,21 @@ def test_author_properties_empty_properties():
     )
 
 
-def test_author_properties():
+def test_author_properties(requests_mock):
     author = make_author()
     description = 'A summary of the author'
-    prop_image = baker.make(
+    image_url = 'https://link-to-image-1.jpg'
+    baker.make(
         'PersonalAuthorProperty',
         personal_author_description='',
         personal_author=author,
         name='image',
-        value='https://link-to-image-1.jpg',
+        value=image_url,
     )
+    # the author view would backfill the DocumentAuthorExtra instance, so the
+    # remote link will be downloaded and stored locally
+    requests_mock.head(image_url, headers={'content-type': 'image/jpeg'})
+    requests_mock.get(image_url, content=b'')
     image_alt = f'Image of {author.full_name()}'
     # other props, birth and occupation
     rank_place_of_birth = baker.make(
@@ -344,6 +349,7 @@ def test_author_properties():
 
     assert response.status_code == 200
     assert 'application/json' in response.headers['Content-Type']
+    image_url = f'/media/{author.id}-{author.slug}.jpeg'
     assert response.json() == {
         'author': {
             'name': author.full_name(),
@@ -352,7 +358,7 @@ def test_author_properties():
             'title': author.title,
             'description': description,
         },
-        'image': {'url': prop_image.value, 'alt': image_alt},
+        'image': {'url': image_url, 'alt': image_alt},
         'properties': [
             {
                 'name': 'born',
@@ -404,7 +410,7 @@ def test_author_properties():
         response,
         author.full_name(),
         description,
-        prop_image.value,
+        image_url,
         image_alt,
         born,
         occupation,
@@ -422,7 +428,7 @@ def test_author_properties():
         response,
         author.full_name(),
         description,
-        prop_image.value,
+        image_url,
         image_alt,
         born,
         occupation,
