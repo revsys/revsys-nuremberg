@@ -399,6 +399,9 @@ class DocumentPersonalAuthor(models.Model):
             )
             if backfill:
                 # Create the corresponding `extra` instance to backfill entries
+                # This is useful for future dump overwrites of the table for
+                # DocumentPersonalAuthor, so this related model gets backfilled
+                # automagically on demand.
                 result = DocumentAuthorExtra.from_metadata(result).as_dict(
                     minimal=minimal
                 )
@@ -824,6 +827,7 @@ class DocumentAuthorExtra(models.Model):
                 if self.image
                 else None
             )
+            result.update({'image': image, 'properties': self.properties})
         return result
 
 
