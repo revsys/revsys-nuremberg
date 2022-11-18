@@ -25,5 +25,5 @@ make-release-image: (_build "release")
 
 push-release-image: (_build "release")
     #!/usr/bin/env bash
-    docker push {{IMAGE_REGISTRY}}:{{VERSION}}
+    docker push {{IMAGE_REGISTRY}}:{{VERSION}} || docker buildx build -t {{IMAGE_REGISTRY}}:{{VERSION}} --load && just push-release-image
 
