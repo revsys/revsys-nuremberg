@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{.Values.Plug}}
+  namespace: {{.Release.Namespace}}
+  labels:
+    app: {{.Values.Plug}}
+    heritage: {{.Release.Service | quote }}
+    chart: {{.Chart.Name}}-{{.Chart.Version}}
+spec:
+  ports:
+    -
+      port: 80
+      targetPort: 80
+      protocol: TCP
+  selector:
+    app: {{.Values.Plug}}
+    env: {{.Values.deploymentEnvironment}}
