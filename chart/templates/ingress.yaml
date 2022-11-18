@@ -3,7 +3,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{.Values.Plug}}--{{.Values.deploymentEnvironment}}
+  name: {{.Values.Plug}}
   namespace: {{.Release.Namespace}}
   labels:
     env: {{.Values.deploymentEnvironment}}

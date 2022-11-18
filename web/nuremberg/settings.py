@@ -149,10 +149,12 @@ COMPRESS_STORAGE = 'compressor.storage.GzipCompressorFileStorage'
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
+SOLR_URL = 'http://solr:8983/solr/nuremberg-dev' if LOCAL_DEVELOPMENT else env.str('SOLR_URL')
+
 HAYSTACK_CONNECTIONS = {
     'default': {
         'ENGINE': 'nuremberg.search.lib.solr_grouping_backend.GroupedSolrEngine',
-        'URL': 'http://solr:8983/solr/nuremberg-dev' if LOCAL_DEVELOPMENT else env.str('SOLR_URL')
+        'URL': SOLR_URL,
         'TIMEOUT': 60 * 5,
     }
 }

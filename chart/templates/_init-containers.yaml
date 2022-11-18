@@ -5,14 +5,14 @@
 {{- $env := .Values.Env }}
 {{- $volumes := .Values.VolumeMounts }}
 {{- $plug := .Values.Plug }}
-{{- $image := ( printf "%s:%s" .Values.image.repository .Values.image.tag ) }}
+{{- $image := ( printf "%s:%s" .Values.image.repository .Chart.AppVersion ) }}
 initContainers:
 {{- range .Values.initCommands }}
   -
     name: {{ .name }}
     image: {{ $image }}
     command: ["/bin/sh", "-c"]
-    args: 
+    args:
       - {{ .command | quote }}
     envFrom:
       -
@@ -35,7 +35,7 @@ initContainers:
 {{- if eq (include "InitMethod" .) "annotation" }}
 {{- $env := .Values.Env }}
 {{- $volumes := .Values.VolumeMounts }}
-{{- $image := ( printf "%s:%s" .Values.image.repository .Values.image.tag ) }}
+{{- $image := ( printf "%s:%s" .Values.image.repository .Chart.AppVersion ) }}
 pod.beta.kubernetes.io/init-containers: |
   [
 {{- range $ic_index, $ic := .Values.initCommands }}
