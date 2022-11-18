@@ -35,6 +35,7 @@ FROM runner as release
 
 ENV DJANGO_SETTINGS_MODULE nuremberg.settings
 ENV BASE_DIR=/code
+ENV IMAGE_VERSION v0.0.0
 
 RUN ln -s /node/node_modules/less/bin/lessc /bin/lessc
 
