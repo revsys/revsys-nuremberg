@@ -35,7 +35,7 @@ FROM runner as release
 
 ENV DJANGO_SETTINGS_MODULE nuremberg.settings
 ENV BASE_DIR=/code
-ENV IMAGE_VERSION v0.1.0
+ENV IMAGE_VERSION v0.2.3
 
 RUN ln -s /node/node_modules/less/bin/lessc /bin/lessc
 
@@ -48,3 +48,5 @@ COPY dumps/nuremberg_solr_snapshot_latest.tar.gz /code/data/
 COPY web/nuremberg /code/nuremberg
 COPY web/manage.py /code
 
+RUN chown 1000 /code
+USER 1000

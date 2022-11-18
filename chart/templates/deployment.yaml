@@ -31,15 +31,19 @@ spec:
 {{ toYaml .Values.tolerations | indent 8 }}
 {{- end }}
       volumes:
-{{ toYaml .Values.Volumes | indent 8 }}
+{{ toYaml .Values.volumes | indent 8 }}
       imagePullSecrets:
         - name: {{.Values.imagePullSecret | quote}}
       containers:
         -
           name: main
           image: {{.Values.image.repository}}:{{.Chart.AppVersion}}
+          command: ["/.venv/bin/gunicorn"]
+          args:
+            - --bind=:8000
+            - nuremberg.wsgi
           volumeMounts:
-{{ toYaml .Values.VolumeMounts | indent 12 }}
+{{ toYaml .Values.volumeMounts | indent 12 }}
           envFrom:
             -
               configMapRef:
@@ -47,8 +51,6 @@ spec:
             -
               secretRef:
                 name: {{.Values.Plug}}-env
-          env:
-{{ toYaml .Values.Env | indent 12 }}
           ports:
             -
               protocol: TCP

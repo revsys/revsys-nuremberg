@@ -1,7 +1,7 @@
 #vim: ft=make ts=4 sw=4 et
 set dotenv-load := false
 IMAGE_REGISTRY := 'registry.revsys.com/nuremberg'
-VERSION := 'v0.1.0'
+VERSION := 'v0.2.3'
 
 
 list:
@@ -28,5 +28,4 @@ push-release-image: (_build "release")
     docker push {{IMAGE_REGISTRY}}:{{VERSION}}
 
 deploy:
-    #!/usr/bin/env bash
     @helm upgrade -i hlsnp --namespace nuremberg chart/

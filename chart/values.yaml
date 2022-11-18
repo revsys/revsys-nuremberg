@@ -5,7 +5,6 @@
 image:
   repository: registry.revsys.com/nuremberg
   pullPolicy: IfNotPresent
-  tag: 0.0.0
 
 Plug: hlsnp
 
@@ -34,7 +33,7 @@ securityContext:
   capabilities:
     drop:
     - ALL
-  readOnlyRootFilesystem: true
+  readOnlyRootFilesystem: false
   runAsNonRoot: true
   runAsUser: 1000
 
@@ -66,4 +65,22 @@ resources:
     cpu: 200m
     memory: 256Mi
 
+
+volumes:
+  -
+    name: tmp
+    emptyDir: {}
+  -
+    name: static
+    emptyDir: {}
+
+
+
+volumeMounts:
+  -
+    name: tmp
+    mountPath: /tmp
+  -
+    name: static
+    mountPath: /code/static
 

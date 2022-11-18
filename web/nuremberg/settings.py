@@ -21,7 +21,7 @@ DEBUG = env.bool("DEBUG", default=False)
 
 SECRET_KEY = env.str("SECRET_KEY")
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -88,7 +88,7 @@ WSGI_APPLICATION = 'nuremberg.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': 'nuremberg_dev.db',
+        'NAME': '/tmp/nuremberg.db',
         'USER': 'nuremberg',
     }
 }

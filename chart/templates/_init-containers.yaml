@@ -3,7 +3,7 @@
 {{- define "InitSpec" }}
 {{- if eq (include "InitMethod" .) "spec" }}
 {{- $env := .Values.Env }}
-{{- $volumes := .Values.VolumeMounts }}
+{{- $volumes := .Values.volumeMounts }}
 {{- $plug := .Values.Plug }}
 {{- $image := ( printf "%s:%s" .Values.image.repository .Chart.AppVersion ) }}
 initContainers:
@@ -21,8 +21,6 @@ initContainers:
       -
         secretRef:
           name: {{$plug}}-env
-    env:
-{{ toYaml $env | indent 8 }}
     volumeMounts:
 {{ toYaml $volumes | indent 8 }}
 {{- end }} {{/* range */}}
@@ -34,7 +32,7 @@ initContainers:
 {{- define "InitAnnotation" }}
 {{- if eq (include "InitMethod" .) "annotation" }}
 {{- $env := .Values.Env }}
-{{- $volumes := .Values.VolumeMounts }}
+{{- $volumes := .Values.volumeMounts }}
 {{- $image := ( printf "%s:%s" .Values.image.repository .Chart.AppVersion ) }}
 pod.beta.kubernetes.io/init-containers: |
   [
