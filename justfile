@@ -1,7 +1,7 @@
 #vim: ft=make ts=4 sw=4 et
 set dotenv-load := false
 IMAGE_REGISTRY := 'registry.revsys.com/hlsnp'
-VERSION := 'v0.0.0'
+VERSION := 'v0.0.1'
 
 
 list:
@@ -25,5 +25,5 @@ make-release-image: (_build "release")
 
 push-release-image: (_build "release")
     #!/usr/bin/env bash
-    docker push {{IMAGE_REGISTRY}}:{{VERSION}} || docker buildx build -t {{IMAGE_REGISTRY}}:{{VERSION}} --load && just push-release-image
+    docker push {{IMAGE_REGISTRY}}:{{VERSION}}
 
