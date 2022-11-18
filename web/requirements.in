@@ -33,6 +33,7 @@ whitenoise
 pip-tools
 pre-commit
 IPython
+bump2version
 
 # testing
 coverage
