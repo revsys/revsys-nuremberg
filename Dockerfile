@@ -47,6 +47,16 @@ COPY dumps/nuremberg_solr_snapshot_latest.tar.gz /code/data/
 
 COPY web/nuremberg /code/nuremberg
 COPY web/manage.py /code
+COPY solr_conf /code/solr_conf
 
 RUN chown 1000 /code
 USER 1000
+
+
+FROM solr:8.11-slim as solr
+
+ENV SOLR_CORE nuremberg_dev
+ENV SOLR_HOME /var/solr/data/${SOLR_CORE}
+COPY solr_conf /opt/solr*/
+COPY solr_conf ${SOLR_HOME}
+

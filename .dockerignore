@@ -3,3 +3,4 @@
 !web/nuremberg/
 !web/manage.py
 !dumps/
+!solr_conf/

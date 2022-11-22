@@ -1,4 +1,4 @@
-#vim: ft=make ts=4 sw=4 et
+#vim: ft=just ts=4 sw=4 et
 set dotenv-load := false
 IMAGE_REGISTRY := 'registry.revsys.com/nuremberg'
 VERSION := 'v0.2.3'
@@ -29,3 +29,12 @@ push-release-image: (_build "release")
 
 deploy:
     @helm upgrade -i hlsnp --namespace nuremberg chart/
+
+gensolr:
+    #!/usr/bin/env bash
+    set -o xtrace verbose
+    rm -rf /tmp/solr_data; mkdir /tmp/solr_data
+    sed -iEe '/var\/solr/s/solr_data/\/tmp\/solr_data/' docker-compose.yml;
+    docker-compose up -d --force-recreate solr
+    docker-compose up -d --force-recreate web
+    #git checkout docker-compose.yml

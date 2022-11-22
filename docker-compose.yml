@@ -6,7 +6,7 @@ services:
     image: solr:8
     volumes:
       # NAMED VOLUMES
-      - solr_data:/var/solr
+      - /tmp/solr_data:/var/solr
 
   web:
     build:
