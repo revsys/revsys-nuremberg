@@ -139,11 +139,3 @@ def group_merge(results, key):
 @register.filter
 def trim_snippet(snippet):
     return SafeString((snippet.split('<end of text>', 1)[0]).strip())
-<<<<<<< HEAD
-=======
-
-
-@register.simple_tag
-def get_item(mapping, key, fallback=None):
-    return mapping.get(key, fallback)
->>>>>>> main
