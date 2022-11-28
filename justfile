@@ -1,7 +1,7 @@
 #vim: ft=just ts=4 sw=4 et
 set dotenv-load := false
 IMAGE_REGISTRY := 'registry.revsys.com/nuremberg'
-VERSION := 'v0.2.3'
+VERSION := 'v0.2.4'
 
 
 list:
