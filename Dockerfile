@@ -55,8 +55,13 @@ USER 1000
 
 FROM solr:8.11-slim as solr
 
-ENV SOLR_CORE nuremberg_dev
-ENV SOLR_HOME /var/solr/data/${SOLR_CORE}
-COPY solr_conf /opt/solr*/
-COPY solr_conf ${SOLR_HOME}
 
+ENV SOLR_CORE nuremberg_dev
+
+COPY solr_conf /opt/solr-8.11.2/solr_conf
+
+RUN cp -rp /opt/solr-8.11.2/solr_conf $SOLR_HOME
+
+RUN --mount=type=bind,source=./dist/var-solr.tgz,target=/mnt/var-solr.tgz \
+	cd / && \
+	tar xvfpz /mnt/var-solr.tgz

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -xe
+set -x
 
 DOCKER_COMPOSE="docker compose"
 DOCKER_COMPOSE_EXEC="$DOCKER_COMPOSE exec -T"
@@ -30,12 +30,18 @@ else
     $DOCKER_COMPOSE_EXEC solr solr create_core -c $SOLR_CORE -d solr_conf
 fi
 
-if [[ -z ${SOLR_RESTORE_SNAPSHOPT} ]]; then
+if [[ -z ${SOLR_RESTORE_SNAPSHOT} ]]; then
     echo "Rebuilding Solr index (SLOW)"
     $DOCKER_COMPOSE_EXEC web python manage.py rebuild_index --noinput
 else
     echo "Restoring Solr snapshot $SOLR_SNAPSHOT_NAME"
-    $DOCKER_COMPOSE cp dumps/$SOLR_SNAPSHOT_NAME solr:$SOLR_HOME/data
-    $DOCKER_COMPOSE_EXEC solr tar xzvf $SOLR_HOME/data/$SOLR_SNAPSHOT_NAME -C $SOLR_HOME/data
-    $DOCKER_COMPOSE_EXEC solr curl -sS "$SOLR_URL/$SOLR_CORE/replication?command=restore"
+    cat dumps/$SOLR_SNAPSHOT_NAME | $DOCKER_COMPOSE_EXEC solr tar -xz -f - -C $SOLR_HOME/data
+    $DOCKER_COMPOSE_EXEC -T solr curl -sS "$SOLR_URL/$SOLR_CORE/replication?command=restore"
 fi
+
+[[ -n ${SOLR_DIST_DATA} ]] && \
+	sleep 10 && \
+	$DOCKER_COMPOSE_EXEC -u 0 -T solr tar --sparse -cz -f /dist/var-solr.tgz /var/solr && \
+	$DOCKER_COMPOSE_EXEC -u 0 -T solr chown -Rv $UID /dist
+
+

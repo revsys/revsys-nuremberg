@@ -8,33 +8,31 @@ list:
     just --list
 
 # rebuild requirements files
-requirements:
+regen-requirements:
   #!/usr/bin/env bash
   pushd web
   pip-compile web/requirements.in -o web/requirements.txt &&
   pip-compile <( head -n$( grep -n "# Dev" web/requirements.in | cut -d":" -f1 ) web/requirements.in  ) -o web/requirements.prod.txt
   popd
 
-_build step='release':
+build step='release':
     #!/usr/bin/env bash
     echo "step={{ step }}"
     [[ "{{ step }}" == "release" ]] && endbits={{VERSION}} || endbits={{VERSION}}-{{ step }}
     docker buildx build -t  {{IMAGE_REGISTRY}}:${endbits} --target {{step}} .
 
-make-release-image: (_build "release")
-
-push-release-image: (_build "release")
+push step='release': (build step)
     #!/usr/bin/env bash
-    docker push {{IMAGE_REGISTRY}}:{{VERSION}}
+    [[ "{{ step }}" == "release" ]] && endbits={{VERSION}} || endbits={{VERSION}}-{{ step }}
+    docker push {{IMAGE_REGISTRY}}:${endbits}
 
 deploy:
     @helm upgrade -i hlsnp --namespace nuremberg chart/
 
-gensolr:
+regen-solr-image:
     #!/usr/bin/env bash
     set -o xtrace verbose
     rm -rf /tmp/solr_data; mkdir /tmp/solr_data
-    sed -iEe '/var\/solr/s/solr_data/\/tmp\/solr_data/' docker-compose.yml;
     docker-compose up -d --force-recreate solr
-    docker-compose up -d --force-recreate web
-    #git checkout docker-compose.yml
+    SOLR_RESTORE_SNAPSHOT=1 SOLR_DIST_DATA=1./init.sh
+    just push solr

@@ -12,3 +12,4 @@ src
 *.pyc
 nuremberg_dev.db
 */**/.t/
+dist/

@@ -6,7 +6,9 @@ services:
     image: solr:8
     volumes:
       # NAMED VOLUMES
-      - /tmp/solr_data:/var/solr
+      - solr_data:/var/solr
+      # LOCAL BIND
+      - ./dist:/dist
 
   web:
     build:
@@ -23,6 +25,7 @@ services:
       - SECRET_KEY=top-secret-1234
     depends_on:
       - solr
+
 
 volumes:
   solr_data:

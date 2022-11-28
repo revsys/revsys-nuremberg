@@ -4,3 +4,4 @@
 !web/manage.py
 !dumps/
 !solr_conf/
+!dist/
