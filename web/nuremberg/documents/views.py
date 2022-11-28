@@ -38,7 +38,15 @@ class Show(View):
         else:
             document = get_object_or_404(
                 Document.objects.prefetch_related(
+<<<<<<< HEAD
                     'activities', 'evidence_codes', 'exhibit_codes', 'images'
+=======
+                    'activities',
+                    'evidence_codes',
+                    'evidence_codes__prefix',
+                    'exhibit_codes',
+                    'images',
+>>>>>>> main
                 )
                 .select_related('language')
                 .select_related('source'),

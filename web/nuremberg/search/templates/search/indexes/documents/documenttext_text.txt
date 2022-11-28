@@ -1,0 +1,12 @@
+{{ object.text|safe }}
+
+{# this is a sentinel value used to hide these terms from highlighting snippets #}
+<end of text>
+
+{{ object.title }}
+
+{{ object.material_type }}
+
+{{ object.source_name }}
+
+{{ object.evidence_code }}

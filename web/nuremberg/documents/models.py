@@ -4,7 +4,7 @@ import operator
 from collections import defaultdict
 
 from django.db import models
-from django.db.models import Case, Count, Value, When
+from django.db.models import Case, Count, Subquery, Value, When
 from django.db.models.functions import Concat
 from django.utils.functional import cached_property
 from django.utils.text import slugify
@@ -345,9 +345,6 @@ class DocumentPersonalAuthorQuerySet(models.QuerySet):
         ]
 
 
-DocumentPersonalAuthorManager = DocumentPersonalAuthorQuerySet.as_manager
-
-
 class DocumentPersonalAuthor(models.Model):
     id = models.AutoField(primary_key=True, db_column='PersonalAuthorID')
     last_name = models.CharField(max_length=35, db_column='AuthLName')
@@ -361,7 +358,7 @@ class DocumentPersonalAuthor(models.Model):
         through_fields=('author', 'document'),
     )
 
-    objects = DocumentPersonalAuthorManager()
+    objects = DocumentPersonalAuthorQuerySet.as_manager()
 
     class Meta:
         managed = False
@@ -399,6 +396,10 @@ class DocumentPersonalAuthor(models.Model):
             'image': None,
             'properties': [],
         }
+
+        # If no properties were requested, return early with base metadata
+        if max_properties is not None and max_properties < 1:
+            return result
 
         if ranks is None:  # reuse rank information between exploded properties
             ranks = dict(
@@ -1005,6 +1006,36 @@ class DocumentExhibitCode(models.Model):
         return ''
 
 
+class DocumentTextQuerySet(models.QuerySet):
+    def no_matching_document(self):
+        evidence_codes = (
+            DocumentEvidenceCode.objects.select_related(
+                'prefix',
+            )
+            .filter(document_id__isnull=False, prefix_id__isnull=False)
+            .annotate(
+                evidence_code=Concat(
+                    'prefix__code',
+                    Value('-'),
+                    'number',
+                    Case(
+                        When(suffix='', then=Value('')),
+                        When(suffix__isnull=True, then=Value('')),
+                        When(suffix__isnull=False, then='suffix'),
+                    ),
+                    output_field=models.CharField(),
+                )
+            )
+            .values('evidence_code')
+        )
+        result = self.annotate(
+            evidence_code=Concat(
+                'evidence_code_series', Value('-'), 'evidence_code_num'
+            ),
+        ).exclude(evidence_code__in=Subquery(evidence_codes))
+        return result
+
+
 class DocumentText(models.Model):
     id = models.AutoField(db_column='RecordID', primary_key=True)
     title = models.CharField(db_column='Title', max_length=1000)
@@ -1021,6 +1052,8 @@ class DocumentText(models.Model):
     )
     load_timestamp = models.DateTimeField(db_column='LoadDateTime')
     text = models.TextField(db_column='DocText', blank=True, null=True)
+
+    objects = DocumentTextQuerySet.as_manager()
 
     class Meta:
         managed = False
@@ -1105,7 +1138,7 @@ class DocumentText(models.Model):
         try:
             evidence_code_number = int(self.evidence_code_num)
         except ValueError:
-            logger.exception(
+            logger.info(
                 'DocumentText: Can not search for related documents for text '
                 '%s and evidence code %s (number: %s, series: %s)',
                 self.id,
@@ -1142,9 +1175,15 @@ class DocumentText(models.Model):
         )
         # We can't use `self.evidence_code_tag` because the ordering of series
         # and number varies (some have series-num, others have num-series).
-
         matches = (
-            Document.objects.filter(
+            Document.objects.prefetch_related(
+                'cases',
+                'evidence_codes',
+                'evidence_codes__prefix',
+                'exhibit_codes',
+                'source',
+            )
+            .filter(
                 evidence_codes__number=evidence_code_number,
                 evidence_codes__prefix__code=self.evidence_code_series,
             )
