@@ -148,11 +148,11 @@ def test_author_properties_no_author():
     assert empty_qs.metadata() == []
 
 
-def test_author_properties_max_properties_zero(django_assert_num_queries):
+def test_author_properties_minimal_result(django_assert_num_queries):
     author = make_author()
 
-    with django_assert_num_queries(0):
-        result = author.metadata(max_properties=0)
+    with django_assert_num_queries(1):  # check for DocumentAuthorExtra
+        result = author.metadata(minimal=True)
 
     assert result == {
         'author': {
@@ -162,8 +162,6 @@ def test_author_properties_max_properties_zero(django_assert_num_queries):
             'title': author.title,
             'description': '',
         },
-        'image': None,
-        'properties': [],
     }
 
 
@@ -435,7 +433,8 @@ def test_author_properties_groups_qualifiers(django_assert_num_queries):
         qualifier_value='ignored',
     )
 
-    with django_assert_num_queries(2):  # fetch ranks and properties
+    # first fetch DocumentAuthorExtra, then fetch ranks and properties
+    with django_assert_num_queries(3):
         result = author.metadata()
 
     # order is given by higher rank first, then value
@@ -893,6 +892,64 @@ def test_author_properties_dates_and_qualifiers():
         },
         'image': None,
         'properties': properties,
+    }
+
+
+def test_author_extra_as_dict():
+    author = make_author()
+    extra = baker.make('DocumentAuthorExtra', author=author, properties=[])
+
+    result = extra.as_dict()
+
+    assert result == {
+        'author': {
+            'name': author.full_name(),
+            'id': author.id,
+            'slug': author.slug,
+            'title': author.title,
+            'description': extra.description,
+        },
+        'image': None,
+        'properties': [],
+    }
+
+
+def test_author_extra_as_dict_with_image():
+    author = make_author()
+    image_path = 'some-path-for-the-image'
+    extra = baker.make(
+        'DocumentAuthorExtra', author=author, properties=[], image=image_path
+    )
+
+    result = extra.as_dict()
+
+    assert result == {
+        'author': {
+            'name': author.full_name(),
+            'id': author.id,
+            'slug': author.slug,
+            'title': author.title,
+            'description': extra.description,
+        },
+        'image': {'url': f'/media/{image_path}', 'alt': extra.image_alt},
+        'properties': [],
+    }
+
+
+def test_author_extra_as_dict_minimal():
+    author = make_author()
+    extra = baker.make('DocumentAuthorExtra', author=author)
+
+    result = extra.as_dict(minimal=True)
+
+    assert result == {
+        'author': {
+            'name': author.full_name(),
+            'id': author.id,
+            'slug': author.slug,
+            'title': author.title,
+            'description': extra.description,
+        }
     }
 
 
