@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
-set -x
+#set -x
 
 DOCKER_COMPOSE="docker compose"
 DOCKER_COMPOSE_EXEC="$DOCKER_COMPOSE exec -T"
 SOLR_CORE="nuremberg_dev"
 SOLR_HOME="/var/solr/data/$SOLR_CORE"
-SOLR_SNAPSHOT_NAME=$(basename `realpath dumps/nuremberg_solr_snapshot_latest.tar.gz`)
+SOLR_SNAPSHOT_DIR=$PWD/dumps/nuremberg_solr_snapshot_latest
 SOLR_URL="http://localhost:8983/solr"
 
 echo "Setting up sqlite"
@@ -22,21 +22,22 @@ echo "Setting up solr config"
 $DOCKER_COMPOSE cp solr_conf/ solr:/opt/solr-8.11.2/solr_conf
 $DOCKER_COMPOSE_EXEC solr cp -r /opt/solr-8.11.2/solr_conf $SOLR_HOME
 
-http_code=`curl -sS -o /dev/null -w '%{http_code}' "$SOLR_URL/admin/cores?action=reload&core=$SOLR_CORE"`
+http_code=$( $DOCKER_COMPOSE_EXEC solr curl -sS -o /dev/null -w '%{http_code}' "$SOLR_URL/admin/cores?action=reload&core=$SOLR_CORE" )
+
 if [[ $http_code == 200 ]]; then
     echo "Solr core already exists"
 else
     echo "Solr core does not exist, creating it"
-    $DOCKER_COMPOSE_EXEC solr solr create_core -c $SOLR_CORE -d solr_conf
+    $DOCKER_COMPOSE_EXEC solr solr create_core -c $SOLR_CORE -d /opt/solr-8.11.2/solr_conf
 fi
 
 if [[ -z ${SOLR_RESTORE_SNAPSHOT} ]]; then
     echo "Rebuilding Solr index (SLOW)"
     $DOCKER_COMPOSE_EXEC web python manage.py rebuild_index --noinput
 else
-    echo "Restoring Solr snapshot $SOLR_SNAPSHOT_NAME"
-    $DOCKER_COMPOSE cp dumps/$SOLR_SNAPSHOT_NAME solr:$SOLR_HOME/data
-    $DOCKER_COMPOSE_EXEC -T solr curl -sS "$SOLR_URL/$SOLR_CORE/replication?command=restore"
+    echo "Restoring Solr snapshot $SOLR_SNAPSHOT_DIR"
+    cat $SOLR_SNAPSHOT_DIR/* | $DOCKER_COMPOSE_EXEC solr tar -xzv -f - --strip-component=1 -C $SOLR_HOME/data
+    $DOCKER_COMPOSE_EXEC -T solr curl -sS "$SOLR_URL/$SOLR_CORE/replication?command=restore" || exit 1
 fi
 
 [[ -n ${SOLR_DIST_DATA} ]] && \
