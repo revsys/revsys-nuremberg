@@ -32,5 +32,5 @@ regen-solr-image:
     set -o xtrace verbose
     rm -rf /tmp/solr_data; mkdir /tmp/solr_data
     docker-compose up -d --force-recreate solr
-    SOLR_RESTORE_SNAPSHOT=1 SOLR_DIST_DATA=1./init.sh
+    SOLR_RESTORE_SNAPSHOT=1 SOLR_DIST_DATA=1 ./init.sh
     just push solr
