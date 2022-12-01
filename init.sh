@@ -60,9 +60,13 @@ then
 	fi
 fi
 
-[[ -n ${SOLR_DIST_DATA} ]] && \
-	sleep 10 && \
-	$DOCKER_COMPOSE_EXEC -u 0 -T ${solr} tar --sparse -cz -f /dist/var-solr.tgz /var/solr && \
+if [[ -n ${SOLR_DIST_DATA} ]];
+then
+	sleep 10 
+	$DOCKER_COMPOSE_EXEC -u 0 -T ${solr} tar --sparse -cz -f /dist/var-solr.tgz /var/solr
 	$DOCKER_COMPOSE_EXEC -u 0 -T ${solr} chown -Rv $UID /dist
+fi
+
+
 
 
