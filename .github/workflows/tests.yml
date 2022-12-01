@@ -20,6 +20,10 @@ jobs:
         - name: Checkout code
           uses: actions/checkout@v3
 
+        - name: update docker-compose
+          run: |
+            curl -Ls -o $HOME/.docker/cli-plugins/docker-compose https://github.com/docker/compose/releases/download/v2.13.0/docker-compose-linux-x86_64
+            chmod 755 $HOME/.docker/cli-plugins/docker-compose
         - name: Invoke docker compose
           run: |
             apt update && \
