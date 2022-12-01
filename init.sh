@@ -25,7 +25,7 @@ echo "Setting up sqlite"
 mkdir -pv /tmp/nuremberg
 unzip -p dumps/nuremberg_prod_dump_latest.sqlite3.zip > /tmp/nuremberg/nuremberg_dev.db
 
-$DOCKER_COMPOSE_EXEC -T -w /code ${web} ./manage.py migrate || exit 1
+$DOCKER_COMPOSE_EXEC ${web} ./manage.py migrate || exit 1
 
 echo "Wait for Solr to be ready..."
 while ! $DOCKER_COMPOSE_EXEC ${solr} solr status >/dev/null 2>&1; do
