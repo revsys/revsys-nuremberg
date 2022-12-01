@@ -38,7 +38,7 @@ jobs:
         - name: Setup data storages
           env:
             SOLR_NO_RESTORE: ""
-          run:  init.sh
+          run:  ./init.sh
 
         - name: Run unit tests
           run: docker compose exec -T web pytest
