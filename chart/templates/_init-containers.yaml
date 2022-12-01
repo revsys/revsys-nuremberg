@@ -1,0 +1,63 @@
+{{/* vim: set filetype=sls sw=2 ts=2: */}}
+
+{{- define "InitSpec" }}
+{{- if eq (include "InitMethod" .) "spec" }}
+{{- $env := .Values.Env }}
+{{- $volumes := .Values.volumeMounts }}
+{{- $plug := .Values.Plug }}
+{{- $image := ( printf "%s:%s" .Values.image.repository .Chart.AppVersion ) }}
+initContainers:
+{{- range .Values.initCommands }}
+  -
+    name: {{ .name }}
+    image: {{ $image }}
+    command: ["/bin/sh", "-c"]
+    args:
+      - {{ .command | quote }}
+    envFrom:
+      -
+        configMapRef:
+          name: {{$plug}}-env
+      -
+        secretRef:
+          name: {{$plug}}-env
+    volumeMounts:
+{{ toYaml $volumes | indent 8 }}
+{{- end }} {{/* range */}}
+{{- end }} {{/* if */}}
+{{- end }} {{/* define */}}
+
+
+
+{{- define "InitAnnotation" }}
+{{- if eq (include "InitMethod" .) "annotation" }}
+{{- $env := .Values.Env }}
+{{- $volumes := .Values.volumeMounts }}
+{{- $image := ( printf "%s:%s" .Values.image.repository .Chart.AppVersion ) }}
+pod.beta.kubernetes.io/init-containers: |
+  [
+{{- range $ic_index, $ic := .Values.initCommands }}
+{{- if $ic_index }},{{end}}
+    {
+      "name": {{ .name | quote }},
+      "image": {{ $image | quote }},
+      "command": ["/bin/sh", "-c"],
+      "args": [ {{ .command | quote }} ],
+      "env":
+{{ toJson $env | indent 10 }},
+      "volumeMounts":
+{{ toJson $volumes | indent 10 }}
+    }
+{{- end }}
+  ]
+{{- end }}
+{{- end }}
+
+{{- define "InitContainers" }}
+{{- if eq ( include "InitMethod" ) "annotation" }}
+{{- include "InitAnnotation" }}
+{{- end }}
+{{- if eq ( include "InitMethod" ) "spec" }}
+{{- include "InitSpec" }}
+{{- end }}
+{{- end }}

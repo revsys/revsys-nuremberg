@@ -2,29 +2,34 @@ version: '2'
 
 services:
 
-  solr:
+  solr-data-load:
     image: solr:8.11.2
     volumes:
       # NAMED VOLUMES
-      - solr_data:/var/solr
+      - solr_build:/var/solr
+      # LOCAL BIND
+      - ./dist:/dist
+    environment:
+      - SOLR_JAVA_MEM=-Xms1536m -Xmx1536m
 
-  web:
+  solr-loader:
+    image: registry.revsys.com/nuremberg:v0.2.7
     build:
       context: ./web
       target: release
     tty: true
-    working_dir: /nuremberg
-    command: bash
+    entrypoint: bash
+    working_dir: /code
     volumes:
       # BIND MOUNTS
       - ./web:/nuremberg
+      - /tmp/nuremberg:/tmp
     environment:
       # let Django load Docker-specific settings conditionally
       - DOCKERIZED=True
       - DEBUG=True
       - SECRET_KEY=top-secret-1234
-    depends_on:
-      - solr
+      - SOLR_URL=http://solr-data-load:8983/solr/nuremberg_dev
 
 volumes:
-  solr_data:
+  solr_build:
