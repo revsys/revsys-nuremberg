@@ -2,8 +2,8 @@ version: '2'
 
 services:
 
-  solr:
-    image: solr:8
+  solr-data-load:
+    image: solr:8.11.2
     volumes:
       # NAMED VOLUMES
       - solr_build:/var/solr
