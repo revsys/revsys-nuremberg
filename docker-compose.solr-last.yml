@@ -5,3 +5,8 @@ services:
   solr:
     image: registry.revsys.com/nuremberg:last-solr
     volumes: []
+
+  web:
+    volumes:
+      - /tmp/nuremberg:/tmp
+
