@@ -19,11 +19,10 @@ RUN python -m venv /.venv; \
 
 RUN apt update; apt -y install curl
 
+RUN  tar -xzC /node --strip-components=1 -f <( curl -sL https://nodejs.org/dist/v18.12.1/node-v18.12.1-linux-x64.tar.gz )
+
 RUN --mount=type=bind,source=web/requirements.prod.txt,target=/requirements.txt \
     pip install -r /requirements.txt
-
-
-RUN  tar -xzC /node --strip-components=1 -f <( curl -sL https://nodejs.org/dist/v18.12.1/node-v18.12.1-linux-x64.tar.gz )
 
 WORKDIR /node
 
