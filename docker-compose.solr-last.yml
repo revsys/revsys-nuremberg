@@ -1,0 +1,6 @@
+
+version: '2'
+services:
+
+  solr:
+    image: registry.revsys.com/nuremberg:last-solr

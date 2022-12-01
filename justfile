@@ -42,12 +42,15 @@ push step='release': (build step)
 regen-solr-image:
     #!/usr/bin/env bash
     set -o xtrace verbose pipefail
-    docker-compose -f $( just _solr-compose ) -p solrbld up -d --force-recreate solr-data-load &&
-    SOLR_NO_RESTORE=1 SOLR_BUILD=1 ./init.sh &&
+    docker-compose -f $( just _solr-compose ) -p solrbld up -d --force-recreate solr-data-load && \
+    SOLR_NO_RESTORE=1 SOLR_BUILD=1 ./init.sh && \
     docker-compose -f $( just _solr-compose ) -p solrbld up -d solr-loader || \
     ( just build && docker-compose -f $( just _solr-compose ) -p solrbld up  -d solr-loader ) && \
     SOLR_RESTORE_SNAPSHOT= SOLR_DIST_DATA=1 SOLR_BUILD=1 ./init.sh && \
-    just build solr
+    just build solr && \
+    docker tag {{IMAGE_REGISTRY}}:{{VERSION}}-solr {{IMAGE_REGISTRY}}:last-solr && \
+    just push solr && \
+    docker push {{IMAGE_REGISTRY}}:last-solr || exit 1
 
 # fs path to solr-image-build compose file
 solr-compose: _solr-compose

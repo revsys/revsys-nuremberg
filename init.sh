@@ -34,7 +34,7 @@ done
 echo "Solr ready!!!"
 
 echo "Setting up solr config"
-docker compose cp solr_conf/ ${solr}:/opt/solr-8.11.2/solr_conf
+$DOCKER_COMPOSE cp solr_conf/ ${solr}:/opt/solr-8.11.2/solr_conf
 $DOCKER_COMPOSE_EXEC ${solr} cp -r /opt/solr-8.11.2/solr_conf $SOLR_HOME
 
 http_code=$( $DOCKER_COMPOSE_EXEC ${solr} curl -sS -o /dev/null -w '%{http_code}' "$SOLR_URL/admin/cores?action=reload&core=$SOLR_CORE" ) || exit 1
