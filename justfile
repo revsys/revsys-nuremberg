@@ -39,9 +39,6 @@ push step='release': (build step)
     [[ "{{ step }}" == "release" ]] && endbits={{VERSION}} || endbits={{VERSION}}-{{ step }}
     docker push {{IMAGE_REGISTRY}}:${endbits}
 
-deploy:
-    @helm upgrade -i hlsnp --namespace nuremberg chart/
-
 regen-solr-image:
     #!/usr/bin/env bash
     set -o xtrace verbose pipefail
