@@ -22,7 +22,7 @@ fi
 DOCKER_COMPOSE_EXEC="$DOCKER_COMPOSE exec -T"
 
 echo "Setting up sqlite"
-mkdir -pv /tmp/nuremberg
+install -vd /tmp/nuremberg -m 0777
 unzip -p dumps/nuremberg_prod_dump_latest.sqlite3.zip > /tmp/nuremberg/nuremberg_dev.db
 
 $DOCKER_COMPOSE_EXEC ${web} cp -v /mnt/nuremberg_dev.db /tmp
