@@ -8,5 +8,5 @@ services:
 
   web:
     volumes:
-      - /tmp/nuremberg:/tmp
+      - /tmp/nuremberg:/mnt
 

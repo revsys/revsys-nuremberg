@@ -23,8 +23,9 @@ DOCKER_COMPOSE_EXEC="$DOCKER_COMPOSE exec -T"
 
 echo "Setting up sqlite"
 mkdir -pv /tmp/nuremberg
-unzip -p dumps/nuremberg_prod_dump_latest.sqlite3.zip > /tmp/nuremberg_dev.db
+unzip -p dumps/nuremberg_prod_dump_latest.sqlite3.zip > /tmp/nuremberg/nuremberg_dev.db
 
+$DOCKER_COMPOSE_EXEC ${web} cp -v /mnt/nuremberg_dev.db /tmp
 $DOCKER_COMPOSE_EXEC ${web} ./manage.py migrate || exit 1
 
 echo "Wait for Solr to be ready..."
