@@ -2,7 +2,7 @@
 set dotenv-load := false
 IMAGE_REGISTRY := 'registry.revsys.com/nuremberg'
 CACHE_REGISTRY := 'registry.revsys.com/cache/nuremberg'
-VERSION := 'v0.2.5'
+VERSION := 'v0.2.6'
 
 set shell := ["/bin/bash", "-c"]
 
