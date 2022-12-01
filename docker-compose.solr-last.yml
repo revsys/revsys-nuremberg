@@ -4,3 +4,4 @@ services:
 
   solr:
     image: registry.revsys.com/nuremberg:last-solr
+    volumes: []

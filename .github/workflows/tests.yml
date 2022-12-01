@@ -32,7 +32,7 @@ jobs:
             username: github
             password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
         - name: Invoke docker compose
-          run: docker-compose -f ./docker-compose.solr-last.yml up -d
+          run: docker-compose -f ./docker-compose.yml -f ./docker-compose.solr-last.yml up -d
 
         - name: Setup data storages
           env:
