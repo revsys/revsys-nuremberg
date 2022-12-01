@@ -13,3 +13,7 @@ src
 nuremberg_dev.db
 */**/.t/
 dist/
+dumps/.*
+dumps/new
+dumps/old
+

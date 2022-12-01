@@ -10,7 +10,10 @@ SOLR_SNAPSHOT_DIR=$PWD/dumps/nuremberg_solr_snapshot_latest
 SOLR_URL="http://localhost:8983/solr"
 
 echo "Setting up sqlite"
-unzip -p dumps/nuremberg_prod_dump_latest.sqlite3.zip > web/nuremberg_dev.db
+mkdir -pv /tmp/nuremberg
+unzip -p dumps/nuremberg_prod_dump_latest.sqlite3.zip > /tmp/nuremberg/nuremberg_dev.db
+
+$DOCKER_COMPOSE_EXEC -T -w /code web ./manage.py migrate
 
 echo "Wait for Solr to be ready..."
 while ! $DOCKER_COMPOSE_EXEC solr solr status >/dev/null 2>&1; do
@@ -31,13 +34,16 @@ else
     $DOCKER_COMPOSE_EXEC solr solr create_core -c $SOLR_CORE -d /opt/solr-8.11.2/solr_conf
 fi
 
-if [[ -z ${SOLR_RESTORE_SNAPSHOT} ]]; then
-    echo "Rebuilding Solr index (SLOW)"
-    $DOCKER_COMPOSE_EXEC web python manage.py rebuild_index --noinput
-else
-    echo "Restoring Solr snapshot $SOLR_SNAPSHOT_DIR"
-    cat $SOLR_SNAPSHOT_DIR/* | $DOCKER_COMPOSE_EXEC solr tar -xzv -f - --strip-component=1 -C $SOLR_HOME/data
-    $DOCKER_COMPOSE_EXEC -T solr curl -sS "$SOLR_URL/$SOLR_CORE/replication?command=restore" || exit 1
+if [[ -z ${SOLR_NO_RESTORE} ]];
+then
+	if [[ -n ${SOLR_RESTORE_SNAPSHOT} ]]; then
+	    echo "Restoring Solr snapshot $SOLR_SNAPSHOT_DIR"
+	    cat $SOLR_SNAPSHOT_DIR/* | $DOCKER_COMPOSE_EXEC solr tar -xzv -f - --strip-component=1 -C $SOLR_HOME/data
+	    $DOCKER_COMPOSE_EXEC -T solr curl -sS "$SOLR_URL/$SOLR_CORE/replication?command=restore" || exit 1
+	else
+	    echo "Rebuilding Solr index (SLOW)"
+	    time $DOCKER_COMPOSE_EXEC -w /code web python manage.py rebuild_index --noinput -k12 -b500
+	fi
 fi
 
 [[ -n ${SOLR_DIST_DATA} ]] && \
