@@ -193,7 +193,7 @@ docker compose exec web python manage.py build_solr_schema --configure-dir=solr_
 ```
 
 This will generate both `schema.xml` and `solrconfig.xml` under the `solr_conf`
-directory. To use the updated config files, run `docker compose down` to dispose
+directory. To use the updated config files, run `docker compose down -v` to dispose
 of the existing solr container and `docker compose up -d` to start a fresh one.
 
 ### Reindexing
