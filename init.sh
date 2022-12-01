@@ -25,8 +25,8 @@ echo "Setting up sqlite"
 #unzip -o -d $PWD/tmp dumps/nuremberg_prod_dump_latest.sqlite3.zip 
 
 $DOCKER_COMPOSE cp -L dumps/nuremberg_prod_dump_latest.sqlite3.zip web:/tmp/
-$DOCKER_COMPOSE_EXEC ${web} find /tmp -type f -name "nuremberg*sqlite3.zip" -exec unzip -d /tmp {} \; || exit 1
-$DOCKER_COMPOSE_EXEC ${web} ./manage.py migrate || exit 1
+$DOCKER_COMPOSE_EXEC ${web} find /tmp -type f -name "nuremberg*sqlite3.zip" -exec unzip -d /tmp {} \; 
+$DOCKER_COMPOSE_EXEC ${web} ./manage.py migrate 
 
 
 if [[ -z ${SOLR_NO_RESTORE} ]];
