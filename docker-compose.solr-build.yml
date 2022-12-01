@@ -6,7 +6,7 @@ services:
     image: solr:8
     volumes:
       # NAMED VOLUMES
-      - solr_data:/var/solr
+      - solr_build:/var/solr
       # LOCAL BIND
       - ./dist:/dist
     environment:
