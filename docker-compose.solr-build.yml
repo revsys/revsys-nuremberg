@@ -12,7 +12,7 @@ services:
     environment:
       - SOLR_JAVA_MEM=-Xms1536m -Xmx1536m
 
-  web:
+  solr-loader:
     image: registry.revsys.com/nuremberg:v0.2.6
     build:
       context: ./web
@@ -29,6 +29,7 @@ services:
       - DOCKERIZED=True
       - DEBUG=True
       - SECRET_KEY=top-secret-1234
+      - SOLR_URL=http://solr-data-load:8983/solr/nuremberg_dev
 
 volumes:
   solr_build:
