@@ -22,10 +22,10 @@ fi
 DOCKER_COMPOSE_EXEC="$DOCKER_COMPOSE exec -T"
 
 echo "Setting up sqlite"
-install -vd $PWD/tmp -m 0777
-unzip -o -d $PWD/tmp dumps/nuremberg_prod_dump_latest.sqlite3.zip 
+#unzip -o -d $PWD/tmp dumps/nuremberg_prod_dump_latest.sqlite3.zip 
 
-$DOCKER_COMPOSE_EXEC ${web} cp -v /mnt/nuremberg_dev.db /tmp
+$DOCKER_COMPOSE cp -L dumps/nuremberg_prod_dump_latest.sqlite3.zip web:/tmp/
+$DOCKER_COMPOSE_EXEC ${web} find /tmp -type f -name "nuremberg*sqlite3.zip" -exec unzip -d /tmp {} \; || exit 1
 $DOCKER_COMPOSE_EXEC ${web} ./manage.py migrate || exit 1
 
 
