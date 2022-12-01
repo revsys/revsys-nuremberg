@@ -88,7 +88,7 @@ WSGI_APPLICATION = 'nuremberg.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': '/tmp/nuremberg.db',
+        'NAME': '/tmp/nuremberg_dev.db',
         'USER': 'nuremberg',
     }
 }
@@ -154,11 +154,7 @@ SOLR_URL = 'http://solr:8983/solr/nuremberg-dev' if LOCAL_DEVELOPMENT else env.s
 HAYSTACK_CONNECTIONS = {
     'default': {
         'ENGINE': 'nuremberg.search.lib.solr_grouping_backend.GroupedSolrEngine',
-<<<<<<< HEAD
         'URL': SOLR_URL,
-=======
-        'URL': 'http://solr:8983/solr/nuremberg_dev',
->>>>>>> main
         'TIMEOUT': 60 * 5,
     }
 }

@@ -48,12 +48,18 @@ COPY web/nuremberg /code/nuremberg
 COPY web/manage.py /code
 COPY solr_conf /code/solr_conf
 
-RUN chown 1000 /code
+RUN chown 1000 /code; \
+	touch /code/nuremberg/__init__.py
+
 USER 1000
 
+ENTRYPOINT ["/.venv/bin/gunicorn"]
+CMD ["-b", ":8000", "nuremberg.wsgi:application"]
 
+
+#.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
 FROM solr:8.11-slim as solr
-
+#.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
 
 ENV SOLR_CORE nuremberg_dev
 
