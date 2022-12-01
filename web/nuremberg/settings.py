@@ -164,7 +164,19 @@ HAYSTACK_DEFAULT_OPERATOR = 'AND'
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
-    'handlers': {'console': {'class': 'logging.StreamHandler'}},
+    'formatters': {
+        'verbose': {
+            'format': '{asctime} {levelname} {module} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {'class': 'logging.StreamHandler', 'formatter': 'verbose'}
+    },
     'loggers': {
         'django': {
             'handlers': ['console'],
@@ -182,6 +194,9 @@ LOGGING = {
 # file storage using django-storages
 # https://django-storages.readthedocs.io/en/latest/backends/amazon-S3.html
 
+AUTHORS_BUCKET = env(
+    "AUTHORS_BUCKET", default='harvard-law-library-nuremberg-authors'
+)
 DOCUMENTS_BUCKET = env(
     "DOCUMENTS_BUCKET", default='harvard-law-library-nuremberg-documents'
 )
@@ -228,7 +243,10 @@ if LOCAL_DEVELOPMENT:
 
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
     # Absolute filesystem path to the directory that will hold user-uploaded files.
-    MEDIA_ROOT = os.path.abspath(
-        os.path.join(BASE_DIR, os.path.pardir, 'media')
-    )
+    MEDIA_ROOT = os.path.abspath(os.path.join(BASE_DIR, 'media'))
     MEDIA_URL = '/media/'
+
+    LOGGING['loggers']['nuremberg'] = {
+        'handlers': ['console'],
+        'level': 'DEBUG',
+    }

@@ -47,11 +47,16 @@ from django.utils.module_loading import import_string
 SettingsStorage = import_string(settings.DEFAULT_FILE_STORAGE)
 
 
+class AuthorStorage(SettingsStorage):
+    bucket_name = settings.AUTHORS_BUCKET
+    default_acl = 'public-read'
+
+
 class DocumentStorage(SettingsStorage):
     bucket_name = settings.DOCUMENTS_BUCKET
-    # default_acl = 'public-read'
+    default_acl = 'public-read'
 
 
 class TranscriptStorage(SettingsStorage):
     bucket_name = settings.TRANSCRIPTS_BUCKET
-    # default_acl = 'public-read'
+    default_acl = 'public-read'

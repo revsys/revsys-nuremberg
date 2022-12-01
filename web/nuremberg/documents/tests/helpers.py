@@ -8,6 +8,26 @@ from nuremberg.documents.models import (
 )
 
 
+class DummyMemDictStorage:
+    """A dummy and silly memory dict-based minimal storage."""
+
+    def __init__(self):
+        super().__init__()
+        self._paths = {}
+
+    def delete(self, path):
+        self._paths.pop(path)
+
+    def exists(self, path):
+        return path in self._paths
+
+    def open(self, path):
+        return self._paths[path]
+
+    def save(self, path, content):
+        self._paths[path] = content
+
+
 @pytest.mark.django_db
 def make_author(**kwargs):
     # ensure baked authors have an ID higher than the current MAX author ID
