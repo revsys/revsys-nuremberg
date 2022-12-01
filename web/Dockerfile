@@ -1,4 +1,4 @@
-FROM python:3.10
+FROM revolutionsystems/python:3.10-wee-lto-optimized as release
 
 RUN mkdir /nuremberg
 WORKDIR /nuremberg
