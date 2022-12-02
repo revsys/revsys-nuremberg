@@ -1,9 +1,20 @@
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
+FROM revolutionsystems/python:3.10-wee-lto-optimized as just
+#.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
+
+RUN apt update; apt -y install curl
+
+RUN curl -L https://github.com/casey/just/releases/download/1.9.0/just-1.9.0-x86_64-unknown-linux-musl.tar.gz | tar -xz -f - -C /usr/bin just
+
+
+#.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
 FROM revolutionsystems/python:3.10-wee-lto-optimized as runner
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
 
 ENV PYTHON_PATH /code
 ENV PATH /.venv/bin:/node/bin:${PATH}
+
+COPY --from=just /usr/bin/just /usr/bin/just
 
 WORKDIR /code
 
@@ -13,9 +24,10 @@ FROM runner as builder
 
 
 SHELL ["/bin/bash", "-c"]
+
 RUN python -m venv /.venv; \
     mkdir -p /{c,n}ode/data
-    
+
 
 RUN apt update; apt -y install curl
 
@@ -28,8 +40,10 @@ WORKDIR /node
 
 RUN /node/bin/npm install less
 
+WORKDIR /code
+
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
-FROM runner as release
+FROM builder as release
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
 
 ENV DJANGO_SETTINGS_MODULE nuremberg.settings
@@ -38,9 +52,6 @@ ENV IMAGE_VERSION v0.2.7
 
 RUN ln -s /node/node_modules/less/bin/lessc /bin/lessc
 
-COPY --from=builder /.venv /.venv
-COPY --from=builder /node /node
-
 COPY dumps/nuremberg_prod_dump_latest.sqlite3.zip /code/data/
 
 COPY web/nuremberg /code/nuremberg
@@ -48,12 +59,52 @@ COPY web/manage.py /code
 COPY solr_conf /code/solr_conf
 
 RUN chown 1000 /code; \
-	touch /code/nuremberg/__init__.py
+    touch /code/nuremberg/__init__.py
 
 USER 1000
 
+WORKDIR /code
+
 ENTRYPOINT ["/.venv/bin/gunicorn"]
 CMD ["-b", ":8000", "nuremberg.wsgi:application"]
+
+FROM release as test-service
+
+#.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
+FROM release as test
+#.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
+
+USER 0
+
+ENV SECRET_KEY xx
+ENV SOLR_URL http://solr:8983/solr/nuremberg_dev
+ENV DJANGO_SETTINGS_MODULE nuremberg.test_settings
+RUN apt update; apt -y install unzip
+
+COPY web/requirements.in web/requirements.in
+COPY justfile /code/
+RUN pip install $( just _test-packages )
+COPY web/pytest.ini /code
+
+RUN unzip -d /tmp /code/data/nuremberg_prod_dump_latest.sqlite3.zip
+RUN ./manage.py collectstatic
+RUN ./manage.py migrate
+
+ENTRYPOINT ["pytest"]
+
+
+#.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
+FROM test as browser-test-service
+#.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
+
+ENTRYPOINT ["/.venv/bin/gunicorn"]
+CMD ["-b", ":8000", "--log-level", "DEBUG", "--access-logfile", "/dev/stdout", "nuremberg.wsgi:application"]
+
+#.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
+FROM test as browser-test
+#.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
+
+CMD ["--no-cov", "nuremberg/documents/browser_tests.py"]
 
 
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-

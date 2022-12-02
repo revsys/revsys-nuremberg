@@ -1,7 +1,3 @@
-**
-!web/requirements*.txt
-!web/nuremberg/
-!web/manage.py
-!dumps/
-!solr_conf/
-!dist/
+.git/
+Dockerfile
+web/Dockerfile

@@ -14,6 +14,10 @@ regen-requirements:
   pip-compile web/requirements.in -o web/requirements.txt
   pip-compile <( head -n$( grep -n "# Dev" web/requirements.in | cut -d":" -f1 ) web/requirements.in  ) -o web/requirements.prod.txt
 
+
+_test-packages:
+  @tail -n  $( echo $(( $( wc -l web/requirements.in | cut -d" " -f1 ) - $( grep -nie '^#[[:blank:]]*test' web/requirements.in  | cut -d":" -f1) ))  ) web/requirements.in
+
 build step='release':
     #!/usr/bin/env bash
     set -o xtrace
