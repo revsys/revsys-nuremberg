@@ -26,15 +26,15 @@ build step='release':
     if [[ "{{ step }}" == "release" ]];
     then
         endbits={{VERSION}}
-        cendbits=last 
+        cendbits=last
     else
-       endbits={{VERSION}}-{{ step }}
-       cendbits=last-{{ step }}
+        endbits={{VERSION}}-{{ step }}
+        cendbits=last-{{step}}
     fi
 
-    cache="--cache-from {{CACHE_REGISTRY}}:${cendbits} --cache-to {{CACHE_REGISTRY}}:${cendbits}"
+    cache="--cache-from {{CACHE_REGISTRY}}:last-tester --cache-from {{CACHE_REGISTRY}}:${cendbits} --cache-to {{CACHE_REGISTRY}}:${cendbits}"
 
-    docker buildx build ${cache} --load -t  {{IMAGE_REGISTRY}}:${endbits} --target {{step}} .
+    docker buildx build --progress plain ${cache} --load -t  {{IMAGE_REGISTRY}}:${endbits} --target {{step}} .
     [[ "{{ step }}" == "release" ]] && docker tag {{IMAGE_REGISTRY}}:${endbits} {{IMAGE_REGISTRY}}:last
     just _bk-down
 
@@ -60,6 +60,11 @@ regen-solr-image:
 solr-compose: _solr-compose
 _solr-compose:
     @echo {{justfile_directory()}}/docker-compose.solr-build.yml
+
+test:
+    docker-compose -f ./docker-compose.yml -f ./docker-compose.override.yml -f ./docker-compose.ci.yml up -d
+    docker-compose exec web pytest || exit 1
+    docker-compose exec web pytest --no-cov nuremberg/documents/browser-tests.py || exit 1
 
 _bk-up:
     #!/bin/bash

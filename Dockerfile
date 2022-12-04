@@ -71,7 +71,7 @@ CMD ["-b", ":8000", "nuremberg.wsgi:application"]
 FROM release as test-service
 
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
-FROM release as test
+FROM release as tester
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
 
 USER 0
@@ -79,7 +79,7 @@ USER 0
 ENV SECRET_KEY xx
 ENV SOLR_URL http://solr:8983/solr/nuremberg_dev
 ENV DJANGO_SETTINGS_MODULE nuremberg.test_settings
-RUN apt update; apt -y install unzip
+RUN apt update; apt -y install unzip; find /var -type f -ctime 0 -exec rm -rf {} +
 
 COPY web/requirements.in web/requirements.in
 COPY justfile /code/
@@ -87,18 +87,14 @@ RUN pip install $( just _test-packages )
 COPY web/pytest.ini /code
 
 RUN unzip -d /tmp /code/data/nuremberg_prod_dump_latest.sqlite3.zip
+
+RUN chown 1000 /tmp/*db /code
+USER 1000
+
 RUN ./manage.py collectstatic
 RUN ./manage.py migrate
 
 ENTRYPOINT ["pytest"]
-
-
-#.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
-FROM test as browser-test-service
-#.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
-
-ENTRYPOINT ["/.venv/bin/gunicorn"]
-CMD ["-b", ":8000", "--log-level", "DEBUG", "--access-logfile", "/dev/stdout", "nuremberg.wsgi:application"]
 
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
 FROM test as browser-test

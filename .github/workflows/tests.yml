@@ -35,20 +35,12 @@ jobs:
             registry: registry.revsys.com
             username: github
             password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
-        - name: Invoke docker compose
-          run: docker-compose -f ./docker-compose.yml -f docker-compose.override.yml -f ./docker-compose.solr-last.yml up --quiet-pull -d
-
-        - name: Setup data storages
-          env:
-            SOLR_NO_RESTORE: indeed
-          run:  ./init.sh
-
-        - name: Run unit tests
-          run: docker compose exec -T web pytest
-
-        - name: Run browser tests
-          run: docker compose exec -T web pytest --no-cov nuremberg/documents/browser_tests.py
-
+        - name: Build unit test runners
+          run: |
+            just build tester
+            just build browser-tester
+        - name: Tests
+          run: just test
         - name: Get logs on failure
           run: docker compose logs
           if: failure()
