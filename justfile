@@ -62,8 +62,11 @@ solr-compose: _solr-compose
 _solr-compose:
     @echo {{justfile_directory()}}/docker-compose.solr-build.yml
 
+_warmitup:
+    @docker-compose -f ./docker-compose.yml -f ./docker-compose.override.yml -f ./docker-compose.ci.yml up --quiet-pull -d solr selenium
+
 test:
-    @docker-compose -f ./docker-compose.yml -f ./docker-compose.override.yml -f ./docker-compose.ci.yml up --quiet-pull -d
+    @docker-compose -f ./docker-compose.yml -f ./docker-compose.override.yml -f ./docker-compose.ci.yml up -d
     docker-compose exec -u0  web find /tmp /nuremberg /code -type f -not -user ${UID} -exec chown -Rv $UID {} +  | wc -l
     docker-compose exec -u$UID web pytest || exit 1
     docker-compose exec -u$UID web pytest --no-cov nuremberg/documents/browser_tests.py || exit 1
