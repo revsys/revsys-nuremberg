@@ -64,8 +64,8 @@ _solr-compose:
 
 test:
     @docker-compose -f ./docker-compose.yml -f ./docker-compose.override.yml -f ./docker-compose.ci.yml up --quiet-pull -d
-    docker-compose exec web pytest || exit 1
-    docker-compose exec web pytest --no-cov nuremberg/documents/browser_tests.py || exit 1
+    docker-compose exec -u1000 web pytest || exit 1
+    docker-compose exec -u1000 web pytest --no-cov nuremberg/documents/browser_tests.py || exit 1
 
 _bk-up:
     #!/bin/bash
