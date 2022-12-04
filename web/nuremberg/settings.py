@@ -149,7 +149,7 @@ COMPRESS_STORAGE = 'compressor.storage.GzipCompressorFileStorage'
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
-SOLR_URL = 'http://solr:8983/solr/nuremberg-dev' if LOCAL_DEVELOPMENT else env.str('SOLR_URL')
+SOLR_URL = env('SOLR_URL', default='http://solr:8983/solr/nuremberg_dev')
 
 HAYSTACK_CONNECTIONS = {
     'default': {

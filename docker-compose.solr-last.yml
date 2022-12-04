@@ -7,9 +7,13 @@ services:
     volumes: []
 
   web:
+    image: registry.revsys.com/nuremberg:v0.2.7-test
+    volumes: []
     volumes:
       - $PWD/tmp:/mnt
     environment:
       - SOLR_URL=http://solr:8983/solr/nuremberg_dev
 
+
+volumes: {}
 
