@@ -2,7 +2,7 @@
 set dotenv-load := false
 IMAGE_REGISTRY := 'registry.revsys.com/nuremberg'
 CACHE_REGISTRY := 'registry.revsys.com/cache/nuremberg'
-VERSION := 'v0.2.7'
+VERSION := 'v0.3.1'
 
 set shell := ["/bin/bash", "-c"]
 
@@ -14,6 +14,10 @@ regen-requirements:
   pip-compile web/requirements.in -o web/requirements.txt
   pip-compile <( head -n$( grep -n "# Dev" web/requirements.in | cut -d":" -f1 ) web/requirements.in  ) -o web/requirements.prod.txt
 
+
+_test-packages:
+  @tail -n  $( echo $(( $( wc -l web/requirements.in | cut -d" " -f1 ) - $( grep -nie '^#[[:blank:]]*test' web/requirements.in  | cut -d":" -f1) ))  ) web/requirements.in
+
 build step='release':
     #!/usr/bin/env bash
     set -o xtrace
@@ -22,15 +26,16 @@ build step='release':
     if [[ "{{ step }}" == "release" ]];
     then
         endbits={{VERSION}}
-        cendbits=last 
+        cendbits=last
     else
-       endbits={{VERSION}}-{{ step }}
-       cendbits=last-{{ step }}
+        endbits={{VERSION}}-{{ step }}
+        cendbits=last-{{step}}
     fi
 
-    cache="--cache-from {{CACHE_REGISTRY}}:${cendbits} --cache-to {{CACHE_REGISTRY}}:${cendbits}"
+    cache="--cache-from {{CACHE_REGISTRY}}:last --cache-from {{CACHE_REGISTRY}}:${cendbits} --cache-to type=registry,dest={{CACHE_REGISTRY}}:${cendbits},mode=max"
+    [[ "{{step}}" == "tester" ]] && cache="--cache-from {{CACHE_REGISTRY}}:last"
 
-    docker buildx build ${cache} --load -t  {{IMAGE_REGISTRY}}:${endbits} --target {{step}} .
+    docker buildx build --progress plain ${cache} --load -t  {{IMAGE_REGISTRY}}:${endbits} --target {{step}} .
     [[ "{{ step }}" == "release" ]] && docker tag {{IMAGE_REGISTRY}}:${endbits} {{IMAGE_REGISTRY}}:last
     just _bk-down
 
@@ -42,17 +47,29 @@ push step='release': (build step)
 regen-solr-image:
     #!/usr/bin/env bash
     set -o xtrace verbose pipefail
-    docker-compose -f $( just _solr-compose ) -p solrbld up -d --force-recreate solr-data-load &&
-    SOLR_NO_RESTORE=1 SOLR_BUILD=1 ./init.sh &&
+    docker-compose -f $( just _solr-compose ) -p solrbld up -d --force-recreate solr-data-load && \
+    SOLR_NO_RESTORE=1 SOLR_BUILD=1 ./init.sh && \
     docker-compose -f $( just _solr-compose ) -p solrbld up -d solr-loader || \
     ( just build && docker-compose -f $( just _solr-compose ) -p solrbld up  -d solr-loader ) && \
     SOLR_RESTORE_SNAPSHOT= SOLR_DIST_DATA=1 SOLR_BUILD=1 ./init.sh && \
-    just build solr
+    just build solr && \
+    docker tag {{IMAGE_REGISTRY}}:{{VERSION}}-solr {{IMAGE_REGISTRY}}:last-solr && \
+    just push solr && \
+    docker push {{IMAGE_REGISTRY}}:last-solr || exit 1
 
 # fs path to solr-image-build compose file
 solr-compose: _solr-compose
 _solr-compose:
     @echo {{justfile_directory()}}/docker-compose.solr-build.yml
+
+_warmitup:
+    @docker-compose -f ./docker-compose.yml -f ./docker-compose.override.yml -f ./docker-compose.ci.yml up --quiet-pull -d solr selenium
+
+test:
+    @docker-compose -f ./docker-compose.yml -f ./docker-compose.override.yml -f ./docker-compose.ci.yml up -d
+    docker-compose exec -u0  web find /tmp /nuremberg /code -type f -not -user ${UID} -exec chown -Rv $UID {} +  | wc -l
+    docker-compose exec -u$UID web pytest || exit 1
+    docker-compose exec -u$UID web pytest --no-cov nuremberg/documents/browser_tests.py || exit 1
 
 _bk-up:
     #!/bin/bash

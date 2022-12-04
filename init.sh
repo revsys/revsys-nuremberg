@@ -22,32 +22,34 @@ fi
 DOCKER_COMPOSE_EXEC="$DOCKER_COMPOSE exec -T"
 
 echo "Setting up sqlite"
-mkdir -pv /tmp/nuremberg
-unzip -p dumps/nuremberg_prod_dump_latest.sqlite3.zip > /tmp/nuremberg/nuremberg_dev.db
+#unzip -o -d $PWD/tmp dumps/nuremberg_prod_dump_latest.sqlite3.zip 
 
-$DOCKER_COMPOSE_EXEC -T -w /code ${web} ./manage.py migrate || exit 1
+$DOCKER_COMPOSE cp -L dumps/nuremberg_prod_dump_latest.sqlite3.zip web:/tmp/
+$DOCKER_COMPOSE_EXEC ${web} find /tmp -type f -name "nuremberg*sqlite3.zip" -exec unzip -d /tmp {} \; 
+$DOCKER_COMPOSE_EXEC ${web} ./manage.py migrate 
 
-echo "Wait for Solr to be ready..."
-while ! $DOCKER_COMPOSE_EXEC ${solr} solr status >/dev/null 2>&1; do
-    sleep 1
-done
-echo "Solr ready!!!"
-
-echo "Setting up solr config"
-docker compose cp solr_conf/ ${solr}:/opt/solr-8.11.2/solr_conf
-$DOCKER_COMPOSE_EXEC ${solr} cp -r /opt/solr-8.11.2/solr_conf $SOLR_HOME
-
-http_code=$( $DOCKER_COMPOSE_EXEC ${solr} curl -sS -o /dev/null -w '%{http_code}' "$SOLR_URL/admin/cores?action=reload&core=$SOLR_CORE" ) || exit 1
-
-if [[ $http_code == 200 ]]; then
-    echo "Solr core already exists"
-else
-    echo "Solr core does not exist, creating it"
-    $DOCKER_COMPOSE_EXEC ${solr} solr create_core -c $SOLR_CORE -d /opt/solr-8.11.2/solr_conf || exit 1
-fi
 
 if [[ -z ${SOLR_NO_RESTORE} ]];
 then
+	echo "Wait for Solr to be ready..."
+	while ! $DOCKER_COMPOSE_EXEC ${solr} solr status >/dev/null 2>&1; do
+	    sleep 1
+	done
+	echo "Solr ready!!!"
+
+	echo "Setting up solr config"
+
+	$DOCKER_COMPOSE cp solr_conf/ ${solr}:/opt/solr-8.11.2/solr_conf
+	$DOCKER_COMPOSE_EXEC ${solr} cp -r /opt/solr-8.11.2/solr_conf $SOLR_HOME
+
+	http_code=$( $DOCKER_COMPOSE_EXEC ${solr} curl -sS -o /dev/null -w '%{http_code}' "$SOLR_URL/admin/cores?action=reload&core=$SOLR_CORE" ) || exit 1
+
+	if [[ $http_code == 200 ]]; then
+	    echo "Solr core already exists"
+	else
+	    echo "Solr core does not exist, creating it"
+	    $DOCKER_COMPOSE_EXEC ${solr} solr create_core -c $SOLR_CORE -d /opt/solr-8.11.2/solr_conf || exit 1
+	fi
 	if [[ -n ${SOLR_RESTORE_SNAPSHOT} ]]; then
 	    echo "Restoring Solr snapshot $SOLR_SNAPSHOT_DIR"
 	    cat $SOLR_SNAPSHOT_DIR/* | $DOCKER_COMPOSE_EXEC ${solr} tar -xzv -f - --strip-component=1 -C $SOLR_HOME/data
@@ -58,9 +60,13 @@ then
 	fi
 fi
 
-[[ -n ${SOLR_DIST_DATA} ]] && \
-	sleep 10 && \
-	$DOCKER_COMPOSE_EXEC -u 0 -T ${solr} tar --sparse -cz -f /dist/var-solr.tgz /var/solr && \
+if [[ -n ${SOLR_DIST_DATA} ]];
+then
+	sleep 10 
+	$DOCKER_COMPOSE_EXEC -u 0 -T ${solr} tar --sparse -cz -f /dist/var-solr.tgz /var/solr
 	$DOCKER_COMPOSE_EXEC -u 0 -T ${solr} chown -Rv $UID /dist
+fi
+
+
 
 
