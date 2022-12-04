@@ -9,10 +9,10 @@ services:
   web:
     image: registry.revsys.com/nuremberg:v0.2.7-tester
     volumes:
-      - $PWD/tmp:/mnt
+      - ./media:/code/media
+
     environment:
       - SOLR_URL=http://solr:8983/solr/nuremberg_dev
-    working_dir: /code
 
 
 volumes: {}

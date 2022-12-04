@@ -79,14 +79,13 @@ USER 0
 ENV SECRET_KEY xx
 ENV SOLR_URL http://solr:8983/solr/nuremberg_dev
 ENV DJANGO_SETTINGS_MODULE nuremberg.test_settings
-RUN apt update; apt -y install unzip; find /var -type f -ctime 0 -exec rm -rf {} +
 
 COPY web/requirements.in web/requirements.in
 COPY justfile /code/
 RUN pip install $( just _test-packages )
 COPY web/pytest.ini /code
 
-RUN unzip -d /tmp /code/data/nuremberg_prod_dump_latest.sqlite3.zip
+RUN python -m zipfile -e /code/data/nuremberg_prod_dump_latest.sqlite3.zip /tmp
 
 RUN chown 1000 /tmp/*db /code
 USER 1000

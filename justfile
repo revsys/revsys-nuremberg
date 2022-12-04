@@ -32,7 +32,7 @@ build step='release':
         cendbits=last-{{step}}
     fi
 
-    cache="--cache-from {{CACHE_REGISTRY}}:last-tester --cache-from {{CACHE_REGISTRY}}:${cendbits} --cache-to {{CACHE_REGISTRY}}:${cendbits}"
+    cache="--cache-from {{CACHE_REGISTRY}}:last-tester --cache-from {{CACHE_REGISTRY}}:${cendbits} --cache-to type=registry,dest={{CACHE_REGISTRY}}:${cendbits},mode=max"
 
     docker buildx build --progress plain ${cache} --load -t  {{IMAGE_REGISTRY}}:${endbits} --target {{step}} .
     [[ "{{ step }}" == "release" ]] && docker tag {{IMAGE_REGISTRY}}:${endbits} {{IMAGE_REGISTRY}}:last
@@ -62,9 +62,9 @@ _solr-compose:
     @echo {{justfile_directory()}}/docker-compose.solr-build.yml
 
 test:
-    docker-compose -f ./docker-compose.yml -f ./docker-compose.override.yml -f ./docker-compose.ci.yml up -d
+    @docker-compose -f ./docker-compose.yml -f ./docker-compose.override.yml -f ./docker-compose.ci.yml up --quiet-pull -d
+    docker-compose exec web pytest --no-cov nuremberg/documents/browser_tests.py || exit 1
     docker-compose exec web pytest || exit 1
-    docker-compose exec web pytest --no-cov nuremberg/documents/browser-tests.py || exit 1
 
 _bk-up:
     #!/bin/bash

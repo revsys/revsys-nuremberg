@@ -1,14 +1,14 @@
-name: Run Tests
+name: Build Images & Test Code
 
 on:
   workflow_dispatch:
   push:
-    branches: [ main ]
+    branches: [ deployment ]
   pull_request:
-    branches: [ main ]
+    branches: [ deployment ]
 
 jobs:
-  build:
+  build-and-test:
 
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -20,12 +20,12 @@ jobs:
         - name: Checkout code
           uses: actions/checkout@v3
 
-        - name: update docker-compose
-          run: |
-            mkdir -pv $HOME/.docker/cli-plugins
-            curl -Ls -o $HOME/.docker/cli-plugins/docker-compose https://github.com/docker/compose/releases/download/v2.13.0/docker-compose-linux-x86_64
-            chmod 755 $HOME/.docker/cli-plugins/docker-compose
-            ln -sfv $HOME/.docker/cli-plugins/docker-compose $( which docker-compose )
+#        - name: update docker-compose
+#          run: |
+#            mkdir -pv $HOME/.docker/cli-plugins
+#            curl -Ls -o $HOME/.docker/cli-plugins/docker-compose https://github.com/docker/compose/releases/download/v2.13.0/docker-compose-linux-x86_64
+#            chmod 755 $HOME/.docker/cli-plugins/docker-compose
+#            ln -sfv $HOME/.docker/cli-plugins/docker-compose $( which docker-compose )
         - uses: extractions/setup-just@v1
           with:
             just-version: '1.9.0'
@@ -35,19 +35,14 @@ jobs:
             registry: registry.revsys.com
             username: github
             password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
-        - name: Build unit test runners
-          run: |
-            just build tester
-            just build browser-tester
-        - name: Tests
+        - name: Build test runner
+          run: just build tester
+        - name: Run tests
           run: just test
         - name: Get logs on failure
           run: docker compose logs
           if: failure()
-
         - name: Run pre-commit to check code style (no commits will be made)
           uses: pre-commit/action@v3.0.0
-
-        - name: Down images
-          run: docker compose down
-          if: always()
+        - name: Push release image to registry
+          run: just push release
