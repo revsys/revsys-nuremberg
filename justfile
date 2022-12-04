@@ -32,7 +32,8 @@ build step='release':
         cendbits=last-{{step}}
     fi
 
-    cache="--cache-from {{CACHE_REGISTRY}}:last-tester --cache-from {{CACHE_REGISTRY}}:${cendbits} --cache-to type=registry,dest={{CACHE_REGISTRY}}:${cendbits},mode=max"
+    cache="--cache-from {{CACHE_REGISTRY}}:last --cache-from {{CACHE_REGISTRY}}:${cendbits} --cache-to type=registry,dest={{CACHE_REGISTRY}}:${cendbits},mode=max"
+    [[ "{{step}}" == "tester" ]] && cache="--cache-from {{CACHE_REGISTRY}}:last"
 
     docker buildx build --progress plain ${cache} --load -t  {{IMAGE_REGISTRY}}:${endbits} --target {{step}} .
     [[ "{{ step }}" == "release" ]] && docker tag {{IMAGE_REGISTRY}}:${endbits} {{IMAGE_REGISTRY}}:last
