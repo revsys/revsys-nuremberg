@@ -7,8 +7,11 @@ env = environ.Env()
 environ.Env.read_env()
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = env.str('BASE_DIR', os.path.dirname(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+BASE_DIR = env.str(
+    'BASE_DIR',
+    os.path.dirname(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    ),
 )
 
 LOCAL_DEVELOPMENT = env.bool("LOCAL_DEVELOPMENT", default=False)
@@ -149,7 +152,7 @@ COMPRESS_STORAGE = 'compressor.storage.GzipCompressorFileStorage'
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
-SOLR_URL = 'http://solr:8983/solr/nuremberg-dev' if LOCAL_DEVELOPMENT else env.str('SOLR_URL')
+SOLR_URL = env('SOLR_URL', default='http://solr:8983/solr/nuremberg_dev')
 
 HAYSTACK_CONNECTIONS = {
     'default': {
@@ -186,7 +189,6 @@ LOGGING = {
 }
 
 
-
 ##############################################################################
 # Deployed Settings
 ##############################################################################
@@ -207,8 +209,8 @@ TRANSCRIPTS_BUCKET = env(
 
 if not LOCAL_DEVELOPMENT:
     DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-    #AWS_S3_ACCESS_KEY_ID = env('AWS_S3_ACCESS_KEY_ID')
-    #AWS_S3_SECRET_ACCESS_KEY = env('AWS_S3_SECRET_ACCESS_KEY')
+    # AWS_S3_ACCESS_KEY_ID = env('AWS_S3_ACCESS_KEY_ID')
+    # AWS_S3_SECRET_ACCESS_KEY = env('AWS_S3_SECRET_ACCESS_KEY')
     AWS_S3_REGION_NAME = 'sfo2'
     AWS_S3_ENDPOINT_URL = (
         f'https://{AWS_S3_REGION_NAME}.digitaloceanspaces.com'

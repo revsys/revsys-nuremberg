@@ -1,0 +1,19 @@
+
+version: '2'
+services:
+
+  solr:
+    image: registry.revsys.com/nuremberg:last-solr
+    volumes: []
+
+  web:
+    image: registry.revsys.com/nuremberg:v0.3.1-tester
+    volumes:
+      - ./media:/code/media
+
+    environment:
+      - SOLR_URL=http://solr:8983/solr/nuremberg_dev
+
+
+volumes: {}
+

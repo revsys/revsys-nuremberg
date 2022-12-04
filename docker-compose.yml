@@ -14,7 +14,7 @@ services:
       target: release
     tty: true
     working_dir: /nuremberg
-    command: bash
+    entrypoint: /bin/bash
     volumes:
       # BIND MOUNTS
       - ./web:/nuremberg
