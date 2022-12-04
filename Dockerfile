@@ -58,7 +58,7 @@ COPY web/nuremberg /code/nuremberg
 COPY web/manage.py /code
 COPY solr_conf /code/solr_conf
 
-RUN touch /code/nuremberg/__init__.py \
+RUN touch /code/nuremberg/__init__.py; \
     chown 1000 /code
 
 USER 1000
@@ -80,12 +80,11 @@ ENV DJANGO_SETTINGS_MODULE nuremberg.test_settings
 
 COPY web/requirements.in web/requirements.in
 COPY justfile /code/
-RUN pip install $( just _test-packages )
+
+RUN --mount=type=cache,target=/root/.cache \
+    pip install $( just _test-packages )
 
 RUN python -m zipfile -e /code/data/nuremberg_prod_dump_latest.sqlite3.zip /tmp
-
-RUN chown 1000 /tmp/*db /code
-USER 1000
 
 RUN ./manage.py collectstatic
 RUN ./manage.py migrate
