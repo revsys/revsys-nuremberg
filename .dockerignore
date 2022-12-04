@@ -3,3 +3,4 @@ Dockerfile
 web/Dockerfile
 docker-compose*
 .github/
+*/**/coverage
