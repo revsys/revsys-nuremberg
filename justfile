@@ -9,6 +9,12 @@ set shell := ["/bin/bash", "-c"]
 list:
     just --list
 
+version:
+    @echo {{VERSION}}
+
+tag:
+    @echo {{IMAGE_REGISTRY}}:{{VERSION}}
+
 # rebuild requirements files
 regen-requirements:
   pip-compile web/requirements.in -o web/requirements.txt
@@ -63,7 +69,7 @@ _solr-compose:
     @echo {{justfile_directory()}}/docker-compose.solr-build.yml
 
 _warmitup:
-    @docker-compose -f ./docker-compose.yml -f ./docker-compose.override.yml -f ./docker-compose.ci.yml up --quiet-pull -d solr selenium
+    @docker-compose -p solrbld -f $( just solr-compose ) up --quiet-pull -d 
 
 test:
     @docker-compose -f ./docker-compose.yml -f ./docker-compose.override.yml -f ./docker-compose.ci.yml up -d
