@@ -29,6 +29,7 @@ services:
       - DOCKERIZED=True
       - DEBUG=True
       - SECRET_KEY=top-secret-1234
+      - SQLITE_DB_PATH=/tmp/nuremberg_dev.db
       - SOLR_URL=http://solr-data-load:8983/solr/nuremberg_dev
 
 volumes:
