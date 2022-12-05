@@ -72,15 +72,17 @@ _solr-compose:
 solr-dc *args='ps':
     docker-compose -f $( just solr-compose ) -p solrbld {{args}}
     
+ci-dc *args='ps':
+    docker-compose -f ./docker-compose.yml -f ./docker-compose.override.yml -f ./docker-compose.ci.yml {{args}}
 
 _warmitup:
     @docker-compose -p solrbld -f $( just solr-compose ) up --quiet-pull -d 
 
 test:
-    @docker-compose -f ./docker-compose.yml -f ./docker-compose.override.yml -f ./docker-compose.ci.yml up -d
-    docker-compose exec -u0  web find /tmp /nuremberg /code -type f -not -user ${UID} -exec chown -Rv $UID {} +  | wc -l
-    docker-compose exec -u$UID web pytest || exit 1
-    docker-compose exec -u$UID web pytest --no-cov nuremberg/documents/browser_tests.py || exit 1
+    just ci-dc up -d
+    just ci-dc exec -u0  web find /tmp /nuremberg /code -type f -not -user ${UID} -exec chown -Rv $UID {} +  | wc -l
+    just ci-dc exec -u$UID web pytest || exit 1
+    just ci-dc exec -u$UID web pytest --no-cov nuremberg/documents/browser_tests.py || exit 1
 
 _bk-up:
     #!/bin/bash
