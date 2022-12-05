@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -o xtrace 
+set -o xtrace
 
 
 SOLR_CORE="nuremberg_dev"
@@ -9,8 +9,8 @@ SOLR_SNAPSHOT_DIR=$PWD/dumps/nuremberg_solr_snapshot_latest
 SOLR_URL="http://localhost:8983/solr"
 
 if [[ -z ${SOLR_BUILD} ]];
-then 
-	solr=solr 
+then
+	solr=solr
 	web=web
 	DOCKER_COMPOSE="docker-compose"
 else
@@ -22,11 +22,11 @@ fi
 DOCKER_COMPOSE_EXEC="$DOCKER_COMPOSE exec -T"
 
 echo "Setting up sqlite"
-#unzip -o -d $PWD/tmp dumps/nuremberg_prod_dump_latest.sqlite3.zip 
+#unzip -o -d $PWD/tmp dumps/nuremberg_prod_dump_latest.sqlite3.zip
 
 $DOCKER_COMPOSE cp -L dumps/nuremberg_prod_dump_latest.sqlite3.zip web:/tmp/
-$DOCKER_COMPOSE_EXEC ${web} find /tmp -type f -name "nuremberg*sqlite3.zip" -exec unzip -d /tmp {} \; 
-$DOCKER_COMPOSE_EXEC ${web} ./manage.py migrate 
+$DOCKER_COMPOSE_EXEC ${web} find /tmp -type f -name "nuremberg*sqlite3.zip" -exec unzip -d /tmp {} \;
+$DOCKER_COMPOSE_EXEC ${web} ./manage.py migrate
 
 
 if [[ -z ${SOLR_NO_RESTORE} ]];
@@ -62,11 +62,7 @@ fi
 
 if [[ -n ${SOLR_DIST_DATA} ]];
 then
-	sleep 10 
+	sleep 10
 	$DOCKER_COMPOSE_EXEC -u 0 -T ${solr} tar --sparse -cz -f /dist/var-solr.tgz /var/solr
 	$DOCKER_COMPOSE_EXEC -u 0 -T ${solr} chown -Rv $UID /dist
 fi
-
-
-
-
