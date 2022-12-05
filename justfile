@@ -68,6 +68,11 @@ solr-compose: _solr-compose
 _solr-compose:
     @echo {{justfile_directory()}}/docker-compose.solr-build.yml
 
+# shortcut for interacting solr build docker-compose project
+solr-dc *args='ps':
+    docker-compose -f $( just solr-compose ) -p solrbld {{args}}
+    
+
 _warmitup:
     @docker-compose -p solrbld -f $( just solr-compose ) up --quiet-pull -d 
 
