@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-
-set -o xtrace 
-
+# vim: shiftwidth=4 tabstop=4 filetype=bash noexpandtab list
 
 SOLR_CORE="nuremberg_dev"
 SOLR_HOME="/var/solr/data/$SOLR_CORE"
@@ -9,8 +7,8 @@ SOLR_SNAPSHOT_DIR=$PWD/dumps/nuremberg_solr_snapshot_latest
 SOLR_URL="http://localhost:8983/solr"
 
 if [[ -z ${SOLR_BUILD} ]];
-then 
-	solr=solr 
+then
+	solr=solr
 	web=web
 	DOCKER_COMPOSE="docker-compose"
 else
@@ -22,19 +20,26 @@ fi
 DOCKER_COMPOSE_EXEC="$DOCKER_COMPOSE exec -T"
 
 echo "Setting up sqlite"
-#unzip -o -d $PWD/tmp dumps/nuremberg_prod_dump_latest.sqlite3.zip 
 
-$DOCKER_COMPOSE cp -L dumps/nuremberg_prod_dump_latest.sqlite3.zip web:/tmp/
-$DOCKER_COMPOSE_EXEC ${web} find /tmp -type f -name "nuremberg*sqlite3.zip" -exec unzip -d /tmp {} \; 
-$DOCKER_COMPOSE_EXEC ${web} ./manage.py migrate 
+# the compressed database file is already a part of the release and tester images. 
+if [[ -z "${SOLR_BUILD}" ]] ;
+then
+	$DOCKER_COMPOSE cp -L dumps/nuremberg_prod_dump_latest.sqlite3.zip web:/tmp/
+fi
+
+$DOCKER_COMPOSE_EXEC ${web} python -m zipfile -e /code/data/nuremberg_prod_dump_latest.sqlite3.zip /tmp
+$DOCKER_COMPOSE_EXEC ${web} ./manage.py migrate
 
 
+# the solr image used for deployments & CI already carries its data
 if [[ -z ${SOLR_NO_RESTORE} ]];
 then
 	echo "Wait for Solr to be ready..."
 	while ! $DOCKER_COMPOSE_EXEC ${solr} solr status >/dev/null 2>&1; do
+	    /bin/echo -en '.'
 	    sleep 1
 	done
+	echo
 	echo "Solr ready!!!"
 
 	echo "Setting up solr config"
@@ -60,9 +65,10 @@ then
 	fi
 fi
 
+# this is used by the regen-solr-image just(1) target
 if [[ -n ${SOLR_DIST_DATA} ]];
 then
-	sleep 10 
+	sleep 10
 	$DOCKER_COMPOSE_EXEC -u 0 -T ${solr} tar --sparse -cz -f /dist/var-solr.tgz /var/solr
 	$DOCKER_COMPOSE_EXEC -u 0 -T ${solr} chown -Rv $UID /dist
 fi

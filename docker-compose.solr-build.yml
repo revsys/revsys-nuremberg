@@ -19,11 +19,10 @@ services:
       target: release
     tty: true
     entrypoint: bash
-    working_dir: /code
+    working_dir: /nuremberg
     volumes:
       # BIND MOUNTS
       - ./web:/nuremberg
-      - /tmp/nuremberg:/tmp
     environment:
       # let Django load Docker-specific settings conditionally
       - DOCKERIZED=True
