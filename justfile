@@ -79,7 +79,7 @@ _warmitup:
     @docker-compose -p solrbld -f $( just solr-compose ) up --quiet-pull -d 
 
 test:
-    just ci-dc up -d
+    just ci-dc up -d --quiet-pull
     just ci-dc exec -u0  web find /tmp /nuremberg /code -type f -not -user ${UID} -exec chown -Rv $UID {} +  | wc -l
     just ci-dc exec -u$UID web pytest || exit 1
     just ci-dc exec -u$UID web pytest --no-cov nuremberg/documents/browser_tests.py || exit 1
