@@ -1,3 +1,4 @@
+import datetime
 import os
 from io import BytesIO
 
@@ -7,6 +8,7 @@ from nuremberg.documents.helpers import (
     build_image_path,
     do_request,
     download_and_store_image,
+    parse_date,
 )
 from .helpers import DummyMemDictStorage, make_random_text
 
@@ -155,3 +157,25 @@ def test_download_and_store_image_already_exists_force(requests_mock, caplog):
         ('WARNING', warning),
         ('INFO', f'Saved image_path={path!r} in bucket_name=None'),
     ]
+
+
+@pytest.mark.parametrize('day', [None, 0, 33, -1])
+@pytest.mark.parametrize('month', [None, 0, 13, -1])
+@pytest.mark.parametrize('year', [None, 0, -1])
+def test_document_date_invalid_date_params(day, month, year):
+    d = parse_date(day=day, month=month, year=year)
+    assert d is None
+
+
+@pytest.mark.parametrize('year, month, day', [(2022, 2, 29), (2022, 4, 31)])
+def test_document_date_invalid_date(day, month, year):
+    d = parse_date(day=day, month=month, year=year)
+    assert d is None
+
+
+@pytest.mark.parametrize('day', [1, 30])
+@pytest.mark.parametrize('month', [1, 12])
+@pytest.mark.parametrize('year', [1, 1000, 2050])
+def test_document_date_valid_as_date(day, month, year):
+    d = parse_date(day=day, month=month, year=year)
+    assert d == datetime.date(year, month, day)
