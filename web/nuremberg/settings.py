@@ -88,10 +88,12 @@ TEMPLATES = [
 WSGI_APPLICATION = 'nuremberg.wsgi.application'
 
 
+SQLITE_DB_PATH = env('SQLITE_DB_PATH', default='nuremberg_dev.db')
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': '/tmp/nuremberg_dev.db',
+        'NAME': SQLITE_DB_PATH,
         'USER': 'nuremberg',
     }
 }

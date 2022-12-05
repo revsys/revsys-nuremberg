@@ -13,6 +13,7 @@ services:
 
     environment:
       - SOLR_URL=http://solr:8983/solr/nuremberg_dev
+      - SQLITE_DB_PATH=/tmp/nuremberg_dev.db
 
 
 volumes: {}

@@ -77,6 +77,7 @@ USER 0
 ENV SECRET_KEY xx
 ENV SOLR_URL http://solr:8983/solr/nuremberg_dev
 ENV DJANGO_SETTINGS_MODULE nuremberg.test_settings
+ENV SQLITE_DB_PATH /tmp/nuremberg_dev.db
 
 COPY web/requirements.in web/requirements.in
 COPY justfile /code/
