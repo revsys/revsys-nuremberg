@@ -86,9 +86,11 @@ test:
 
 
 deploy env='dev':
-    git tag -f last/{{env}}/deploy {{env}}/deploy 2> /dev/null || echo '{{env}}/deploy tag not present. continuing'
-    git tag -f {{env}}/deploy {{VERSION}}
-    git push --tags
+    @git push -d origin last/{{env}}/deploy 2> /dev/null || echo '{{env}}/deploy tag not present yet. continuing'
+    @git push -d origin {{env}}/deploy 2> /dev/null || echo '{{env}}/deploy tag not present yet. continuing'
+    @git tag -f last/{{env}}/deploy {{env}}/deploy 2> /dev/null || echo '{{env}}/deploy tag not present yet. continuing'
+    @git tag -f {{env}}/deploy {{VERSION}}
+    @git push --tags
 
 _bk-up:
     #!/bin/bash
