@@ -87,6 +87,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'nuremberg.wsgi.application'
 
+SQLITE_DB_PATH = env(SQLITE_DB_PATH, default='nuremberg_dev.db')
 
 SQLITE_DB_PATH = env('SQLITE_DB_PATH', default='nuremberg_dev.db')
 
