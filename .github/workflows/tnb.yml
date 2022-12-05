@@ -38,7 +38,7 @@ jobs:
         - name: Build test runner
           run: just build tester
         - name: Run tests
-          run: just test || find /nuremberg -name "*coverage*" -exec ls -l {} +
+          run: just test
         - name: Get logs on failure
           run: docker compose logs
           if: failure()
