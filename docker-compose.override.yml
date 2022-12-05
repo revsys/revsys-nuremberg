@@ -3,7 +3,7 @@ version: '2'
 services:
 
   solr:
-    image: registry.revsys.com/nuremberg:last-solr
+    # image: registry.revsys.com/nuremberg:last-solr
     ports:
       - "127.0.0.1:8983:8983"
 

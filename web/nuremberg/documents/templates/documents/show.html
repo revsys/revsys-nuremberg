@@ -174,7 +174,45 @@
           <strong>HLSL Item No.:</strong>
           {{hlsl_item_id|default:'Unknown'}}
         </p>
+        {% with document.citations.all as citations %}
+        {% if citations %}
+          <p>
+            <strong>Citation{{ citations|length|pluralize }}:</strong>
+            {% for citation in citations %}
+              <a href="{% url 'transcripts:show' citation.case.transcript.id %}?page={{ citation.transcript_page_number }}">
+                {{ citation.transcript_page_number }}</a>{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+          </p>
+        {% endif %}
+        {% endwith %}
+        <p>
+          <strong>Notes:</strong>
+          {{ document.description }}
+        </p>
+        {% with document.documentstocases_set.all as cases %}
+        {% for case in cases %}
+          {% if case.prosecution_doc_book_number %}
+          <p>
+            <strong>Prosecution Document Book No:</strong>
+              {{ case.prosecution_doc_book_number }}
+          </p>
+          {% endif %}
+          {% if case.defense_doc_book_number %}
+          <p>
+            <strong>Defense Document Book No:</strong>
+              {{ case.defense_doc_book_name }} {{ case.defense_doc_book_number }}</br>
+          </p>
+          {% endif %}
+          {% if case.defense_doc_number %}
+          <p>
+            <strong>Defense Document No.:</strong>
+              {{ case.defense_doc_name }} {{ case.defense_doc_number }}
+          </p>
+          {% endif %}
+        {% endfor %}
+        {% endwith %}
       {% endblock %}
+      <!-- Trial Issues -->
       {% with document.activities.all as activities %}
       {% if activities %}
         <h2 class="h6">Trial Issue{{activities|length|pluralize}}</h2>
