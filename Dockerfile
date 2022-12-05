@@ -48,7 +48,7 @@ FROM builder as release
 
 ENV DJANGO_SETTINGS_MODULE nuremberg.settings
 ENV BASE_DIR=/code
-ENV IMAGE_VERSION v0.3.4
+ENV IMAGE_VERSION v0.3.5
 
 RUN ln -s /node/node_modules/less/bin/lessc /bin/lessc
 
