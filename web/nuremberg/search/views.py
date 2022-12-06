@@ -1,11 +1,16 @@
+from urllib import parse
+
+from django.contrib import messages
 from django.http import Http404
 from django.shortcuts import redirect
+from django.views.decorators.http import require_http_methods
+from django.urls import reverse
 from haystack.generic_views import (
     FacetedSearchView,
     FacetedSearchMixin,
 )
 from nuremberg.documents.models import DocumentPersonalAuthor
-from .forms import DocumentSearchForm
+from .forms import AdvancedDocumentSearchForm, DocumentSearchForm
 from .lib.digg_paginator import DiggPaginator
 from .lib.solr_grouping_backend import GroupedSearchQuerySet
 
@@ -94,7 +99,7 @@ class Search(FacetedSearchView):
         context = super().get_context_data(**kwargs)
 
         # pull the query out of form so it is pre-processed
-        context['query'] = context['form'].data.get('q') or '*'
+        context['query'] = q = context['form'].data.get('q') or '*'
         if context['facets']:
             labeled_facets = []
             for (label, field) in self.facet_labels:
@@ -144,9 +149,25 @@ class Search(FacetedSearchView):
             ).metadata()
         }
 
+        context[
+            'advanced_search_form'
+        ] = AdvancedDocumentSearchForm.from_search_qs(qs=q)
         return context
 
     def get_paginator(self, *args, **kwargs):
         return self.paginator_class(
             *args, body=self.context_pages, tail=self.edge_pages, **kwargs
         )
+
+
+@require_http_methods(['POST'])
+def advanced_search(request):
+    form = AdvancedDocumentSearchForm(data=request.POST)
+    if form.is_valid():
+        qs = {Search.search_field: form.as_search_qs()}
+        return redirect(reverse('search:search') + '?' + parse.urlencode(qs))
+
+    messages.error('The provided advanced search terms are invalid.')
+    for error in form.errors:
+        messages.error(error)
+    return redirect(reverse('search:search'))
