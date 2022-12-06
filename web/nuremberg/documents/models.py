@@ -863,50 +863,6 @@ class DocumentsToCases(models.Model):
         DocumentCase, db_column='DocCaseID', on_delete=models.CASCADE
     )
 
-    prosecution_number = models.IntegerField(
-        db_column='ProsExhNo', blank=True, null=True
-    )
-    prosecution_suffix = models.CharField(
-        db_column='ProsExhNoSuffix', max_length=5, blank=True, null=True
-    )
-    prosecution_doc_book_number = models.IntegerField(
-        db_column='ProsDocBkNo', blank=True, null=True
-    )
-    prosecution_doc_book_suffix = models.CharField(
-        db_column='ProsDocBkNoSuffix', max_length=5, blank=True, null=True
-    )
-
-    # defexhnameid = models.IntegerField(db_column='DefExhNameID', blank=True, null=True)
-    # defexhname = models.CharField(db_column='DefExhName', blank=True, null=True)
-    # defexhno = models.IntegerField(db_column='DefExhNo', blank=True, null=True)
-    # defexhnosuffix = models.CharField(db_column='DefExhNoSuffix', blank=True, null=True)
-
-    defense_doc_name_id = models.IntegerField(
-        db_column='DefDocNameID', blank=True, null=True
-    )
-    defense_doc_name = models.CharField(
-        db_column='DefDocName', blank=True, null=True, max_length=50
-    )
-    defense_doc_number = models.IntegerField(
-        db_column='DefDocNo', blank=True, null=True
-    )
-    defense_doc_suffix = models.CharField(
-        db_column='DefDocNoSuffix', blank=True, null=True, max_length=30
-    )
-
-    defense_doc_book_name_id = models.IntegerField(
-        db_column='DefDocBkNameID', blank=True, null=True
-    )
-    defense_doc_book_name = models.CharField(
-        db_column='DefDocBkName', max_length=50, blank=True, null=True
-    )
-    defense_doc_book_number = models.IntegerField(
-        db_column='DefDocBkNo', blank=True, null=True
-    )
-    defense_doc_book_suffix = models.CharField(
-        db_column='DefDocBkNoSuffix', max_length=30, blank=True, null=True
-    )
-
     class Meta:
         managed = False
         db_table = 'tblCasesList'
@@ -1008,18 +964,6 @@ class DocumentsToDefendants(models.Model):
     class Meta:
         managed = False
         db_table = 'tblDefendantsList'
-
-
-class DocumentDefendantBookName(models.Model):
-    id = models.AutoField(db_column='DefenseDocBkNameID', primary_key=True)
-    name = models.TextField(db_column='DefenseDocBkName')
-    case = models.ForeignKey(
-        DocumentCase, db_column='CaseID', on_delete=models.CASCADE
-    )
-
-    class Meta:
-        managed = False
-        db_table = 'tblDefenseDocBkNames'
 
 
 class DocumentActivityManager(models.Manager):
