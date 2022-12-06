@@ -121,15 +121,22 @@ class Search(FacetedSearchView):
         else:
             context['base_template'] = None
 
-        # Lastly, fetch author metadata, once per author
+        # Lastly, fetch author metadata (once per author), and flag text-only
+        # results so we can customize details links and improve title
         author_ids = set()
-        for i in context['page_obj'].object_list:
-            if i.documents:
+        for i in context['object_list']:
+            for result in i.documents or []:
                 author_ids.update(
                     ap['author']['id']
-                    for sr in i.documents
-                    for ap in (sr.authors_properties or [])
+                    for ap in (result.authors_properties or [])
                 )
+                # Results for full-text docs without a matching document image
+                # should point to the mode=text doc details URL
+                if result.model_name.lower() == 'documenttext':
+                    result.mode = 'text'
+                else:
+                    result.mode = 'image'
+
         context['authors_metadata'] = {
             metadata['author']['id']: metadata
             for metadata in DocumentPersonalAuthor.objects.filter(
