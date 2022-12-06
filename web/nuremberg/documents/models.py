@@ -1,4 +1,3 @@
-import datetime
 import logging
 import operator
 from collections import defaultdict
@@ -13,6 +12,7 @@ from nuremberg.core.storages import AuthorStorage, DocumentStorage
 from nuremberg.documents.helpers import (
     build_image_path,
     download_and_store_image,
+    parse_date,
 )
 
 
@@ -23,6 +23,7 @@ class Document(models.Model):
     id = models.AutoField(primary_key=True, db_column='DocID')
     title = models.CharField(max_length=255, db_column='TitleDescriptive')
     literal_title = models.TextField(db_column='Title')
+    description = models.TextField(db_column='Description')
     updated_at = models.DateTimeField(auto_now=True, db_column='Updated')
 
     image_count = models.IntegerField(db_column='NoOfImages', default=0)
@@ -317,20 +318,10 @@ class DocumentDate(models.Model):
         return '{}-{}-{}'.format(self.year, self.month, self.day)
 
     def as_date(self):
-        try:
-            result = datetime.date(self.year, self.month, self.day)
-        except (TypeError, ValueError) as e:
-            logger.info(
-                'Error parsing date for document %s: %s '
-                '(got year %r, month %r, day %r)',
-                getattr(getattr(self, 'document', None), 'id', None),
-                e,
-                self.year,
-                self.month,
-                self.day,
-            )
-            result = None  # this is an issue
-        return result
+        doc_id = getattr(getattr(self, 'document', None), 'id', None)
+        return parse_date(
+            self.year, self.month, self.day, reference=f'document {doc_id}'
+        )
 
 
 class DocumentPersonalAuthorQuerySet(models.QuerySet):
@@ -877,6 +868,48 @@ class DocumentsToCases(models.Model):
         db_table = 'tblCasesList'
 
 
+class DocumentCitation(models.Model):
+    id = models.AutoField(primary_key=True, db_column='CasesDatesListID')
+    document = models.ForeignKey(
+        Document,
+        related_name='citations',
+        on_delete=models.CASCADE,
+        db_column='DocID',
+    )
+    case = models.ForeignKey(
+        DocumentCase, db_column='DocCaseID', on_delete=models.CASCADE
+    )
+    day = models.IntegerField(db_column='CaseDay')
+    month = models.IntegerField(
+        db_column='CaseMonthID'
+    )  # this is technically a foreign key but also just 1-indexed month number
+    year = models.IntegerField(db_column='CaseYear')
+    transcript_page_number = models.IntegerField(db_column='EngTransPageNo')
+    transcript_page_number_suffix = models.TextField(
+        db_column='EngTransPageNoSuffix', null=True
+    )
+
+    class Meta:
+        managed = False
+        db_table = 'tblCasesDatesList'
+
+    def __str__(self):
+        result = f'{self.document} | {self.case} | {self.date} | {self.transcript_page_number}'
+        if self.transcript_page_number_suffix:
+            result += f'-{self.transcript_page_number_suffix}'
+        return result
+
+    @cached_property
+    def date(self):
+        doc_id = getattr(getattr(self, 'document', None), 'id', None)
+        return parse_date(
+            self.year,
+            self.month,
+            self.day,
+            reference=f'document citation {doc_id}',
+        )
+
+
 class DocumentDefendantManager(models.Manager):
     """
     Filters out null names
@@ -1088,9 +1121,6 @@ class DocumentExhibitCode(models.Model):
         blank=True,
         null=True,
         on_delete=models.SET_NULL,
-    )  # Field name made lowercase.
-    defense_suffix = models.CharField(
-        db_column='DefExhNoSuffix', max_length=5, blank=True, null=True
     )  # Field name made lowercase.
     defense_name_denormalized = models.CharField(
         db_column='DefExhName', max_length=50, blank=True, null=True

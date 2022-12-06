@@ -15,6 +15,6 @@ urlpatterns = [
         name='show',
     ),
     re_path(
-        r'^(?P<transcript_id>\d+)][^/]*$', views.Show.as_view(), name='show'
+        r'^(?P<transcript_id>\d+)[^/]*$', views.Show.as_view(), name='show'
     ),
 ]

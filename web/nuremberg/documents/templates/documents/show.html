@@ -169,12 +169,54 @@
             {% endfor %}
           </p>
         {% endif %}
+        {% for exhibit_code in exhibit_codes %}
+          {% if exhibit_code.prosecution_doc_book_number %}
+          <p>
+            <strong>Prosecution Document Book No:</strong>
+              {{ exhibit_code.prosecution_doc_book_number }}
+          </p>
+          {% endif %}
+          {% if exhibit_code.defense_doc_book_number %}
+          <p>
+            <strong>Defense Document Book No:</strong>
+              {{ exhibit_code.defense_doc_book_name }} {{ exhibit_code.defense_doc_book_number }}</br>
+          </p>
+          {% endif %}
+          {% if exhibit_code.defense_doc_number %}
+          <p>
+            <strong>Defense Document No.:</strong>
+              {{ exhibit_code.defense_doc_name }} {{ exhibit_code.defense_doc_number }}
+          </p>
+          {% endif %}
+        {% endfor %}
         {% endwith %}
+
+        {% with document.citations.all as citations %}
+        {% if citations %}
+        <p>
+          <strong>Citation{{ citations|length|pluralize }}:</strong>
+          {% for citation in citations %}
+            <a href="{% url 'transcripts:show' citation.case.transcript.id %}?page={{ citation.transcript_page_number }}">
+              {{ citation.transcript_page_number }}</a>{% if not forloop.last %}, {% endif %}
+          {% endfor %}
+        </p>
+        {% endif %}
+        {% endwith %}
+
         <p>
           <strong>HLSL Item No.:</strong>
           {{hlsl_item_id|default:'Unknown'}}
         </p>
+
+        {% if document.description %}
+        <p>
+          <strong>Notes:</strong>
+          {{ document.description }}
+        </p>
+        {% endif %}
+
       {% endblock %}
+      <!-- Trial Issues -->
       {% with document.activities.all as activities %}
       {% if activities %}
         <h2 class="h6">Trial Issue{{activities|length|pluralize}}</h2>
