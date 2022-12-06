@@ -9,7 +9,7 @@
       {% endfor %}
     </p>
     {% if result.material_type == 'Document' %}
-      <a class="unstyled" href="{% url 'documents:show' document_id=result.pk slug=result.slug %}{% if query %}?q={% encode_string query %}{% endif %}">
+      <a class="unstyled" href="{% url 'documents:show' document_id=result.pk slug=result.slug %}?mode={{ result.mode }}{% if query %}&q={% encode_string query %}{% endif %}">
         <div class="h3">{{result.title}}</div>
         {% if result.literal_title %}
           <p>{{result.literal_title|truncatewords:35|truncatechars:300}}</p>
