@@ -1,3 +1,4 @@
+import datetime
 import logging
 from io import BytesIO
 
@@ -58,3 +59,19 @@ def build_image_path(image_url, image_name):
 
     image_suffix = content_type.replace('image/', '')
     return f'{image_name}.{image_suffix}'
+
+
+def parse_date(year, month, day, reference=None):
+    try:
+        result = datetime.date(year, month, day)
+    except (TypeError, ValueError) as e:
+        logger.debug(
+            'Error parsing date for %s (got year %r, month %r, day %r): %s',
+            reference,
+            year,
+            month,
+            day,
+            e,
+        )
+        result = None
+    return result

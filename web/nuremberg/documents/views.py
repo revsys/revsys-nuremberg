@@ -39,13 +39,13 @@ class Show(View):
             document = get_object_or_404(
                 Document.objects.prefetch_related(
                     'activities',
+                    'cases',
+                    'citations',
                     'evidence_codes',
                     'evidence_codes__prefix',
                     'exhibit_codes',
                     'images',
-                )
-                .select_related('language')
-                .select_related('source'),
+                ).select_related('language', 'source'),
                 id=document_id,
             )
             full_text = document.full_texts().first()
