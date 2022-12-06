@@ -1,0 +1,28 @@
+{% load i18n %}
+
+<div class="advanced-search-help hide">
+  <div aria-role="heading">
+    <p><strong>Advanced Search</strong> <a class="hide-advanced-search">Hide</a></p>
+  </div>
+
+  <form class="advanced-search" role="search" aria-label="advanced search" action="{% url 'search:advanced-search' %}" method="POST">
+    {% csrf_token %}
+    <p>{% trans 'Match' %} {{ form.match }} {% trans 'the keywords below' %}<p>
+    <p>{{ form.keywords.label_tag }} {{ form.keywords }}</p>
+    <p>{{ form.title.label_tag }} {{ form.title }}</p>
+    <p>{{ form.author.label_tag }} {{ form.author }}</p>
+    <p>{{ form.defendant.label_tag }} {{ form.defendant }}</p>
+    <p>{{ form.issue.label_tag }} {{ form.issue }}</p>
+    <p>{{ form.trial.label_tag }} {{ form.trial }}</p>
+    <p>{{ form.evidence.label_tag }} {{ form.evidence }} {{ form.evidence_num }} {{ form.evidence_suffix }}</p>
+    <p>{{ form.exhibit.label_tag }}  {{ form.exhibit }} {{ form.exhibit_num }}</p>
+    <p>{{ form.document_book.label_tag }} {{ form.document_book }} {{ form.document_book_num }}</p>
+    <p>{{ form.language.label_tag }} {{ form.language }}</p>
+    <p>{{ form.notes.label_tag }} {{ form.notes }}</p>
+    <p>{{ form.source.label_tag }} {{ form.source }}</p>
+
+    <button class="button search-button" type="submit">Advanced Search</button>
+
+  </form>
+
+</div>

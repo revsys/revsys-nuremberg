@@ -1,8 +1,21 @@
 import re
 from collections import deque
 
+from django import forms
+from django.utils.translation import gettext_lazy as _
 from haystack.forms import SearchForm
 from haystack.inputs import AutoQuery
+
+from nuremberg.documents.models import (
+    DocumentActivity,
+    DocumentCase,
+    DocumentEvidencePrefix,
+    DocumentExhibitCode,
+    DocumentExhibitCodeName,
+    DocumentGroupAuthor,
+    DocumentLanguage,
+    DocumentPersonalAuthor,
+)
 
 
 class EmptyFacetsSearchForm(SearchForm):
@@ -140,6 +153,9 @@ class FieldedSearchForm(SearchForm):
 
     def __init__(self, *args, **kwargs):
         self.sort_results = kwargs.pop('sort_results')
+        print(
+            '\n\n\n======= FieldedSearchForm sort_results', self.sort_results
+        )
         self.transcript_id = kwargs.pop('transcript_id', None)
 
         super().__init__(*args, **kwargs)
@@ -302,3 +318,164 @@ class FieldedSearchForm(SearchForm):
 
 class DocumentSearchForm(EmptyFacetsSearchForm, FieldedSearchForm):
     pass
+
+
+class AdvancedDocumentSearchForm(forms.Form):
+
+    MATCH_ALL = 'all'
+    MATCH_ANY = 'any'
+    MATCH_CHOICES = [
+        (MATCH_ALL, _('all')),
+        (MATCH_ANY, _('any of')),
+    ]
+    AUTHOR_CHOICES = (
+        [('', _('Choose author'))]
+        + sorted(
+            (i.full_name(), i.full_name())
+            for i in DocumentPersonalAuthor.objects.all()
+        )
+        + sorted(
+            (i.name, i.name)
+            for i in DocumentGroupAuthor.objects.all()
+            .filter(name__isnull=False)
+            .exclude(name='')
+        )
+    )
+    DEFENDANT_CHOICES = [('', _('Choose defendant'))] + [
+        (i, i)
+        for i in DocumentExhibitCodeName.objects.filter(name__isnull=False)
+        .exclude(name='')
+        .order_by('name')
+        .values_list('name', flat=True)
+        .distinct()
+    ]
+    ISSUE_CHOICES = [('', _('Choose trial issues'))] + [
+        (i, i)
+        for i in DocumentActivity.objects.all()
+        .order_by('name')
+        .values_list('name', flat=True)
+        .distinct()
+    ]
+    TRIAL_CHOICES = [('', _('Choose trial'))] + [
+        (case.tag_name, case.short_name)
+        for case in DocumentCase.objects.filter(id__lt=14)
+        .distinct()
+        .order_by('id')
+    ]
+    EVIDENCE_PREFIX_CHOICES = [('', _('Choose Series'))] + [
+        (prefix.code, prefix.code)
+        for prefix in DocumentEvidencePrefix.objects.all()
+        .distinct()
+        .order_by('code')
+    ]
+    EXHIBIT_CHOICES = [('prosecution', _('Prosecution'))] + [
+        (i, i)
+        for i in DocumentExhibitCode.objects.filter(
+            defense_name_denormalized__isnull=False
+        )
+        .order_by('defense_name_denormalized')
+        .values_list('defense_name_denormalized', flat=True)
+        .distinct()
+    ]
+    BOOK_CHOICES = [('prosecution', _('Prosecution'))] + [
+        (i, i)
+        for i in DocumentExhibitCode.objects.filter(
+            defense_doc_book_name__isnull=False
+        )
+        .exclude(defense_doc_book_name=0)
+        .order_by('defense_doc_book_name')
+        .values_list('defense_doc_book_name', flat=True)
+        .distinct()
+    ]
+    LANGUAGE_CHOICES = [('', _('Choose language'))] + [
+        (lang.name.lower(), lang.name)
+        for lang in DocumentLanguage.objects.all().order_by('id')
+    ]
+    match = forms.ChoiceField(choices=MATCH_CHOICES, required=True)
+    keywords = forms.CharField(required=False)
+    title = forms.CharField(required=False)
+    author = forms.ChoiceField(required=False, choices=AUTHOR_CHOICES)
+    defendant = forms.ChoiceField(required=False, choices=DEFENDANT_CHOICES)
+    issue = forms.ChoiceField(
+        label=_('Trial Issues'), required=False, choices=ISSUE_CHOICES
+    )
+    trial = forms.ChoiceField(required=False, choices=TRIAL_CHOICES)
+    evidence = forms.ChoiceField(
+        label=_('Evidence File Code'),
+        required=False,
+        choices=EVIDENCE_PREFIX_CHOICES,
+    )
+    evidence_num = forms.CharField(
+        required=False,
+        widget=forms.TextInput(
+            attrs={'size': '10', 'placeholder': _('Number')}
+        ),
+    )
+    evidence_suffix = forms.CharField(
+        required=False,
+        widget=forms.TextInput(
+            attrs={'size': '10', 'placeholder': _('Suffix')}
+        ),
+    )
+    exhibit = forms.ChoiceField(
+        label=_('Trial Exhibit'), required=False, choices=EXHIBIT_CHOICES
+    )
+    exhibit_num = forms.CharField(
+        required=False,
+        widget=forms.TextInput(
+            attrs={'size': '10', 'placeholder': _('Number')}
+        ),
+    )
+    # document_book = forms.ChoiceField(required=False, choices=BOOK_CHOICES)
+    # document_book_num = forms.CharField(
+    #     required=False,
+    #     widget=forms.TextInput(
+    #         attrs={'size': '10', 'placeholder': _('Number')}
+    #     ),
+    # )
+    language = forms.ChoiceField(required=False, choices=LANGUAGE_CHOICES)
+    notes = forms.CharField(required=False)
+    source = forms.CharField(required=False)
+
+    def as_search_qs(self):
+        data = self.cleaned_data
+        op = ' ' if data['match'] == self.MATCH_ALL else ' | '
+        terms = []
+        # XXX: search by notes and document book missing
+        for term in (
+            'keywords',
+            'title',
+            'author',
+            'defendant',
+            'issue',
+            'trial',
+            'language',
+            'notes',
+            'source',
+        ):
+            value = data.get(term)
+            if value:
+                terms.append(f'{term}:"{value}"')
+
+        # special treatment
+        evidence = data.get('evidence')
+        evidence_num = data.get('evidence_num')
+        if evidence and evidence_num:
+            suffix = data.get('evidence_suffix', '')
+            terms.append(
+                f'evidence:{"-".join((evidence, evidence_num))}{suffix}'
+            )
+
+        exhibit = data.get('exhibit')
+        exhibit_num = data.get('exhibit_num')
+        if exhibit and exhibit_num:
+            terms.append(f'exhibit:"{" ".join((exhibit, exhibit_num))}"')
+
+        # Should some terms be q and some others be f and/or m, etc?
+        q = op.join(terms)
+        return q
+
+    @classmethod
+    def from_search_qs(cls, qs):
+        # XXX: ToDo
+        return cls()
