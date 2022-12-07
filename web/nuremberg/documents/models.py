@@ -824,7 +824,7 @@ class DocumentAuthorExtra(models.Model):
 
 class DocumentCase(models.Model):
     id = models.AutoField(primary_key=True, db_column='CaseID')
-    name = models.CharField(max_length=100, db_column='Case_temp')
+    name = models.CharField(max_length=100, db_column='Case')
 
     documents = models.ManyToManyField(
         Document,
