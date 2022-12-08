@@ -63,12 +63,6 @@ def test_build_image_path(requests_mock, caplog):
     path = build_image_path(url, name)
 
     assert path == f'{name}.png'
-    messages = [(x.levelname, x.message) for x in caplog.records]
-    expected = (
-        f"HEAD response for image_url={url!r} returned "
-        "image_headers={'content-type': 'image/png'}"
-    )
-    assert messages == [('DEBUG', expected)]
 
 
 def test_build_image_path_no_content_type_image(requests_mock, caplog):
