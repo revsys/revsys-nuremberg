@@ -72,7 +72,7 @@ def test_document_retrieve_full_text_no_evidence_code_match():
 
 
 def test_document_retrieve_full_text_real_729():
-    for doc_id in [30, 3058, 2539]:
+    for doc_id in [30, 3058, 2539, 451438]:
         doc = Document.objects.get(id=doc_id)
 
         result = doc.full_texts()
@@ -87,7 +87,22 @@ def test_document_retrieve_full_text_real_729():
 
 
 def test_document_retrieve_full_text_real_473():
-    docs = [49, 58, 1437, 3067, 3107, 2442, 2443, 2445, 2447, 2444, 2446]
+    docs = [
+        49,
+        58,
+        1437,
+        3067,
+        3107,
+        2442,
+        2443,
+        2445,
+        2447,
+        2444,
+        2446,
+        451403,
+        452253,
+        452353,
+    ]
     for doc_id in docs:
         doc = Document.objects.get(id=doc_id)
 
@@ -1104,11 +1119,12 @@ def test_document_text_retrieve_documents_real_729():
 
     result = doc_text_729.documents()
 
-    assert result.count() == 3
     # Document 2539 has no exhibit code, the other two have 1 exhibit each.
-    # But document 30 was used in trial NMT 1 while document 3058 in NMT 2
-    assert [d.id for d in result] == [30, 3058, 2539]
-    assert doc_text_729.document == Document.objects.get(id=30)
+    # But document 451438 was used in trial IMT, while docuemtn 30 was used in
+    # trial NMT 1 and document 3058 in NMT 2
+    expected_docs = [451438, 30, 3058, 2539]
+    assert [d.id for d in result] == expected_docs
+    assert doc_text_729.document == Document.objects.get(id=expected_docs[0])
 
 
 def test_document_text_retrieve_documents_real_473():
@@ -1116,13 +1132,17 @@ def test_document_text_retrieve_documents_real_473():
 
     result = doc_text_473.documents()
 
-    assert result.count() == 11
     # Documents 2442 to 24465 have no exhibit code.
     # All remaining have the same source (Case Files/English), but 3067 and
     # 3107 were used in a trial case with lower score than the rest (NMT 2).
-    # That leaves 49, 58 and 1437 all with the same score... we need to break
-    # that tie.
-    assert [d.id for d in result] == [
+    # The same happens with 49, 58 and 1437 that were used in trial NMT 1, but
+    # then 451403, 452253 and 452353 all were used in trial IMT which has the
+    # top priority among trials -- so they all end up with the same score...
+    # we need to break that tie.
+    expected_docs = [
+        451403,
+        452253,
+        452353,
         49,
         58,
         1437,
@@ -1135,7 +1155,8 @@ def test_document_text_retrieve_documents_real_473():
         2444,
         2446,
     ]
-    assert doc_text_473.document == Document.objects.get(id=49)
+    assert [d.id for d in result] == expected_docs
+    assert doc_text_473.document == Document.objects.get(id=expected_docs[0])
 
 
 def test_document_text_no_matching_documents(django_assert_num_queries):
