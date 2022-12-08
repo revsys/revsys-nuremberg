@@ -1007,7 +1007,7 @@ class DocumentActivity(models.Model):
     @property
     def short_name(self):
         # cheating for now
-        return self.name.split(' (c')[0]
+        return '' if self.name is None else self.name.split(' (c')[0]
 
 
 class DocumentsToActivities(models.Model):
