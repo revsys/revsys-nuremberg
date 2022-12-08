@@ -24,11 +24,14 @@ echo "Setting up sqlite"
 # the compressed database file is already a part of the release and tester images. 
 if [[ -z "${SOLR_BUILD}" ]] ;
 then
-	$DOCKER_COMPOSE cp -L dumps/nuremberg_prod_dump_latest.sqlite3.zip web:/tmp/
+	docker compose cp -L dumps/nuremberg_prod_dump_latest.sqlite3.zip web:/tmp/
+	$DOCKER_COMPOSE_EXEC ${web} python -m zipfile -e /tmp/nuremberg_prod_dump_latest.sqlite3.zip /nuremberg/
+else
+	$DOCKER_COMPOSE_EXEC ${web} python -m zipfile -e /code/data/nuremberg_prod_dump_latest.sqlite3.zip /tmp
 fi
 
-$DOCKER_COMPOSE_EXEC ${web} python -m zipfile -e /code/data/nuremberg_prod_dump_latest.sqlite3.zip /tmp
-$DOCKER_COMPOSE_EXEC ${web} ./manage.py migrate
+$DOCKER_COMPOSE_EXEC ${web} ./manage.py makemigrations -v1
+$DOCKER_COMPOSE_EXEC ${web} ./manage.py migrate -v1
 
 
 # the solr image used for deployments & CI already carries its data
