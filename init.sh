@@ -39,8 +39,8 @@ if [[ -z ${SOLR_NO_RESTORE} ]];
 then
 	echo "Wait for Solr to be ready..."
 	while ! $DOCKER_COMPOSE_EXEC ${solr} solr status >/dev/null 2>&1; do
-	    /bin/echo -en '.'
-	    sleep 1
+		/bin/echo -en '.'
+		sleep 1
 	done
 	echo
 	echo "Solr ready!!!"
@@ -53,18 +53,18 @@ then
 	http_code=$( $DOCKER_COMPOSE_EXEC ${solr} curl -sS -o /dev/null -w '%{http_code}' "$SOLR_URL/admin/cores?action=reload&core=$SOLR_CORE" ) || exit 1
 
 	if [[ $http_code == 200 ]]; then
-	    echo "Solr core already exists"
+		echo "Solr core already exists"
 	else
-	    echo "Solr core does not exist, creating it"
-	    $DOCKER_COMPOSE_EXEC ${solr} solr create_core -c $SOLR_CORE -d /opt/solr-8.11.2/solr_conf || exit 1
+		echo "Solr core does not exist, creating it"
+		$DOCKER_COMPOSE_EXEC ${solr} solr create_core -c $SOLR_CORE -d /opt/solr-8.11.2/solr_conf || exit 1
 	fi
 	if [[ -n ${SOLR_RESTORE_SNAPSHOT} ]]; then
-	    echo "Restoring Solr snapshot $SOLR_SNAPSHOT_DIR"
-	    cat $SOLR_SNAPSHOT_DIR/* | $DOCKER_COMPOSE_EXEC ${solr} tar -xzv -f - --strip-component=1 -C $SOLR_HOME/data
-	    $DOCKER_COMPOSE_EXEC -T ${solr} curl -sS "$SOLR_URL/$SOLR_CORE/replication?command=restore" || exit 1
+		echo "Restoring Solr snapshot $SOLR_SNAPSHOT_DIR"
+		cat $SOLR_SNAPSHOT_DIR/* | $DOCKER_COMPOSE_EXEC ${solr} tar -xzv -f - --strip-component=1 -C $SOLR_HOME/data
+		$DOCKER_COMPOSE_EXEC -T ${solr} curl -sS "$SOLR_URL/$SOLR_CORE/replication?command=restore" || exit 1
 	else
-	    echo "Rebuilding Solr index (SLOW)"
-	    time $DOCKER_COMPOSE_EXEC ${web} python manage.py rebuild_index -k8 -b500 --noinput || exit 1
+		echo "Rebuilding Solr index (SLOW)"
+		time $DOCKER_COMPOSE_EXEC ${web} python manage.py rebuild_index -k8 -b500 --noinput || exit 1
 	fi
 fi
 
@@ -75,7 +75,3 @@ then
 	$DOCKER_COMPOSE_EXEC -u 0 -T ${solr} tar --sparse -cz -f /dist/var-solr.tgz /var/solr
 	$DOCKER_COMPOSE_EXEC -u 0 -T ${solr} chown -Rv $UID /dist
 fi
-
-
-
-

@@ -251,5 +251,5 @@ if LOCAL_DEVELOPMENT:
 
     LOGGING['loggers']['nuremberg'] = {
         'handlers': ['console'],
-        'level': 'DEBUG',
+        'level': 'INFO',
     }
