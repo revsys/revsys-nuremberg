@@ -108,6 +108,8 @@ ENV SOLR_CORE nuremberg_dev
 
 COPY solr_conf /opt/solr-8.11.2/solr_conf
 
+ENV IMAGE_VERSION v0.3.8-solr
+
 RUN --mount=type=bind,source=./dist/var-solr.tgz,target=/mnt/var-solr.tgz \
 	cd / && \
 	tar xvfpz /mnt/var-solr.tgz
