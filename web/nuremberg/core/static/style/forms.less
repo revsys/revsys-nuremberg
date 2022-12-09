@@ -37,6 +37,26 @@
   }
 }
 
+.accordion {
+  &:extend(.tag-button);
+    display: block;
+    width: 100%;
+}
+
+.accordion.active {
+  &:extend(.tag-button:hover);
+}
+
+.accordion-panel {
+  padding: 0 18px;
+  display: none;
+  overflow: hidden;
+}
+
+.accordion-panel.active{
+  display: block;
+}
+
 form {
   margin: 0;
 }
