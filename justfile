@@ -76,18 +76,16 @@ ci-dc *args='ps':
 
 # target for running tests IN CI
 test:
-    just ci-dc up -d web || ( just build tester && just ci-dc up -d web )
+    just ci-dc up -d --quiet-pull web || ( just build tester && just ci-dc up --quiet-pull -d web )
     just ci-dc exec -u0  web find /tmp /nuremberg /code -type f -not -user ${UID} -exec chown -Rv $UID {} +  | wc -l
     just ci-dc exec -u$UID web pytest || exit 1
     just ci-dc exec -u$UID web pytest --no-cov nuremberg/documents/browser_tests.py || exit 1
 
 
 deploy env='dev':
-    @git push -d origin last/{{env}}/deploy 2> /dev/null || echo '{{env}}/deploy tag not present yet. continuing'
-    @git push -d origin {{env}}/deploy 2> /dev/null || echo '{{env}}/deploy tag not present yet. continuing'
-    @git tag -f last/{{env}}/deploy {{env}}/deploy 2> /dev/null || echo '{{env}}/deploy tag not present yet. continuing'
+    @git tag -f last/{{env}}/deploy {{env}}/deploy
     @git tag -f {{env}}/deploy {{VERSION}}
-    @git push --tags
+    @git push --tags --force
 
 _bk-up:
     #!/bin/bash
