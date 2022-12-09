@@ -43,7 +43,7 @@ if [[ -z ${SOLR_NO_RESTORE} ]];
 then
 	echo "Wait for Solr to be ready..."
 	while ! $DOCKER_COMPOSE_EXEC ${solr} solr status >/dev/null 2>&1; do
-		/bin/echo -en '.'
+		echo -en '.'
 		sleep 1
 	done
 	echo
