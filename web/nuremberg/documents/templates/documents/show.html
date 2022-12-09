@@ -196,8 +196,12 @@
         <p>
           <strong>Citation{{ citations|length|pluralize }}:</strong>
           {% for citation in citations %}
+            {% if citation.case.transcript %}
             <a href="{% url 'transcripts:show' citation.case.transcript.id %}?page={{ citation.transcript_page_number }}">
-              {{ citation.transcript_page_number }}</a>{% if not forloop.last %}, {% endif %}
+              {{ citation.case.tag_name }} (page {{ citation.transcript_page_number }})</a>{% if not forloop.last %}, {% endif %}
+          {% else %}
+              {{ citation.case.tag_name }} (page {{ citation.transcript_page_number }}){% if not forloop.last %}, {% endif %}
+          {% endif %}
           {% endfor %}
         </p>
         {% endif %}
