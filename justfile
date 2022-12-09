@@ -51,17 +51,15 @@ push step='release': (build step)
     docker push {{IMAGE_REGISTRY}}:${endbits}
 
 regen-solr-image:
-    #!/usr/bin/env bash
-    set -o xtrace verbose pipefail
-    docker-compose -f $( just _solr-compose ) -p solrbld up -d --force-recreate --quiet-pull solr-data-load && \
-    SOLR_NO_RESTORE=1 SOLR_BUILD=1 ./init.sh && \
-    docker-compose -f $( just _solr-compose ) -p solrbld up -d --quiet-pull solr-loader || \
-    ( just build && docker-compose -f $( just _solr-compose ) -p solrbld up --quiet-pull  -d solr-loader ) && \
-    SOLR_RESTORE_SNAPSHOT= SOLR_DIST_DATA=1 SOLR_BUILD=1 ./init.sh && \
-    just build solr && \
-    docker tag {{IMAGE_REGISTRY}}:{{VERSION}}-solr {{IMAGE_REGISTRY}}:last-solr && \
-    just push solr && \
-    docker push {{IMAGE_REGISTRY}}:last-solr || exit 1
+    just solr-dc down -v
+    just solr-dc up -d --force-recreate --quiet-pull solr-loader || ( just solr-dc down -v && just build release && just regen-solr-image )
+    SOLR_NO_RESTORE=1 SOLR_BUILD=1 ./init.sh
+    just solr-dc up -d --quiet-pull solr-data-load
+    SOLR_RESTORE_SNAPSHOT= SOLR_DIST_DATA=1 SOLR_BUILD=1 ./init.sh || exit 1
+    just build solr
+    docker tag {{IMAGE_REGISTRY}}:{{VERSION}}-solr {{IMAGE_REGISTRY}}:last-solr
+    just push solr
+    docker push {{IMAGE_REGISTRY}}:last-solr
 
 # fs path to solr-image-build compose file
 solr-compose: _solr-compose
@@ -71,7 +69,7 @@ _solr-compose:
 # shortcut for interacting solr build docker-compose project
 solr-dc *args='ps':
     docker-compose -f $( just solr-compose ) -p solrbld {{args}}
-    
+
 ci-dc *args='ps':
     docker-compose -f ./docker-compose.yml -f ./docker-compose.override.yml -f ./docker-compose.ci.yml {{args}}
 
@@ -93,7 +91,7 @@ _bk-up:
     #!/bin/bash
     set -o pipefail
     [[ -n $( docker buildx ls | grep 'default.*docker' ) ]] &&
-        docker buildx create --platform linux/amd64 --bootstrap --name nuremberg-builder >& /dev/null 
+        docker buildx create --platform linux/amd64 --bootstrap --name nuremberg-builder >& /dev/null
         docker buildx use nuremberg-builder
 
 _bk-down:

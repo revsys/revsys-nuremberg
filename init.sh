@@ -1,33 +1,37 @@
 #!/usr/bin/env bash
 # vim: shiftwidth=4 tabstop=4 filetype=bash noexpandtab list
 
+set -o pipefail
+
 SOLR_CORE="nuremberg_dev"
 SOLR_HOME="/var/solr/data/$SOLR_CORE"
 SOLR_SNAPSHOT_DIR=$PWD/dumps/nuremberg_solr_snapshot_latest
-SOLR_URL="http://localhost:8983/solr"
+SOLR_HOST="http://localhost:8983"
+SOLR_URL="$SOLR_HOST/solr"
+SOLR_CORE_STATUS="$SOLR_URL/admin/cores?action=STATUS"
 
 if [[ -z ${SOLR_BUILD} ]];
 then
 	solr=solr
 	web=web
-	DOCKER_COMPOSE="${DOCKER_COMPOSE:-docker-compose}" 
+	DOCKER_COMPOSE="${DOCKER_COMPOSE:-docker-compose}"
 else
 	solr=solr-data-load
 	web=solr-loader
-	DOCKER_COMPOSE="docker-compose -f $( just _solr-compose) -p solrbld"
+	DOCKER_COMPOSE="just solr-dc "
 fi
 
 DOCKER_COMPOSE_EXEC="$DOCKER_COMPOSE exec -T"
 
 echo "Setting up sqlite"
 
-# the compressed database file is already a part of the release and tester images. 
+# the compressed database file is already a part of the release and tester images.
 if [[ -z "${SOLR_BUILD}" ]] ;
 then
-	docker compose cp -L dumps/nuremberg_prod_dump_latest.sqlite3.zip web:/tmp/
+	$DOCKER_COMPOSE cp -L dumps/nuremberg_prod_dump_latest.sqlite3.zip ${web}:/tmp/
 	$DOCKER_COMPOSE_EXEC ${web} python -m zipfile -e /tmp/nuremberg_prod_dump_latest.sqlite3.zip /nuremberg/
 else
-	$DOCKER_COMPOSE_EXEC ${web} python -m zipfile -e /code/data/nuremberg_prod_dump_latest.sqlite3.zip /tmp
+	$DOCKER_COMPOSE_EXEC ${web} python -m zipfile -e /code/data/nuremberg_prod_dump_latest.sqlite3.zip /nuremberg/
 fi
 
 $DOCKER_COMPOSE_EXEC ${web} ./manage.py makemigrations -v1
@@ -47,17 +51,19 @@ then
 
 	echo "Setting up solr config"
 
-	$DOCKER_COMPOSE cp solr_conf/ ${solr}:/opt/solr-8.11.2/solr_conf
-	$DOCKER_COMPOSE_EXEC ${solr} cp -r /opt/solr-8.11.2/solr_conf $SOLR_HOME
+	$DOCKER_COMPOSE cp solr_conf ${solr}:/opt/solr-8.11.2/solr_conf && \
+	$DOCKER_COMPOSE_EXEC -u0 ${solr} cp -Rp /opt/solr-8.11.2/solr_conf /var/solr/data/nuremberg_dev && \
+	$DOCKER_COMPOSE_EXEC -u0 ${solr} chown -R solr:solr /var/solr/data solr_conf || exit 1
 
-	http_code=$( $DOCKER_COMPOSE_EXEC ${solr} curl -sS -o /dev/null -w '%{http_code}' "$SOLR_URL/admin/cores?action=reload&core=$SOLR_CORE" ) || exit 1
 
-	if [[ $http_code == 200 ]]; then
-		echo "Solr core already exists"
-	else
-		echo "Solr core does not exist, creating it"
-		$DOCKER_COMPOSE_EXEC ${solr} solr create_core -c $SOLR_CORE -d /opt/solr-8.11.2/solr_conf || exit 1
-	fi
+#	core_check=$( $DOCKER_COMPOSE_EXEC ${solr} curl -sS $SOLR_CORE_STATUS | grep $SOLR_CORE )
+
+#	if [[ -n $core_check ]]; then
+#		echo "Solr core already exists"
+#	else
+#		echo "Solr core does not exist, creating it"
+	$DOCKER_COMPOSE_EXEC ${solr} solr create_core -c $SOLR_CORE -d solr_conf || echo 'Solr core already exists'
+#	fi
 	if [[ -n ${SOLR_RESTORE_SNAPSHOT} ]]; then
 		echo "Restoring Solr snapshot $SOLR_SNAPSHOT_DIR"
 		cat $SOLR_SNAPSHOT_DIR/* | $DOCKER_COMPOSE_EXEC ${solr} tar -xzv -f - --strip-component=1 -C $SOLR_HOME/data
