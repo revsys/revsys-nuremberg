@@ -1,8 +1,8 @@
-# vim: ft=just ts=4 sw=4 et
+# vim: filetype=just tabstop=4 shiftwidth=4 expandtab number
 set dotenv-load := false
 IMAGE_REGISTRY := 'registry.revsys.com/nuremberg'
 CACHE_REGISTRY := 'registry.revsys.com/cache/nuremberg'
-VERSION := 'v0.3.6'
+VERSION := 'v0.3.7'
 
 set shell := ["/bin/bash", "-c"]
 
@@ -53,10 +53,10 @@ push step='release': (build step)
 regen-solr-image:
     #!/usr/bin/env bash
     set -o xtrace verbose pipefail
-    docker-compose -f $( just _solr-compose ) -p solrbld up -d --force-recreate solr-data-load && \
+    docker-compose -f $( just _solr-compose ) -p solrbld up -d --force-recreate --quiet-pull solr-data-load && \
     SOLR_NO_RESTORE=1 SOLR_BUILD=1 ./init.sh && \
-    docker-compose -f $( just _solr-compose ) -p solrbld up -d solr-loader || \
-    ( just build && docker-compose -f $( just _solr-compose ) -p solrbld up  -d solr-loader ) && \
+    docker-compose -f $( just _solr-compose ) -p solrbld up -d --quiet-pull solr-loader || \
+    ( just build && docker-compose -f $( just _solr-compose ) -p solrbld up --quiet-pull  -d solr-loader ) && \
     SOLR_RESTORE_SNAPSHOT= SOLR_DIST_DATA=1 SOLR_BUILD=1 ./init.sh && \
     just build solr && \
     docker tag {{IMAGE_REGISTRY}}:{{VERSION}}-solr {{IMAGE_REGISTRY}}:last-solr && \
@@ -74,9 +74,6 @@ solr-dc *args='ps':
     
 ci-dc *args='ps':
     docker-compose -f ./docker-compose.yml -f ./docker-compose.override.yml -f ./docker-compose.ci.yml {{args}}
-
-_warmitup:
-    @docker-compose -p solrbld -f $( just solr-compose ) up --quiet-pull -d 
 
 test:
     just ci-dc up -d --quiet-pull
