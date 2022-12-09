@@ -138,6 +138,30 @@ class Document(models.Model):
         # XXX: sort in a meaningful way in the unlikely case there are multiple
         return result
 
+    def external_metadata(self):
+        """Fetch the DocumentExternalMetadata for this instance, if available.
+
+        The "linking" between the two models occurs via the Evidence File Code,
+        there is DB relationship defined that could be leveraged to calculate
+        this result.
+
+        """
+        # Use the plain `str` of DocumentEvidenceCode which include suffixes
+        # for those codes that have one.
+        evidence_codes = [str(e) for e in self.evidence_codes.all()]
+        return DocumentExternalMetadata.objects.select_related(
+            'source'
+        ).annotate(
+            evidence_code=Concat(
+                'evidence_code_series', Value('-'), 'evidence_code_num',
+                Case(
+                    When(evidence_code_suffix='', then=Value('')),
+                    When(evidence_code_suffix=None, then=Value('')),
+                    default='evidence_code_suffix',
+                )
+            ),
+        ).filter(evidence_code__in=evidence_codes)
+
 
 class DocumentImage(models.Model):
 
@@ -894,7 +918,10 @@ class DocumentCitation(models.Model):
         db_table = 'tblCasesDatesList'
 
     def __str__(self):
-        result = f'{self.document} | {self.case} | {self.date} | {self.transcript_page_number}'
+        result = (
+            f'{self.document} | {self.case} | {self.date} | '
+            '{self.transcript_page_number}'
+        )
         if self.transcript_page_number_suffix:
             result += f'-{self.transcript_page_number_suffix}'
         return result
@@ -908,6 +935,64 @@ class DocumentCitation(models.Model):
             self.day,
             reference=f'document citation {doc_id}',
         )
+
+
+class DocumentExternalMetadataSource(models.Model):
+
+    id = models.AutoField(db_column='SourceID', primary_key=True)
+    name = models.CharField(db_column='SourceLabel', max_length=300)
+    description = models.TextField(db_column='Source')
+
+    class Meta:
+        managed = False
+        db_table = 'tblDocExternalMetadataSources'
+
+    def __str__(self):
+        return self.name
+
+
+class DocumentExternalMetadata(models.Model):
+
+    id = models.AutoField(db_column='RecordID', primary_key=True)
+    source = models.ForeignKey(
+        DocumentExternalMetadataSource,
+        db_column='Source',
+        on_delete=models.PROTECT,
+    )
+
+    summary = models.CharField(db_column='DocSummary', max_length=1000)
+    evidence_code_series = models.CharField(
+        db_column='EFSeries', max_length=10
+    )
+    evidence_code_num = models.CharField(db_column='EFCodeNum', max_length=10)
+    evidence_code_suffix = models.CharField(
+        db_column='EFCodeNumSuffix', max_length=10
+    )
+    exhibit_case = models.CharField(db_column='ExhibitCase', max_length=10)
+    exhibit_country = models.CharField(
+        db_column='ExhibitCountry', max_length=100
+    )
+    exhibit_side = models.CharField(db_column='ExhibitSide', max_length=100)
+    exhibit_defendant = models.CharField(
+        db_column='ExhibitDefendant', max_length=100
+    )
+    exhibit_num = models.CharField(db_column='ExhibitNum', max_length=10)
+
+    updated_at = models.DateTimeField(db_column='RecordUpdated')
+
+    class Meta:
+        managed = False
+        db_table = 'tblDocExternalMetadata'
+
+    def __str__(self):
+        return f'{self.summary} (from: {self.source.name})'
+
+    @cached_property
+    def evidence_code(self):
+        result = f'{self.evidence_code_series}-{self.evidence_code_num}'
+        if self.evidence_code_suffix:
+            result += self.evidence_code_suffix
+        return result
 
 
 class DocumentDefendantManager(models.Manager):

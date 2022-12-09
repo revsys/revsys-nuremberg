@@ -8,7 +8,20 @@
 {% block javascript_module %}documents{% endblock %}
 
 {% block javascript %}
-{{block.super}}
+  {{ block.super }}
+  <script>
+  var acc = document.getElementsByClassName("accordion");
+  var i;
+
+  for (i = 0; i < acc.length; i++) {
+    acc[i].addEventListener("click", function() {
+      /* Toggle between adding and removing the "active" class,
+      to highlight the button that controls the panel */
+      this.classList.toggle("active");
+      this.nextElementSibling.classList.toggle("active");
+    });
+  }
+  </script>
 {% endblock %}
 
 {% block content %}
@@ -231,7 +244,26 @@
         </p>
       {% endif %}
       {% endwith %}
+
+      <!-- Summary (taken from external sources) -->
+      {% with document.external_metadata.all as external_metadata %}
+      {% if external_metadata %}
+        <h2 class="h6">Document Summary</h2>
+        <div class="summary">
+          {% for item in external_metadata %}
+          <div class="accordion {% if forloop.first %}active{% endif %}" title="{{ item.source.description }}">
+            {{ item.source.name }}
+          </div>
+          <div class="accordion-panel {% if forloop.first %}active{% endif %}">
+            <p>{{ item.summary }}</p>
+          </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+      {% endwith %}
+
     </div>
+
     <div id="content"></div>
     {% if mode == 'text' %}
     <div class="main-column">
