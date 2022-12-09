@@ -255,7 +255,7 @@
             {{ item.source.name }}
           </div>
           <div class="accordion-panel {% if forloop.first %}active{% endif %}">
-            <p>{{ item.summary }}</p>
+            <p><strong>{{ item.evidence_code }}</strong>: {{ item.summary }}</p>
           </div>
           {% endfor %}
         </div>
