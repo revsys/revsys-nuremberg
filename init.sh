@@ -10,7 +10,7 @@ if [[ -z ${SOLR_BUILD} ]];
 then
 	solr=solr
 	web=web
-	DOCKER_COMPOSE="docker-compose"
+	DOCKER_COMPOSE="${DOCKER_COMPOSE:-docker-compose}" 
 else
 	solr=solr-data-load
 	web=solr-loader
