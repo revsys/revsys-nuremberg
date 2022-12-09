@@ -108,8 +108,6 @@ ENV SOLR_CORE nuremberg_dev
 
 COPY solr_conf /opt/solr-8.11.2/solr_conf
 
-RUN cp -rp /opt/solr-8.11.2/solr_conf $SOLR_HOME
-
 RUN --mount=type=bind,source=./dist/var-solr.tgz,target=/mnt/var-solr.tgz \
 	cd / && \
 	tar xvfpz /mnt/var-solr.tgz
