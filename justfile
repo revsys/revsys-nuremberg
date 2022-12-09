@@ -52,7 +52,7 @@ push step='release': (build step)
 
 regen-solr-image:
     just solr-dc down -v
-    just solr-dc up -d --force-recreate --quiet-pull solr-loader || ( just solr-dc down -v && just build release && just regen-solr-image )
+    just solr-dc up -d --force-recreate --quiet-pull solr-loader || ( just build release && just regen-solr-image )
     SOLR_NO_RESTORE=1 SOLR_BUILD=1 ./init.sh
     just solr-dc up -d --quiet-pull solr-data-load
     SOLR_RESTORE_SNAPSHOT= SOLR_DIST_DATA=1 SOLR_BUILD=1 ./init.sh || exit 1
@@ -66,13 +66,15 @@ solr-compose: _solr-compose
 _solr-compose:
     @echo {{justfile_directory()}}/docker-compose.solr-build.yml
 
-# shortcut for interacting solr build docker-compose project
+# shortcut for interacting w/ the solr image-build docker-compose project
 solr-dc *args='ps':
     docker-compose -f $( just solr-compose ) -p solrbld {{args}}
 
+# shortcut for interacting w/ the CI docker-compose project
 ci-dc *args='ps':
     docker-compose -f ./docker-compose.yml -f ./docker-compose.override.yml -f ./docker-compose.ci.yml {{args}}
 
+# target for running tests IN CI
 test:
     just ci-dc up -d --quiet-pull
     just ci-dc exec -u0  web find /tmp /nuremberg /code -type f -not -user ${UID} -exec chown -Rv $UID {} +  | wc -l
