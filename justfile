@@ -52,7 +52,7 @@ push step='release': (build step)
 
 regen-solr-image:
     just solr-dc down -v
-    just solr-dc up -d --force-recreate --quiet-pull solr-loader || ( just build release && just regen-solr-image )
+    just solr-dc up -d --quiet-pull solr-loader || ( just build release && just regen-solr-image )
     SOLR_NO_RESTORE=1 SOLR_BUILD=1 ./init.sh
     just solr-dc up -d --quiet-pull solr-data-load
     SOLR_RESTORE_SNAPSHOT= SOLR_DIST_DATA=1 SOLR_BUILD=1 ./init.sh || exit 1
@@ -76,7 +76,8 @@ ci-dc *args='ps':
 
 # target for running tests IN CI
 test:
-    just ci-dc up -d --quiet-pull web || ( just build tester && just ci-dc up --quiet-pull -d web )
+    docker inspect $( just tag )-tester >& /dev/null || just build tester
+    just ci-dc up -d --quiet-pull
     just ci-dc exec -u0  web find /tmp /nuremberg /code -type f -not -user ${UID} -exec chown -Rv $UID {} +  | wc -l
     just ci-dc up -d --quiet-pull selenium solr
     just ci-dc exec -u$UID web pytest || exit 1
