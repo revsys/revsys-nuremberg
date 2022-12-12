@@ -78,6 +78,7 @@ ci-dc *args='ps':
 test:
     just ci-dc up -d --quiet-pull web || ( just build tester && just ci-dc up --quiet-pull -d web )
     just ci-dc exec -u0  web find /tmp /nuremberg /code -type f -not -user ${UID} -exec chown -Rv $UID {} +  | wc -l
+    just ci-dc up -d --quiet-pull selenium solr
     just ci-dc exec -u$UID web pytest || exit 1
     just ci-dc exec -u$UID web pytest --no-cov nuremberg/documents/browser_tests.py || exit 1
 
