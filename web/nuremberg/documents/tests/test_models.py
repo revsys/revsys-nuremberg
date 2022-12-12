@@ -11,7 +11,12 @@ from nuremberg.documents.models import (
     DocumentText,
     PersonalAuthorProperty,
 )
-from .helpers import make_author, make_document, make_document_text
+from .helpers import (
+    make_author,
+    make_document,
+    make_document_external_metadata,
+    make_document_text,
+)
 
 
 pytestmark = pytest.mark.django_db
@@ -115,6 +120,63 @@ def test_document_retrieve_full_text_real_473():
         assert result.id == 473
         assert doc.full_text == result
         assert doc.text == result.text
+
+
+def test_document_retrieve_external_metadata_empty():
+    doc = baker.make('Document')
+
+    assert doc.external_metadata().count() == 0
+
+
+def test_document_retrieve_external_metadata_no_evidence_code_match():
+    baker.make(
+        'DocumentExternalMetadata',
+        evidence_code_series='FF',
+        evidence_code_num='123',
+    )
+    evidence_codes = ['FF-12', 'Z-123']
+    doc = make_document(evidence_codes=evidence_codes)
+
+    assert doc.external_metadata().count() == 0
+
+
+def test_document_retrieve_external_metadata_evidence_code_match():
+    baker.make(
+        'DocumentExternalMetadata',
+        evidence_code_series='FF',
+        evidence_code_num='123',
+    )
+    e = baker.make(
+        'DocumentExternalMetadata',
+        evidence_code_series='FF',
+        evidence_code_num='123',
+        evidence_code_suffix='a',
+    )
+    evidence_codes = ['FF-12', 'Z-123', 'FF-123a']
+    doc = make_document(evidence_codes=evidence_codes)
+
+    assert doc.external_metadata().count() == 1
+    assert doc.external_metadata().get() == e
+
+
+def test_document_retrieve_external_metadata(django_assert_num_queries):
+    codes = ['AAAA-123456', 'BBBB-456789', 'CCCC-9876543210']
+    doc = make_document(evidence_codes=codes)
+
+    expected = [
+        make_document_external_metadata(evidence_code=code) for code in codes
+    ]
+
+    # none of the following have an evidence code match
+    make_document_external_metadata(evidence_code='CCCC-987654321')
+    make_document_external_metadata(evidence_code='BBBB-123456')
+    make_document_external_metadata(evidence_code='AAAA-456789')
+    make_document_external_metadata(evidence_code='AAA-123456')
+
+    result = doc.external_metadata().order_by('id')
+
+    with django_assert_num_queries(1):
+        assert list(map(str, result)) == [str(e) for e in expected]
 
 
 def test_author_slug_full_name():
