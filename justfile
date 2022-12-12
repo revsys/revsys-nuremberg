@@ -2,7 +2,7 @@
 set dotenv-load := false
 IMAGE_REGISTRY := 'registry.revsys.com/nuremberg'
 CACHE_REGISTRY := 'registry.revsys.com/cache/nuremberg'
-VERSION := 'v0.3.9'
+VERSION := 'v0.3.10'
 
 set shell := ["/bin/bash", "-c"]
 
@@ -52,6 +52,7 @@ push step='release': (build step)
 
 regen-solr-image:
     just solr-dc down -v
+    docker inspect $( just tag ) >& /dev/null || ( just build release && just regen-solr-image && exit 0 )
     just solr-dc up -d --quiet-pull solr-loader || ( just build release && just regen-solr-image )
     SOLR_NO_RESTORE=1 SOLR_BUILD=1 ./init.sh
     just solr-dc up -d --quiet-pull solr-data-load
@@ -79,9 +80,9 @@ test:
     docker inspect $( just tag )-tester >& /dev/null || just build tester
     just ci-dc up -d --quiet-pull
     just ci-dc exec -u0  web find /tmp /nuremberg /code -type f -not -user ${UID} -exec chown -Rv $UID {} +  | wc -l
-    just ci-dc up -d --quiet-pull selenium solr
     just ci-dc exec -u$UID web pytest || exit 1
     just ci-dc exec -u$UID web pytest --no-cov nuremberg/documents/browser_tests.py || exit 1
+    just ci-dc down -v
 
 
 deploy env='dev':
