@@ -1,11 +1,17 @@
+import re
+
 import pytest
 from model_bakery import baker
 
 from nuremberg.documents.models import (
     Document,
+    DocumentExternalMetadata,
     DocumentText,
     PersonalAuthorProperty,
 )
+
+
+EVIDENCE_CODE_RE = re.compile(r'^([A-Z]+)-([0-9]+)([a-z]{0,1})$')
 
 
 class DummyMemDictStorage:
@@ -50,11 +56,14 @@ def make_document(evidence_codes=None, **kwargs):
     if evidence_codes is None:
         evidence_codes = []
     for code in evidence_codes:
-        prefix, number = code.split('-', 1)
+        re_match = EVIDENCE_CODE_RE.match(code)
+        assert re_match is not None
+        prefix, number, suffix = re_match.groups()
         baker.make(
             'DocumentEvidenceCode',
             prefix__code=prefix,
             number=number,
+            suffix=suffix,
             document=result,
         )
 
@@ -67,10 +76,31 @@ def make_document(evidence_codes=None, **kwargs):
 def make_document_text(evidence_code=None, **kwargs):
     next_id = DocumentText.objects.all().order_by('id').last().id + 1
     if evidence_code is not None:
-        prefix, number = evidence_code.split('-', 1)
+        re_match = EVIDENCE_CODE_RE.match(evidence_code)
+        assert re_match is not None
+        prefix, number, _ = re_match.groups()
+        # So far the agreement is that DocumentText does not include suffixes,
+        # so code PS-343 would match all three PS-343, PS-343a and PS-343b
         kwargs.setdefault('evidence_code_series', prefix)
         kwargs.setdefault('evidence_code_num', number)
     result = baker.make('DocumentText', id=next_id, **kwargs)
+    assert result.id == next_id
+
+    return result
+
+
+def make_document_external_metadata(evidence_code=None, **kwargs):
+    next_id = (
+        DocumentExternalMetadata.objects.all().order_by('id').last().id + 1
+    )
+    if evidence_code is not None:
+        re_match = EVIDENCE_CODE_RE.match(evidence_code)
+        assert re_match is not None
+        prefix, number, suffix = re_match.groups()
+        kwargs.setdefault('evidence_code_series', prefix)
+        kwargs.setdefault('evidence_code_num', number)
+        kwargs.setdefault('evidence_code_suffix', suffix)
+    result = baker.make('DocumentExternalMetadata', id=next_id, **kwargs)
     assert result.id == next_id
 
     return result

@@ -149,18 +149,22 @@ class Document(models.Model):
         # Use the plain `str` of DocumentEvidenceCode which include suffixes
         # for those codes that have one.
         evidence_codes = [str(e) for e in self.evidence_codes.all()]
-        return DocumentExternalMetadata.objects.select_related(
-            'source'
-        ).annotate(
-            evidence_code=Concat(
-                'evidence_code_series', Value('-'), 'evidence_code_num',
-                Case(
-                    When(evidence_code_suffix='', then=Value('')),
-                    When(evidence_code_suffix=None, then=Value('')),
-                    default='evidence_code_suffix',
-                )
-            ),
-        ).filter(evidence_code__in=evidence_codes)
+        return (
+            DocumentExternalMetadata.objects.select_related('source')
+            .annotate(
+                evidence_code=Concat(
+                    'evidence_code_series',
+                    Value('-'),
+                    'evidence_code_num',
+                    Case(
+                        When(evidence_code_suffix='', then=Value('')),
+                        When(evidence_code_suffix=None, then=Value('')),
+                        default='evidence_code_suffix',
+                    ),
+                ),
+            )
+            .filter(evidence_code__in=evidence_codes)
+        )
 
 
 class DocumentImage(models.Model):
