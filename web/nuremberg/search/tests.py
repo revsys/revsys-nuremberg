@@ -9,11 +9,16 @@ from nuremberg.core.tests.acceptance_helpers import (
 from nuremberg.search.templatetags.search_url import search_url
 
 
-SEARCH_TOTAL_RESULTS = 17648
-SEARCH_TOTAL_DOCUMENTS = 17424
-SEARCH_TOTAL_WORKERS = 1414
-SEARCH_TOTAL_POLISH_WORKERS = 431
-SEARCH_TOTAL_EXPERIMENTS = 2066
+# XXX: These tests are fragile and likely to fail after data reindex.
+# See https://github.com/revsys/revsys-nuremberg/issues/9
+
+SEARCH_TOTAL_RESULTS = 16466  # *
+SEARCH_TOTAL_DOCUMENTS = 16242  # filter on documents
+SEARCH_TOTAL_WORKERS = 1640  # workers
+SEARCH_TOTAL_POLISH_WORKERS = 487  # polish workers in germany
+SEARCH_TOTAL_INSTRUCTIONS = 1387  # instructions
+SEARCH_TOTAL_INSTRUCTIONS_AIR_FORCE = 47  # instructions for air force medical
+SEARCH_TOTAL_EXPERIMENTS = 2247  # experiments
 SEARCH_SUMMARY_SELECTOR = '[data-test="search-result-pages-summary"]'
 pytestmark = pytest.mark.django_db
 
@@ -81,7 +86,7 @@ def test_facets(query):
         .with_text('Unknown')
         .find('a')
     )
-    assert 'Results 1-15 of 370 for polish workers in germany' in page.text()
+    assert 'Results 1-15 of 329 for polish workers in germany' in page.text()
     assert 'None' in page('.applied-filters').with_text('Trial').text()
 
     # test multiple facets
@@ -92,7 +97,7 @@ def test_facets(query):
         .with_text('English')
         .find('a')
     )
-    assert 'Results 1-15 of 119 for polish workers in germany' in page.text()
+    assert 'Results 1-15 of 102 for polish workers in germany' in page.text()
     assert 'None' in page('.applied-filters').with_text('Trial').text()
     assert 'English' in page('.applied-filters').with_text('Language').text()
 
@@ -180,31 +185,35 @@ def test_field_search(count_results):
 
     # TODO: these tests are pretty brittle to indexing changes, consider beefing them up
     count_results('workers', SEARCH_TOTAL_WORKERS)
-    count_results('workers author:fritz', 82)
-    count_results('workers date:january', 52)
-    count_results('workers -trial:(nmt 4)', 1295)
+    count_results('workers author:fritz', 116)
+    count_results('workers date:january', 81)
+    count_results('workers -trial:(nmt 4)', 1522)
     count_results('workers evidence:NO-190', 5, 5)
     count_results('workers source:typescript language:german', 38)
     count_results(
         'workers source:typescript language:german -author:Milch', 29
     )
-    count_results('workers trial:(nmt 2 | nmt 4)', 276)
-    count_results('workers date:unknown', 481)
-    count_results('workers date:none', 481)
-    count_results('workers -date:none', 937)
-    count_results('workers -date:none notafield:(no matches)', 937)
+    count_results('workers trial:(nmt 2 | nmt 4)', 275)
+    workers_no_date = 265
+    count_results('workers date:unknown', workers_no_date)
+    count_results('workers date:none', workers_no_date)
+    workers_with_date = 1379
+    count_results('workers -date:none', workers_with_date)
+    count_results(
+        'workers -date:none notafield:(no matches)', workers_with_date
+    )
     count_results('workers trial:(nmt 2 | nmt 4) author:speer|fritz', 40)
     count_results('workers author:"hitler adolf"', 0, 0, 0)
-    count_results('workers author:"adolf hitler"', 112)
-    count_results('workers exhibit:prosecution', 187)
-    count_results('* author:hitler -author:adolf', 0, 0, 0)
+    count_results('workers author:"adolf hitler"', 176)
+    count_results('workers exhibit:prosecution', 443)
+    count_results('* author:"adolf hitler" -author:adolf', 0, 0, 0)
     count_results('* exhibit:handloser', 81)
-    count_results('malaria', 107)
-    count_results('freezing', 299)
-    count_results('malaria freezing', 40)
-    count_results('-malaria freezing', 262)
+    count_results('malaria', 110)
+    count_results('freezing', 310)
+    count_results('malaria freezing', 43)
+    count_results('-malaria freezing', 270)
     count_results('malaria -freezing', 70)
-    count_results('malaria | freezing', 364)
+    count_results('malaria | freezing', 375)
 
 
 def test_document_search(query):
@@ -222,11 +231,13 @@ def test_document_search(query):
     assert search_bar.val() == 'workers'
 
     page = go_to(search_bar.submit_value('instructions'))
-    assert 'Results 1-15 of 1188 for instructions' in page.text()
+    res = f'Results 1-15 of {SEARCH_TOTAL_INSTRUCTIONS} for instructions'
+    assert res in page.text()
 
     q = 'instructions for air force medical'
     page = go_to(search_bar.submit_value(q))
-    assert f'Results 1-15 of 20 for {q}' in page.text()
+    q_res = f'Results 1-15 of {SEARCH_TOTAL_INSTRUCTIONS_AIR_FORCE} for {q}'
+    assert q_res in page.text()
     page = follow_link(
         page('.document-row a').with_text(
             'Instructions for air force medical officers regarding freezing'
@@ -238,7 +249,7 @@ def test_document_search(query):
     assert search_bar.val() == q
 
     page = follow_link(page('a').with_text('Back to search results'))
-    assert f'Results 1-15 of 20 for {q}' in page.text()
+    assert q_res in page.text()
 
 
 def test_landing_search(query):
