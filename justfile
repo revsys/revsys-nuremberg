@@ -52,7 +52,7 @@ push step='release': (build step)
 
 regen-solr-image:
     just solr-dc down -v
-    docker inspect $( just tag ) >& /dev/null || ( just build release && just regen-solr-image && exit 0 )
+    docker inspect $( just tag ) >& /dev/null || ( just build release && just regen-solr-image )
     just solr-dc up -d --quiet-pull solr-loader || ( just build release && just regen-solr-image )
     SOLR_NO_RESTORE=1 SOLR_BUILD=1 ./init.sh
     just solr-dc up -d --quiet-pull solr-data-load
@@ -73,7 +73,7 @@ solr-dc *args='ps':
 
 # shortcut for interacting w/ the CI docker-compose project
 ci-dc *args='ps':
-    docker-compose -f ./docker-compose.yml -f ./docker-compose.override.yml -f ./docker-compose.ci.yml {{args}}
+    docker-compose -f ./docker-compose.yml -f ./docker-compose.override.yml -f ./docker-compose.ci.yml -p ci {{args}}
 
 # target for running tests IN CI
 test:

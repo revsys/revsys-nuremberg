@@ -79,5 +79,6 @@ if [[ -n ${SOLR_DIST_DATA} ]];
 then
 	sleep 10
 	$DOCKER_COMPOSE_EXEC -u 0 -T ${solr} tar --sparse -cz -f /dist/var-solr.tgz /var/solr
+	$DOCKER_COMPOSE_EXEC -u 0 -T ${solr} ln /dist/var-solr.tgz /dist/var-solr-$( date +%D ) | tr '/' '-'
 	$DOCKER_COMPOSE_EXEC -u 0 -T ${solr} chown -Rv $UID /dist
 fi
