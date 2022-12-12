@@ -205,7 +205,7 @@ def test_exhibit_links(seq):
     page = seq(210)
     page = follow_link(page('a').with_text('61'))
 
-    assert 'Results 1-7 of 7 for * exhibit:"Prosecution 61"' in page.text()
+    assert 'Results 1-12 of 12 for * exhibit:"Prosecution 61"' in page.text()
     assert (
         'Letter to Heinrich Himmler, sending report on high altitude experiments'
         in page.text()
