@@ -1266,6 +1266,17 @@ class DocumentExhibitCode(models.Model):
             )
         return ''
 
+    def book_code(self):
+        if self.prosecution_doc_book_number:
+            return f'Prosecution {self.prosecution_doc_book_number}'
+
+        if self.defense_doc_book_number:
+            if self.defense_name:
+                name = self.defense_name.name
+            else:
+                name = self.defense_name_denormalized or 'Defendant'
+            return f'{name} {self.defense_doc_book_number}'
+
 
 class DocumentTextQuerySet(models.QuerySet):
     def no_matching_document(self):
