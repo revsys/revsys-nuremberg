@@ -183,16 +183,10 @@
           </p>
         {% endif %}
         {% for exhibit_code in exhibit_codes %}
-          {% if exhibit_code.prosecution_doc_book_number %}
+          {% if exhibit_code.book_code %}
           <p>
-            <strong>Prosecution Document Book No:</strong>
-              {{ exhibit_code.prosecution_doc_book_number }}
-          </p>
-          {% endif %}
-          {% if exhibit_code.defense_doc_book_number %}
-          <p>
-            <strong>Defense Document Book No:</strong>
-              {{ exhibit_code.defense_doc_book_name }} {{ exhibit_code.defense_doc_book_number }}</br>
+            <strong>Document Book No:</strong>
+              {{ exhibit_code.book_code }}
           </p>
           {% endif %}
           {% if exhibit_code.defense_doc_number %}
