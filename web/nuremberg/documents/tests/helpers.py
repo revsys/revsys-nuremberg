@@ -1,17 +1,13 @@
-import re
-
 import pytest
 from model_bakery import baker
 
 from nuremberg.documents.models import (
+    EVIDENCE_CODE_RE,
     Document,
     DocumentExternalMetadata,
     DocumentText,
     PersonalAuthorProperty,
 )
-
-
-EVIDENCE_CODE_RE = re.compile(r'^([A-Z]+)-([0-9]+)([a-z]{0,1})$')
 
 
 class DummyMemDictStorage:

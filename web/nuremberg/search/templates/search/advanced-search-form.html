@@ -5,6 +5,14 @@
     <p><strong>Advanced Search</strong> <a class="hide-advanced-search">Hide</a></p>
   </div>
 
+  {% for message in messages %}
+    {% if not message.extra_tags %}
+    <div class="has-error">
+    {{ message }}
+    </div>
+    {% endif %}
+  {% endfor %}
+
   <form class="advanced-search" role="search" aria-label="advanced search" action="{% url 'search:advanced-search' %}" method="POST">
     {% csrf_token %}
     <p>{% trans 'Match' %} {{ form.match }} {% trans 'the keywords below' %}<p>
@@ -16,7 +24,7 @@
     <p>{{ form.trial.label_tag }} {{ form.trial }}</p>
     <p>{{ form.evidence.label_tag }} {{ form.evidence }} {{ form.evidence_num }} {{ form.evidence_suffix }}</p>
     <p>{{ form.exhibit.label_tag }}  {{ form.exhibit }} {{ form.exhibit_num }}</p>
-    <p>{{ form.document_book.label_tag }} {{ form.document_book }} {{ form.document_book_num }}</p>
+    <p>{{ form.book.label_tag }} {{ form.book }} {{ form.book_num }}</p>
     <p>{{ form.language.label_tag }} {{ form.language }}</p>
     <p>{{ form.notes.label_tag }} {{ form.notes }}</p>
     <p>{{ form.source.label_tag }} {{ form.source }}</p>
