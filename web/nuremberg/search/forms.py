@@ -2,11 +2,14 @@ import re
 from collections import deque
 
 from django import forms
+from django.forms import ValidationError
 from django.utils.translation import gettext_lazy as _
 from haystack.forms import SearchForm
 from haystack.inputs import AutoQuery
 
 from nuremberg.documents.models import (
+    EVIDENCE_CODE_RE,
+    EXHIBIT_CODE_RE,
     DocumentActivity,
     DocumentCase,
     DocumentEvidencePrefix,
@@ -153,9 +156,6 @@ class FieldedSearchForm(SearchForm):
 
     def __init__(self, *args, **kwargs):
         self.sort_results = kwargs.pop('sort_results')
-        print(
-            '\n\n\n======= FieldedSearchForm sort_results', self.sort_results
-        )
         self.transcript_id = kwargs.pop('transcript_id', None)
 
         super().__init__(*args, **kwargs)
@@ -328,8 +328,9 @@ class AdvancedDocumentSearchForm(forms.Form):
         (MATCH_ALL, _('all')),
         (MATCH_ANY, _('any of')),
     ]
+    CHOICE_EMPTY = ('', _('Choose one...'))
     AUTHOR_CHOICES = (
-        [('', _('Choose author'))]
+        [CHOICE_EMPTY]
         + sorted(
             (i.full_name(), i.full_name())
             for i in DocumentPersonalAuthor.objects.all()
@@ -341,7 +342,7 @@ class AdvancedDocumentSearchForm(forms.Form):
             .exclude(name='')
         )
     )
-    DEFENDANT_CHOICES = [('', _('Choose defendant'))] + [
+    DEFENDANT_CHOICES = [CHOICE_EMPTY] + [
         (i, i)
         for i in DocumentExhibitCodeName.objects.filter(name__isnull=False)
         .exclude(name='')
@@ -349,26 +350,26 @@ class AdvancedDocumentSearchForm(forms.Form):
         .values_list('name', flat=True)
         .distinct()
     ]
-    ISSUE_CHOICES = [('', _('Choose trial issues'))] + [
+    ISSUE_CHOICES = [CHOICE_EMPTY] + [
         (i, i)
         for i in DocumentActivity.objects.all()
         .order_by('name')
         .values_list('name', flat=True)
         .distinct()
     ]
-    TRIAL_CHOICES = [('', _('Choose trial'))] + [
+    TRIAL_CHOICES = [CHOICE_EMPTY] + [
         (case.tag_name, case.short_name)
         for case in DocumentCase.objects.filter(id__lt=14)
         .distinct()
         .order_by('id')
     ]
-    EVIDENCE_PREFIX_CHOICES = [('', _('Choose Series'))] + [
+    EVIDENCE_PREFIX_CHOICES = [CHOICE_EMPTY] + [
         (prefix.code, prefix.code)
         for prefix in DocumentEvidencePrefix.objects.all()
         .distinct()
         .order_by('code')
     ]
-    EXHIBIT_CHOICES = [('prosecution', _('Prosecution'))] + [
+    EXHIBIT_CHOICES = [CHOICE_EMPTY, ('prosecution', _('Prosecution'))] + [
         (i, i)
         for i in DocumentExhibitCode.objects.filter(
             defense_name_denormalized__isnull=False
@@ -377,7 +378,7 @@ class AdvancedDocumentSearchForm(forms.Form):
         .values_list('defense_name_denormalized', flat=True)
         .distinct()
     ]
-    BOOK_CHOICES = [('prosecution', _('Prosecution'))] + [
+    BOOK_CHOICES = [CHOICE_EMPTY, ('prosecution', _('Prosecution'))] + [
         (i, i)
         for i in DocumentExhibitCode.objects.filter(
             defense_doc_book_name__isnull=False
@@ -387,11 +388,13 @@ class AdvancedDocumentSearchForm(forms.Form):
         .values_list('defense_doc_book_name', flat=True)
         .distinct()
     ]
-    LANGUAGE_CHOICES = [('', _('Choose language'))] + [
+    LANGUAGE_CHOICES = [CHOICE_EMPTY] + [
         (lang.name.lower(), lang.name)
         for lang in DocumentLanguage.objects.all().order_by('id')
     ]
-    match = forms.ChoiceField(choices=MATCH_CHOICES, required=True)
+    match = forms.ChoiceField(
+        choices=MATCH_CHOICES, initial=MATCH_ALL, disabled=True
+    )
     keywords = forms.CharField(required=False)
     title = forms.CharField(required=False)
     author = forms.ChoiceField(required=False, choices=AUTHOR_CHOICES)
@@ -426,22 +429,76 @@ class AdvancedDocumentSearchForm(forms.Form):
             attrs={'size': '10', 'placeholder': _('Number')}
         ),
     )
-    # document_book = forms.ChoiceField(required=False, choices=BOOK_CHOICES)
-    # document_book_num = forms.CharField(
-    #     required=False,
-    #     widget=forms.TextInput(
-    #         attrs={'size': '10', 'placeholder': _('Number')}
-    #     ),
-    # )
+    book = forms.ChoiceField(
+        label=_('Document Book'), required=False, choices=BOOK_CHOICES
+    )
+    book_num = forms.CharField(
+        required=False,
+        widget=forms.TextInput(
+            attrs={'size': '10', 'placeholder': _('Number')}
+        ),
+    )
     language = forms.ChoiceField(required=False, choices=LANGUAGE_CHOICES)
     notes = forms.CharField(required=False)
     source = forms.CharField(required=False)
 
+    # For now only AND operator is available
+    def clean_match(self):
+        value = self.cleaned_data.get('match', self.MATCH_ALL)
+        if value != self.MATCH_ALL:
+            raise ValidationError('Only match all (AND) operator available')
+        return value
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        # Handle evidence, exhibit and book codes using the combined widgets.
+        # Should we build a custom widget for this?
+
+        evidence = cleaned_data.get('evidence')
+        evidence_num = cleaned_data.get('evidence_num')
+        if bool(evidence) != bool(evidence_num):
+            self.add_error(
+                'evidence',
+                ValidationError(
+                    'Evidence code is incomplete', code='evidence'
+                ),
+            )
+        elif evidence:
+            suffix = cleaned_data.get('evidence_suffix', '')
+            cleaned_data[
+                'evidence_code'
+            ] = f'{evidence}-{evidence_num}{suffix}'
+
+        exhibit = cleaned_data.get('exhibit')
+        exhibit_num = cleaned_data.get('exhibit_num')
+        if bool(exhibit) != bool(exhibit_num):
+            self.add_error(
+                'exhibit',
+                ValidationError(
+                    'Exhibit information is incomplete', code='exhibit'
+                ),
+            )
+        elif exhibit:
+            cleaned_data['exhibit_code'] = f'{exhibit} {exhibit_num}'
+
+        book = cleaned_data.get('book')
+        book_num = cleaned_data.get('book_num')
+        if bool(book) != bool(book_num):
+            self.add_error(
+                'book',
+                ValidationError('Book information is incomplete', code='book'),
+            )
+        elif book:
+            cleaned_data['book_code'] = f'{book} {book_num}'
+
+        return cleaned_data
+
     def as_search_qs(self):
         data = self.cleaned_data
-        op = ' ' if data['match'] == self.MATCH_ALL else ' | '
+        # This assumes AND operation between search fields
+        op = ' '  # if data['match'] == self.MATCH_ALL else ' | '
         terms = []
-        # XXX: search by notes and document book missing
         for term in (
             'keywords',
             'title',
@@ -457,25 +514,46 @@ class AdvancedDocumentSearchForm(forms.Form):
             if value:
                 terms.append(f'{term}:"{value}"')
 
-        # special treatment
-        evidence = data.get('evidence')
-        evidence_num = data.get('evidence_num')
-        if evidence and evidence_num:
-            suffix = data.get('evidence_suffix', '')
-            terms.append(
-                f'evidence:{"-".join((evidence, evidence_num))}{suffix}'
-            )
+        # special treatment, uses `_code` suffix for field name
+        for term in ('evidence', 'exhibit', 'book'):
+            value = data.get(f'{term}_code')
+            if value:
+                terms.append(f'{term}:"{value}"')
 
-        exhibit = data.get('exhibit')
-        exhibit_num = data.get('exhibit_num')
-        if exhibit and exhibit_num:
-            terms.append(f'exhibit:"{" ".join((exhibit, exhibit_num))}"')
-
-        # Should some terms be q and some others be f and/or m, etc?
         q = op.join(terms)
         return q
 
     @classmethod
     def from_search_qs(cls, qs):
-        # XXX: ToDo
-        return cls()
+        # This assumes AND operation between search fields
+        expr = re.compile(r'([a-z0-9_]+):("[^"]+"|[^"\s]+)\s*')
+        initial = {k: v.strip('"') for k, v in expr.findall(qs)}
+
+        # handle evidence code
+        evidence = initial.get('evidence')
+        if evidence:
+            matches = EVIDENCE_CODE_RE.match(evidence)
+            if matches:
+                evidence, evidence_num, evidence_suffix = matches.groups()
+                initial['evidence'] = evidence
+                initial['evidence_num'] = evidence_num
+                initial['evidence_suffix'] = evidence_suffix
+
+        # handle exhibit and book codes similarly to how evidence is handled
+        exhibit = initial.get('exhibit')
+        if exhibit:
+            matches = EXHIBIT_CODE_RE.match(exhibit)
+            if matches:
+                exhibit, exhibit_num = matches.groups()
+                initial['exhibit'] = exhibit
+                initial['exhibit_num'] = exhibit_num
+
+        book = initial.get('book')
+        if book:
+            matches = EXHIBIT_CODE_RE.match(book)
+            if matches:
+                book, book_num = matches.groups()
+                initial['book'] = book
+                initial['book_num'] = book_num
+
+        return cls(initial=initial)

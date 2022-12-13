@@ -3,8 +3,8 @@ from urllib import parse
 from django.contrib import messages
 from django.http import Http404
 from django.shortcuts import redirect
-from django.views.decorators.http import require_http_methods
 from django.urls import reverse
+from django.views.decorators.http import require_http_methods
 from haystack.generic_views import (
     FacetedSearchView,
     FacetedSearchMixin,
@@ -162,12 +162,15 @@ class Search(FacetedSearchView):
 
 @require_http_methods(['POST'])
 def advanced_search(request):
+    search_url = reverse('search:search')
+
     form = AdvancedDocumentSearchForm(data=request.POST)
     if form.is_valid():
         qs = {Search.search_field: form.as_search_qs()}
-        return redirect(reverse('search:search') + '?' + parse.urlencode(qs))
+        return redirect(search_url + '?' + parse.urlencode(qs) + '#advanced')
 
-    messages.error('The provided advanced search terms are invalid.')
-    for error in form.errors:
-        messages.error(error)
-    return redirect(reverse('search:search'))
+    messages.error(request, 'The provided advanced search terms are invalid.')
+    for field, error in form.errors.items():
+        messages.error(request, error.as_json(), extra_tags=field)
+
+    return redirect(search_url + '#advanced')
