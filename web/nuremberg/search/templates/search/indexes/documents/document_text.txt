@@ -7,6 +7,8 @@
 
 {{ object.literal_title|default:"" }}
 
+{{ object.description }}
+
 {{ object.material_type }}
 
 {% if object.date %}
