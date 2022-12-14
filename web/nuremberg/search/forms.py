@@ -3,6 +3,7 @@ from collections import deque
 
 from django import forms
 from django.forms import ValidationError
+from django.utils.functional import lazy
 from django.utils.translation import gettext_lazy as _
 from haystack.forms import SearchForm
 from haystack.inputs import AutoQuery
@@ -320,6 +321,9 @@ class DocumentSearchForm(EmptyFacetsSearchForm, FieldedSearchForm):
     pass
 
 
+CHOICE_EMPTY = ('', _('Choose one...'))
+
+
 class AdvancedDocumentSearchForm(forms.Form):
 
     MATCH_ALL = 'all'
@@ -328,9 +332,8 @@ class AdvancedDocumentSearchForm(forms.Form):
         (MATCH_ALL, _('all')),
         (MATCH_ANY, _('any of')),
     ]
-    CHOICE_EMPTY = ('', _('Choose one...'))
-    AUTHOR_CHOICES = (
-        [CHOICE_EMPTY]
+    AUTHOR_CHOICES = lazy(
+        lambda: [CHOICE_EMPTY]
         + sorted(
             (i.full_name(), i.full_name())
             for i in DocumentPersonalAuthor.objects.all()
@@ -340,58 +343,87 @@ class AdvancedDocumentSearchForm(forms.Form):
             for i in DocumentGroupAuthor.objects.all()
             .filter(name__isnull=False)
             .exclude(name='')
-        )
+        ),
+        list,
     )
-    DEFENDANT_CHOICES = [CHOICE_EMPTY] + [
-        (i, i)
-        for i in DocumentExhibitCodeName.objects.filter(name__isnull=False)
-        .exclude(name='')
-        .order_by('name')
-        .values_list('name', flat=True)
-        .distinct()
-    ]
-    ISSUE_CHOICES = [CHOICE_EMPTY] + [
-        (i, i)
-        for i in DocumentActivity.objects.all()
-        .order_by('name')
-        .values_list('name', flat=True)
-        .distinct()
-    ]
-    TRIAL_CHOICES = [CHOICE_EMPTY] + [
-        (case.tag_name, case.short_name)
-        for case in DocumentCase.objects.filter(id__lt=14)
-        .distinct()
-        .order_by('id')
-    ]
-    EVIDENCE_PREFIX_CHOICES = [CHOICE_EMPTY] + [
-        (prefix.code, prefix.code)
-        for prefix in DocumentEvidencePrefix.objects.all()
-        .distinct()
-        .order_by('code')
-    ]
-    EXHIBIT_CHOICES = [CHOICE_EMPTY, ('prosecution', _('Prosecution'))] + [
-        (i, i)
-        for i in DocumentExhibitCode.objects.filter(
-            defense_name_denormalized__isnull=False
-        )
-        .order_by('defense_name_denormalized')
-        .values_list('defense_name_denormalized', flat=True)
-        .distinct()
-    ]
-    BOOK_CHOICES = [CHOICE_EMPTY, ('prosecution', _('Prosecution'))] + [
-        (i, i)
-        for i in DocumentExhibitCode.objects.filter(
-            defense_doc_book_name__isnull=False
-        )
-        .exclude(defense_doc_book_name=0)
-        .order_by('defense_doc_book_name')
-        .values_list('defense_doc_book_name', flat=True)
-        .distinct()
-    ]
-    LANGUAGE_CHOICES = [CHOICE_EMPTY] + [
-        (lang.name.lower(), lang.name)
-        for lang in DocumentLanguage.objects.all().order_by('id')
-    ]
+    DEFENDANT_CHOICES = lazy(
+        lambda: [CHOICE_EMPTY]
+        + [
+            (i, i)
+            for i in DocumentExhibitCodeName.objects.filter(name__isnull=False)
+            .exclude(name='')
+            .order_by('name')
+            .values_list('name', flat=True)
+            .distinct()
+        ],
+        list,
+    )
+    ISSUE_CHOICES = lazy(
+        lambda: [CHOICE_EMPTY]
+        + [
+            (i.short_name, i.short_name)
+            for i in DocumentActivity.objects.all()
+            .order_by('name')
+            .distinct()
+            if i.short_name
+        ],
+        list,
+    )
+    TRIAL_CHOICES = lazy(
+        lambda: [CHOICE_EMPTY]
+        + [
+            (case.tag_name, case.short_name)
+            for case in DocumentCase.objects.filter(id__lt=14)
+            .distinct()
+            .order_by('id')
+        ],
+        list,
+    )
+    EVIDENCE_PREFIX_CHOICES = lazy(
+        lambda: [CHOICE_EMPTY]
+        + [
+            (prefix.code, prefix.code)
+            for prefix in DocumentEvidencePrefix.objects.all()
+            .distinct()
+            .order_by('code')
+        ],
+        list,
+    )
+    EXHIBIT_CHOICES = lazy(
+        lambda: [CHOICE_EMPTY, ('prosecution', _('Prosecution'))]
+        + [
+            (i, i)
+            for i in DocumentExhibitCode.objects.filter(
+                defense_name_denormalized__isnull=False
+            )
+            .order_by('defense_name_denormalized')
+            .values_list('defense_name_denormalized', flat=True)
+            .distinct()
+        ],
+        list,
+    )
+    BOOK_CHOICES = lazy(
+        lambda: [CHOICE_EMPTY, ('prosecution', _('Prosecution'))]
+        + [
+            (i, i)
+            for i in DocumentExhibitCode.objects.filter(
+                defense_doc_book_name__isnull=False
+            )
+            .exclude(defense_doc_book_name=0)
+            .order_by('defense_doc_book_name')
+            .values_list('defense_doc_book_name', flat=True)
+            .distinct()
+        ],
+        list,
+    )
+    LANGUAGE_CHOICES = lazy(
+        lambda: [CHOICE_EMPTY]
+        + [
+            (lang.name.lower(), lang.name)
+            for lang in DocumentLanguage.objects.all().order_by('id')
+        ],
+        list,
+    )
     match = forms.ChoiceField(
         choices=MATCH_CHOICES, initial=MATCH_ALL, disabled=True
     )
