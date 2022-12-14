@@ -27,6 +27,7 @@ class DocumentIndex(indexes.SearchIndex, indexes.Indexable):
     slug = indexes.CharField(model_attr='slug', indexed=False)
     title = indexes.CharField(model_attr='title', default='')
     literal_title = indexes.CharField(model_attr='literal_title', null=True)
+    description = indexes.CharField(model_attr='description', null=True)
 
     total_pages = indexes.IntegerField(
         model_attr='total_pages', default=0, null=True
@@ -50,6 +51,7 @@ class DocumentIndex(indexes.SearchIndex, indexes.Indexable):
 
     evidence_codes = indexes.MultiValueField(null=True)
     exhibit_codes = indexes.MultiValueField(null=True)
+    book_codes = indexes.MultiValueField(null=True)
 
     trial_activities = indexes.MultiValueField(faceted=True, null=True)
 
@@ -62,11 +64,18 @@ class DocumentIndex(indexes.SearchIndex, indexes.Indexable):
     def index_queryset(self, using=None):
         return (
             Document.objects.select_related()
-            .prefetch_related('dates')
-            .prefetch_related('cases')
-            .prefetch_related('personal_authors')
-            .prefetch_related('group_authors')
-            .prefetch_related('defendants')
+            .prefetch_related(
+                'activities',
+                'cases',
+                'dates',
+                'evidence_codes',
+                'evidence_codes__prefix',
+                'exhibit_codes',
+                'exhibit_codes__defense_name',
+                'personal_authors',
+                'group_authors',
+                'defendants',
+            )
             .all()
         )
 
@@ -121,6 +130,13 @@ class DocumentIndex(indexes.SearchIndex, indexes.Indexable):
             if str(code):
                 codes.append(str(code))
         return codes
+
+    def prepare_book_codes(self, document):
+        return [
+            code.book_code
+            for code in document.exhibit_codes.all()
+            if code.book_code
+        ]
 
 
 class DocumentTextIndex(indexes.SearchIndex, indexes.Indexable):

@@ -113,6 +113,7 @@ class FieldedSearchForm(SearchForm):
 
     search_fields = {
         'all': 'text',
+        'keywords': 'text',
         'title': 'title',
         'author': 'authors',
         'authors': True,
@@ -124,9 +125,12 @@ class FieldedSearchForm(SearchForm):
         'type': 'material_type',
         'date': True,
         'language': True,
+        'notes': 'description',
+        'description': True,
         'source': True,
         'evidence': 'evidence_codes',
         'exhibit': 'exhibit_codes',
+        'book': 'book_codes',
         'activity': 'trial_activities',
         'activities': 'trial_activities',
         'issue': 'trial_activities',
