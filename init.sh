@@ -51,7 +51,7 @@ then
 
 	echo "Setting up solr config"
 
-	$DOCKER_COMPOSE cp solr_conf ${solr}:/opt/solr-8.11.2/solr_conf && \
+	$DOCKER_COMPOSE cp solr_conf ${solr}:/opt/solr-8.11.2/ && \
 	$DOCKER_COMPOSE_EXEC -u0 ${solr} cp -Rp /opt/solr-8.11.2/solr_conf /var/solr/data/nuremberg_dev && \
 	$DOCKER_COMPOSE_EXEC -u0 ${solr} chown -R solr:solr /var/solr/data solr_conf || exit 1
 
@@ -70,7 +70,7 @@ then
 		$DOCKER_COMPOSE_EXEC -T ${solr} curl -sS "$SOLR_URL/$SOLR_CORE/replication?command=restore" || exit 1
 	else
 		echo "Rebuilding Solr index (SLOW)"
-		time $DOCKER_COMPOSE_EXEC ${web} python manage.py rebuild_index -k8 -b500 --noinput || exit 1
+		time $DOCKER_COMPOSE_EXEC ${web} python manage.py rebuild_index --noinput || exit 1
 	fi
 fi
 
