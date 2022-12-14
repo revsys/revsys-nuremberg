@@ -128,7 +128,8 @@ def test_seq_alignment(seq):
     page = seq(49)
     assert 'Seq. No. 31' in page('.page-handle').nth(0).text()
 
-    # it begins on a join and should not have the first incomplete sentence from seq 31
+    # it begins on a join and should not have the first incomplete sentence
+    # from seq 31
     assert (
         'directly responsible to Hitler himself is the defendant Karl Brandt'
         not in page.text()
@@ -138,8 +139,8 @@ def test_seq_alignment(seq):
     page = seq(25)
     assert "Seq. No. 30" in page('.page-handle').nth(-1).text()
     assert (
-        'The only defendant in the dock who was directly responsible to Hitler himself is the defendant Karl Brandt.'
-        in page.text()
+        'The only defendant in the dock who was directly responsible to '
+        'Hitler himself is the defendant Karl Brandt.' in page.text()
     )
 
 
@@ -207,8 +208,8 @@ def test_exhibit_links(seq):
 
     assert 'Results 1-12 of 12 for * exhibit:"Prosecution 61"' in page.text()
     assert (
-        'Letter to Heinrich Himmler, sending report on high altitude experiments'
-        in page.text()
+        'Letter to Heinrich Himmler, sending report on high altitude '
+        'experiments' in page.text()
     )
 
     page = follow_link(
@@ -224,8 +225,8 @@ def test_exhibit_links(seq):
 
     assert 'Results 1-2 of 2 for * exhibit:"Rose 8"' in page.text()
     assert (
-        'Extract from a report of a conference of consulting specialists, concerning dysentery'
-        in page.text()
+        'Extract from a report of a conference of consulting specialists, '
+        'concerning dysentery' in page.text()
     )
 
     page = follow_link(
