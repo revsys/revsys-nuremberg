@@ -5,9 +5,11 @@ from django.http import QueryDict
 from django.urls import reverse
 
 from nuremberg.core.tests.acceptance_helpers import (
+    client,
     follow_link,
     go_to,
 )
+from nuremberg.search.forms import AdvancedDocumentSearchForm
 from nuremberg.search.templatetags.search_url import search_url
 from nuremberg.transcripts.models import Transcript
 
@@ -419,3 +421,13 @@ def test_sort(query):
     assert '0 pages' in page.text()
     page = follow_link(page('[data-test="search-result-last-page"]'))
     assert '492 pages' in page.text()
+
+
+def test_advanced_search_available():
+    url = reverse('search:search')
+    response = client.get(url)
+
+    assert isinstance(
+        response.context.get('advanced_search_form'),
+        AdvancedDocumentSearchForm,
+    )
