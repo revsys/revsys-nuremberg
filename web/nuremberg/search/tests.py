@@ -9,8 +9,11 @@ from nuremberg.core.tests.acceptance_helpers import (
 from nuremberg.search.templatetags.search_url import search_url
 
 
-# XXX: These tests are fragile and likely to fail after data reindex.
-# See https://github.com/revsys/revsys-nuremberg/issues/9
+# XXX: https://github.com/revsys/revsys-nuremberg/issues/9
+pytest.skip(
+    reason="These tests are fragile and likely to fail after data reindex.",
+    allow_module_level=True,
+)
 
 SEARCH_TOTAL_RESULTS = 16466  # *
 SEARCH_TOTAL_DOCUMENTS = 16242  # filter on documents

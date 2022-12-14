@@ -1266,6 +1266,7 @@ class DocumentExhibitCode(models.Model):
             )
         return ''
 
+    @cached_property
     def book_code(self):
         if self.prosecution_doc_book_number:
             return f'Prosecution {self.prosecution_doc_book_number}'

@@ -1022,6 +1022,38 @@ def test_author_extra_as_dict_minimal():
     }
 
 
+def test_document_exhibit_code_book_code_none():
+    exhibit = baker.make('DocumentExhibitCode')
+
+    assert exhibit.book_code is None
+
+
+def test_document_exhibit_code_book_code_prosecution():
+    exhibit = baker.make('DocumentExhibitCode', prosecution_doc_book_number=3)
+
+    assert exhibit.book_code == 'Prosecution 3'
+
+
+def test_document_exhibit_code_book_code_defendant_name():
+    exhibit = baker.make(
+        'DocumentExhibitCode',
+        defense_doc_book_number=42,
+        defense_name__name='Last Name',
+        defense_name_denormalized='Other Name',
+    )
+    assert exhibit.defense_name is not None
+    assert bool(exhibit.defense_name.name)
+    assert exhibit.book_code == 'Last Name 42'
+
+    del exhibit.book_code
+    exhibit.defense_name = None
+    assert exhibit.book_code == 'Other Name 42'
+
+    del exhibit.book_code
+    exhibit.defense_name_denormalized = ''
+    assert exhibit.book_code == 'Defendant 42'
+
+
 def test_document_text_evidence_code():
     doc_text = baker.make(
         'DocumentText',
