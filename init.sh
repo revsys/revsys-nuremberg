@@ -70,7 +70,7 @@ then
 		$DOCKER_COMPOSE_EXEC -T ${solr} curl -sS "$SOLR_URL/$SOLR_CORE/replication?command=restore" || exit 1
 	else
 		echo "Rebuilding Solr index (SLOW)"
-		time $DOCKER_COMPOSE_EXEC ${web} python manage.py rebuild_index --noinput || exit 1
+		time $DOCKER_COMPOSE_EXEC ${web} python manage.py rebuild_index -k8 -b500 --noinput || exit 1
 	fi
 fi
 
