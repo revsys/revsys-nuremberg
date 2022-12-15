@@ -3,9 +3,14 @@ name: Build Images & Test Code
 on:
   workflow_dispatch:
   push:
-    branches: [ main ]
+    branches:
+      - main
+
   pull_request:
-    branches: [ main ]
+    types:
+      - closed
+    branches:
+      - main
 
 jobs:
   build-and-test:
@@ -19,7 +24,6 @@ jobs:
     steps:
         - name: Checkout code
           uses: actions/checkout@v3
-
         - name: update docker-compose
           run: |
             mkdir -pv $HOME/.docker/cli-plugins
@@ -35,14 +39,26 @@ jobs:
             registry: registry.revsys.com
             username: github
             password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
+        - name: Current Version
+          run: just banner version
+        - name: bumpversion on PR merge
+          if: github.event.pull_request.merged == true
+          run: just bump patch
+        - name: bumpversion
+          if: github.event.pull_request.merged == false
+          run: just bump build
         - name: Build test runner
           run: just build tester
         - name: Run tests
           run: just test
         - name: Get logs on failure
-          run: docker compose logs
+          run: just ci-dc logs
           if: failure()
         - name: Run pre-commit to check code style (no commits will be made)
           uses: pre-commit/action@v3.0.0
+        - name: Commit version updates
+          run: git push && git push --tags
         - name: Push release image to registry
           run: just push release
+        - name: deploy to dev
+          run: just deploy dev
