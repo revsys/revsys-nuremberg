@@ -15,7 +15,7 @@
 
   <form class="advanced-search" role="search" aria-label="advanced search" action="{% url 'search:advanced-search' %}" method="POST">
     {% csrf_token %}
-    <p>{% trans 'Match' %} {{ form.match }} {% trans 'the keywords below' %}</p>
+    <p>{% trans 'Match all the fields below' %}</p>
     {% for field in form %}
       {% if field.name != 'match' and field.name != 'evidence' and field.name != 'exhibit' and field.name != 'book' and '_' not in field.name %}
       <div class="{% if field.errors %}has-error{% endif %}">

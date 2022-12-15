@@ -326,12 +326,6 @@ CHOICE_EMPTY = ('', _('Choose one...'))
 
 class AdvancedDocumentSearchForm(forms.Form):
 
-    MATCH_ALL = 'all'
-    MATCH_ANY = 'any'
-    MATCH_CHOICES = [
-        (MATCH_ALL, _('all')),
-        (MATCH_ANY, _('any of')),
-    ]
     AUTHOR_CHOICES = lazy(
         lambda: [CHOICE_EMPTY]
         + sorted(
@@ -422,9 +416,6 @@ class AdvancedDocumentSearchForm(forms.Form):
         ],
         list,
     )
-    match = forms.ChoiceField(
-        choices=MATCH_CHOICES, initial=MATCH_ALL, disabled=True
-    )
     keywords = forms.CharField(required=False)
     title = forms.CharField(required=False)
     author = forms.ChoiceField(required=False, choices=AUTHOR_CHOICES)
@@ -471,13 +462,6 @@ class AdvancedDocumentSearchForm(forms.Form):
     language = forms.ChoiceField(required=False, choices=LANGUAGE_CHOICES)
     notes = forms.CharField(required=False)
     source = forms.CharField(required=False)
-
-    # For now only AND operator is available
-    def clean_match(self):
-        value = self.cleaned_data.get('match', self.MATCH_ALL)
-        if value != self.MATCH_ALL:
-            raise ValidationError('Only match all (AND) operator available')
-        return value
 
     def clean(self):
         cleaned_data = super().clean()
@@ -530,8 +514,7 @@ class AdvancedDocumentSearchForm(forms.Form):
             data = self.cleaned_data
         except AttributeError:
             data = self.data
-        # This assumes AND operation between search fields
-        op = ' '  # if data['match'] == self.MATCH_ALL else ' | '
+
         terms = []
         for term in (
             'keywords',
@@ -554,7 +537,8 @@ class AdvancedDocumentSearchForm(forms.Form):
             if value:
                 terms.append(f'{term}:"{value}"')
 
-        q = op.join(terms)
+        # This assumes AND operation between search fields
+        q = ' '.join(terms)
         return q
 
     @classmethod
