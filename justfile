@@ -104,6 +104,7 @@ _solr-compose:
 
 # updates last/{{env}}/deploy and {{env}}/deploy tags to trigger flux deployment
 @deploy env='dev':
+    git fetch --tags -f
     git tag -f last/{{env}}/deploy {{env}}/deploy
     git tag -f {{env}}/deploy {{VERSION}}
     git push --tags --force
