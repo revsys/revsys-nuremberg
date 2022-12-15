@@ -1,4 +1,6 @@
+import json
 import re
+from urllib import parse
 
 import pytest
 from django.http import QueryDict
@@ -11,6 +13,7 @@ from nuremberg.core.tests.acceptance_helpers import (
 )
 from nuremberg.search.forms import AdvancedDocumentSearchForm
 from nuremberg.search.templatetags.search_url import search_url
+from nuremberg.search.views import ADVANCED_SEARCH_FORM_ERRORS
 from nuremberg.transcripts.models import Transcript
 
 
@@ -423,7 +426,7 @@ def test_sort(query):
     assert '492 pages' in page.text()
 
 
-def test_advanced_search_available():
+def test_advanced_search_form_available():
     url = reverse('search:search')
     response = client.get(url)
 
@@ -431,3 +434,51 @@ def test_advanced_search_available():
         response.context.get('advanced_search_form'),
         AdvancedDocumentSearchForm,
     )
+
+
+def test_advanced_search_post_no_errors():
+    url = reverse('search:advanced-search')
+    data = {'keywords': 'foo bar'}
+    response = client.post(url, data=data, follow=False)
+
+    assert response.status_code == 302
+    qs = parse.urlencode({'q': 'keywords:"foo bar"'}) + '#advanced'
+    assert response['Location'] == reverse('search:search') + '?' + qs
+
+
+def test_advanced_search_post_with_errors():
+    url = reverse('search:advanced-search')
+    data = {'author': 'Does not exist'}
+    response = client.post(url, data=data, follow=False)
+
+    assert response.status_code == 302
+    qs = parse.urlencode({'q': 'author:"Does not exist"'}) + '#advanced'
+    assert response['Location'] == reverse('search:search') + '?' + qs
+
+    errors = client.session.get(ADVANCED_SEARCH_FORM_ERRORS)
+    assert errors is not None
+    form = AdvancedDocumentSearchForm(data)
+    assert not form.is_valid()
+    assert errors == form.errors
+
+    response = client.get(response['Location'])
+    assert response.status_code == 200
+
+    invalid_choice = [
+        {
+            'message': (
+                'Select a valid choice. Does not exist is not one of the '
+                'available choices.'
+            ),
+            'code': 'invalid_choice',
+        },
+    ]
+    messages = response.context['messages']
+    actual = [m.message for m in messages if not m.extra_tags] + [
+        (m.extra_tags, json.loads(m.message)) for m in messages if m.extra_tags
+    ]
+    expected = [
+        'The provided advanced search terms are invalid or incomplete.',
+        ('author', invalid_choice),
+    ]
+    assert actual == expected

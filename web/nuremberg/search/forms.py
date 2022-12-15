@@ -382,7 +382,7 @@ class AdvancedDocumentSearchForm(forms.Form):
         list,
     )
     EXHIBIT_CHOICES = lazy(
-        lambda: [CHOICE_EMPTY, ('prosecution', _('Prosecution'))]
+        lambda: [CHOICE_EMPTY, ('Prosecution', _('Prosecution'))]
         + [
             (i, i)
             for i in DocumentExhibitCode.objects.filter(
@@ -395,7 +395,7 @@ class AdvancedDocumentSearchForm(forms.Form):
         list,
     )
     BOOK_CHOICES = lazy(
-        lambda: [CHOICE_EMPTY, ('prosecution', _('Prosecution'))]
+        lambda: [CHOICE_EMPTY, ('Prosecution', _('Prosecution'))]
         + [
             (i, i)
             for i in DocumentExhibitCode.objects.filter(
@@ -424,6 +424,13 @@ class AdvancedDocumentSearchForm(forms.Form):
         label=_('Trial Issues'), required=False, choices=ISSUE_CHOICES
     )
     trial = forms.ChoiceField(required=False, choices=TRIAL_CHOICES)
+    language = forms.ChoiceField(required=False, choices=LANGUAGE_CHOICES)
+    notes = forms.CharField(required=False)
+    source = forms.CharField(required=False)
+
+    # Evidence, Exhibit and Book fields should really be MultiValueField
+    # https://docs.djangoproject.com/en/4.1/ref/forms/fields/#multivaluefield
+
     evidence = forms.ChoiceField(
         label=_('Evidence File Code'),
         required=False,
@@ -459,24 +466,20 @@ class AdvancedDocumentSearchForm(forms.Form):
             attrs={'size': '10', 'placeholder': _('Number')}
         ),
     )
-    language = forms.ChoiceField(required=False, choices=LANGUAGE_CHOICES)
-    notes = forms.CharField(required=False)
-    source = forms.CharField(required=False)
 
     def clean(self):
         cleaned_data = super().clean()
 
         # Handle evidence, exhibit and book codes using the combined widgets.
-        # Should we build a custom widget for this?
+        # See comment above about ideally using MultiWidget
+        # https://docs.djangoproject.com/en/4.1/ref/forms/widgets/#django.forms.MultiWidget
 
         evidence = cleaned_data.get('evidence')
         evidence_num = cleaned_data.get('evidence_num')
         if bool(evidence) != bool(evidence_num):
             self.add_error(
                 'evidence',
-                ValidationError(
-                    'Evidence code is incomplete', code='evidence'
-                ),
+                ValidationError('Evidence code is incomplete', code='invalid'),
             )
         elif evidence:
             suffix = cleaned_data.get('evidence_suffix', '')
@@ -490,7 +493,8 @@ class AdvancedDocumentSearchForm(forms.Form):
             self.add_error(
                 'exhibit',
                 ValidationError(
-                    'Exhibit information is incomplete', code='exhibit'
+                    'Exhibit information is incomplete',
+                    code='invalid',
                 ),
             )
         elif exhibit:
@@ -501,19 +505,19 @@ class AdvancedDocumentSearchForm(forms.Form):
         if bool(book) != bool(book_num):
             self.add_error(
                 'book',
-                ValidationError('Book information is incomplete', code='book'),
+                ValidationError(
+                    'Book information is incomplete', code='invalid'
+                ),
             )
         elif book:
             cleaned_data['book_code'] = f'{book} {book_num}'
 
         return cleaned_data
 
-    def as_search_qs(self):
-        # Allow search qs to be built both from form's data or validated data
-        try:
+    def as_search_qs(self, data=None):
+        # Allow search qs to be built both from form's data or any other data
+        if data is None:
             data = self.cleaned_data
-        except AttributeError:
-            data = self.data
 
         terms = []
         for term in (
@@ -574,9 +578,11 @@ class AdvancedDocumentSearchForm(forms.Form):
                 initial['book'] = book
                 initial['book_num'] = book_num
 
-        result = cls(initial=initial)
-        result.cleaned_data = {}
-        for field, error in errors.items():
-            result.add_error(field, error)
+        result = cls(data=initial)
+
+        if errors:
+            result.cleaned_data = {}
+            for field, error in errors.items():
+                result.add_error(field, error)
 
         return result
