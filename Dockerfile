@@ -1,3 +1,20 @@
+
+#.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
+FROM python:alpine as b2v
+#.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
+
+RUN apk --no-cache add git figlet
+
+RUN --mount=type=cache,target=/root/.cache \
+	pip install bump2version
+
+RUN git config --system user.email ci@revsys.com
+RUN git config --system user.name "Maynard G. Krebbs"
+RUN git config --system --add safe.directory /code
+RUN git config --system init.defaultBranch main
+
+ENTRYPOINT ["bump2version"]
+
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
 FROM revolutionsystems/python:3.10-wee-lto-optimized as just
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
@@ -48,7 +65,7 @@ FROM builder as release
 
 ENV DJANGO_SETTINGS_MODULE nuremberg.settings
 ENV BASE_DIR=/code
-ENV IMAGE_VERSION v0.3.11
+ENV IMAGE_VERSION v0.3.11_2
 
 RUN ln -s /node/node_modules/less/bin/lessc /bin/lessc
 
@@ -94,13 +111,6 @@ RUN ./manage.py migrate
 ENTRYPOINT ["pytest"]
 
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
-FROM test as browser-test
-#.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
-
-CMD ["--no-cov", "nuremberg/documents/browser_tests.py"]
-
-
-#.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
 FROM solr:8.11-slim as solr
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
 
@@ -108,7 +118,7 @@ ENV SOLR_CORE nuremberg_dev
 
 COPY solr_conf /opt/solr-8.11.2/solr_conf
 
-ENV IMAGE_VERSION v0.3.11-solr
+ENV IMAGE_VERSION v0.3.11_2-solr
 
 RUN --mount=type=bind,source=./dist/var-solr.tgz,target=/mnt/var-solr.tgz \
 	cd / && \
