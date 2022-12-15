@@ -362,9 +362,7 @@ class AdvancedDocumentSearchForm(forms.Form):
         lambda: [CHOICE_EMPTY]
         + [
             (i.short_name, i.short_name)
-            for i in DocumentActivity.objects.all()
-            .order_by('name')
-            .distinct()
+            for i in DocumentActivity.objects.all().order_by('name').distinct()
             if i.short_name
         ],
         list,
@@ -527,7 +525,11 @@ class AdvancedDocumentSearchForm(forms.Form):
         return cleaned_data
 
     def as_search_qs(self):
-        data = self.cleaned_data
+        # Allow search qs to be built both from form's data or validated data
+        try:
+            data = self.cleaned_data
+        except AttributeError:
+            data = self.data
         # This assumes AND operation between search fields
         op = ' '  # if data['match'] == self.MATCH_ALL else ' | '
         terms = []
@@ -556,7 +558,7 @@ class AdvancedDocumentSearchForm(forms.Form):
         return q
 
     @classmethod
-    def from_search_qs(cls, qs):
+    def from_search_qs(cls, qs, errors=None):
         # This assumes AND operation between search fields
         expr = re.compile(r'([a-z0-9_]+):("[^"]+"|[^"\s]+)\s*')
         initial = {k: v.strip('"') for k, v in expr.findall(qs)}
@@ -588,4 +590,9 @@ class AdvancedDocumentSearchForm(forms.Form):
                 initial['book'] = book
                 initial['book_num'] = book_num
 
-        return cls(initial=initial)
+        result = cls(initial=initial)
+        result.cleaned_data = {}
+        for field, error in errors.items():
+            result.add_error(field, error)
+
+        return result
