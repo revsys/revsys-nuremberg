@@ -100,7 +100,7 @@ _solr-compose:
 # executes bump2version on local repository (e.g.: just bump patch; just bump build)
 @bump part='build' args='':
     docker inspect registry.revsys.com/bump2version >& /dev/null || ( just _make-bv && just bump {{part}} )
-    docker run -u ${UID} --rm -it -v $PWD:/code --workdir /code registry.revsys.com/bump2version {{part}} --verbose {{args}} || exit 1
+    docker run -u ${UID} --rm --v $PWD:/code --workdir /code registry.revsys.com/bump2version {{part}} --verbose {{args}} || exit 1
 
 
 # updates last/{{env}}/deploy and {{env}}/deploy tags to trigger flux deployment
@@ -133,6 +133,6 @@ banner args='':
 
 _figlet args='':
     #!/usr/bin/env bash
-    docker run -t --entrypoint figlet --rm registry.revsys.com/bump2version -c -f standard -m0 -w115 {{args}}
+    docker run --entrypoint figlet --rm registry.revsys.com/bump2version -c -f standard -m0 -w115 {{args}}
 
 
