@@ -129,6 +129,7 @@ _bk-up:
 # e.g.: just banner version
 banner args='':
     #!/usr/bin/env bash
+    docker inspect registry.revsys.com/bump2version >& /dev/null || ( just _make-bv && just banner {{args}} )
     just _figlet $( just {{args}} )
 
 _figlet args='':
