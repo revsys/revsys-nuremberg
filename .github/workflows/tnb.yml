@@ -2,12 +2,15 @@ name: Build Images & Test Code
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - ci--auto-dev-deploy
 
   pull_request:
     types:
       - closed
     branches:
-      - ci--auto-dev-deploy
+      - main
 
 jobs:
   build-and-test:
