@@ -32,7 +32,6 @@ _test-packages:
 # build [step], tag it with {{IMAGE_REGISTRY}}:{{VERSION}}-{{step}} except for release target
 build step='release' action='--load' verbosity='':
     #!/usr/bin/env bash
-    #set -o xtrace
     just _bk-up
     if [[ "{{ step }}" == "release" ]];
     then
@@ -49,12 +48,12 @@ build step='release' action='--load' verbosity='':
     [[ "{{step}}" == "tester" ]] && cache="--cache-from {{CACHE_REGISTRY}}:last"
 
     echo "Building {{IMAGE_REGISTRY}}:${endbits}"
+    set -o xtrace
 
     docker buildx build ${verbosity} ${cache} {{action}} -t  {{IMAGE_REGISTRY}}:${endbits} --target {{step}} . ||
         docker buildx build --progress plain ${cache} {{action}} -t  {{IMAGE_REGISTRY}}:${endbits} --target {{step}} .
 
     [[ "{{ step }}" == "release" ]] && docker tag {{IMAGE_REGISTRY}}:${endbits} {{IMAGE_REGISTRY}}:last
-    just _bk-down
 
 # push image to registry
 push step='release':
