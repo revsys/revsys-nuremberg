@@ -112,7 +112,7 @@ _solr-compose:
 @_make-bv:
     just build b2v
     docker tag $( just tag )-b2v registry.revsys.com/bump2version
-    docker push registry.revsys.com/bump2version
+    docker push --quiet registry.revsys.com/bump2version
 
 _bk-up:
     #!/bin/bash
@@ -129,7 +129,7 @@ _bk-up:
 # e.g.: just banner version
 banner args='':
     #!/usr/bin/env bash
-    docker inspect registry.revsys.com/bump2version >& /dev/null || ( just _make-bv && just banner {{args}} )
+    docker inspect registry.revsys.com/bump2version >& /dev/null || ( just _make-bv )
     just _figlet $( just {{args}} )
 
 _figlet args='':
