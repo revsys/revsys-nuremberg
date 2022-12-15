@@ -167,10 +167,12 @@ class Search(FacetedSearchView):
 @require_http_methods(['POST'])
 def advanced_search(request):
     form = AdvancedDocumentSearchForm(data=request.POST)
-    qs = parse.urlencode({Search.search_field: form.as_search_qs()})
-    search_url = reverse('search:search') + '?' + qs + '#advanced'
+    if form.is_valid():
+        q = form.as_search_qs()
+    else:
+        q = form.as_search_qs(request.POST)
 
-    if not form.is_valid():
+    if form.errors:
         # Add form errors to the session for the GET search response to render
         request.session[ADVANCED_SEARCH_FORM_ERRORS] = form.errors
         # Add a generic error message that will be displayed at the advanced
@@ -186,4 +188,5 @@ def advanced_search(request):
         for field, error in form.errors.items():
             messages.error(request, error.as_json(), extra_tags=field)
 
-    return redirect(search_url)
+    qs = parse.urlencode({Search.search_field: q})
+    return redirect(reverse('search:search') + '?' + qs + '#advanced')
