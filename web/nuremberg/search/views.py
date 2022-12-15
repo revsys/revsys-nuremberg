@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.http import Http404
 from django.shortcuts import redirect
 from django.urls import reverse
+from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_http_methods
 from haystack.generic_views import (
     FacetedSearchView,
@@ -13,6 +14,9 @@ from nuremberg.documents.models import DocumentPersonalAuthor
 from .forms import AdvancedDocumentSearchForm, DocumentSearchForm
 from .lib.digg_paginator import DiggPaginator
 from .lib.solr_grouping_backend import GroupedSearchQuerySet
+
+
+ADVANCED_SEARCH_FORM_ERRORS = 'advanced_search_form_errors'
 
 
 class Search(FacetedSearchView):
@@ -149,9 +153,9 @@ class Search(FacetedSearchView):
             ).metadata()
         }
 
-        context[
-            'advanced_search_form'
-        ] = AdvancedDocumentSearchForm.from_search_qs(qs=q)
+        errors = self.request.session.pop(ADVANCED_SEARCH_FORM_ERRORS, {})
+        form = AdvancedDocumentSearchForm.from_search_qs(qs=q, errors=errors)
+        context['advanced_search_form'] = form
         return context
 
     def get_paginator(self, *args, **kwargs):
@@ -162,15 +166,24 @@ class Search(FacetedSearchView):
 
 @require_http_methods(['POST'])
 def advanced_search(request):
-    search_url = reverse('search:search')
-
     form = AdvancedDocumentSearchForm(data=request.POST)
-    if form.is_valid():
-        qs = {Search.search_field: form.as_search_qs()}
-        return redirect(search_url + '?' + parse.urlencode(qs) + '#advanced')
+    qs = parse.urlencode({Search.search_field: form.as_search_qs()})
+    search_url = reverse('search:search') + '?' + qs + '#advanced'
 
-    messages.error(request, 'The provided advanced search terms are invalid.')
-    for field, error in form.errors.items():
-        messages.error(request, error.as_json(), extra_tags=field)
+    if not form.is_valid():
+        # Add form errors to the session for the GET search response to render
+        request.session[ADVANCED_SEARCH_FORM_ERRORS] = form.errors
+        # Add a generic error message that will be displayed at the advanced
+        # form toplevel
+        messages.error(
+            request,
+            _('The provided advanced search terms are invalid or incomplete.'),
+        )
+        # Lastly, for every form error, add an "overloaded" error message with
+        # the error encoded as JSON. This will be rendered in the `search.html`
+        # template as <script> blocks to allow for more fancy error showing,
+        # in a potentail future improvement of the UI.
+        for field, error in form.errors.items():
+            messages.error(request, error.as_json(), extra_tags=field)
 
-    return redirect(search_url + '#advanced')
+    return redirect(search_url)
