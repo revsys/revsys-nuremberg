@@ -127,10 +127,12 @@ _bk-up:
 
 # target that wraps simple strings with figlet(6)
 # e.g.: just banner version
-@banner args='':
+banner args='':
+    #!/usr/bin/env bash
     just _figlet $( just {{args}} )
 
-@_figlet args='':
-    docker run -it --entrypoint figlet --rm registry.revsys.com/bump2version -c -f standard -m0 -w115 {{args}}
+_figlet args='':
+    #!/usr/bin/env bash
+    docker run -t --entrypoint figlet --rm registry.revsys.com/bump2version -c -f standard -m0 -w115 {{args}}
 
 
