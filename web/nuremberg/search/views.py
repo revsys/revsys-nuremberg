@@ -11,9 +11,12 @@ from haystack.generic_views import (
     FacetedSearchMixin,
 )
 from nuremberg.documents.models import DocumentPersonalAuthor
-from .forms import AdvancedDocumentSearchForm, DocumentSearchForm
-from .lib.digg_paginator import DiggPaginator
-from .lib.solr_grouping_backend import GroupedSearchQuerySet
+from nuremberg.search.forms import (
+    AdvancedDocumentSearchForm,
+    DocumentSearchForm,
+)
+from nuremberg.search.lib.digg_paginator import DiggPaginator
+from nuremberg.search.lib.solr_grouping_backend import GroupedSearchQuerySet
 
 
 ADVANCED_SEARCH_FORM_ERRORS = 'advanced_search_form_errors'
@@ -62,16 +65,16 @@ class Search(FacetedSearchView):
     def get(self, *args, **kwargs):
         try:
             return super().get(*args, **kwargs)
-        except Http404:
+        except Http404:  # pragma: no cover
             if self.request.GET.get('page', 1) == 1:
                 raise
         params = self.request.GET.copy()
         del params['page']
         return redirect('%s?%s' % (self.request.path, params.urlencode()))
 
-    def form_invalid(self, form):
+    def form_invalid(self, form):  # pragma: no cover
         # override SearchView to give a blank search by default
-        # TODO: this seems unnecessary
+        # TODO: this seems unnecessary, so ignoring from coverage
         self.queryset = form.search()
         context = self.get_context_data(
             **{self.form_name: form, 'object_list': self.get_queryset()}

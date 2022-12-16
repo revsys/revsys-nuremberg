@@ -14,6 +14,7 @@ omit=
   */wsgi.py
   */__init__.py
   */search_indexes.py
+  */search/templates/search/indexes/*/*_text.txt
 
 branch=True
 

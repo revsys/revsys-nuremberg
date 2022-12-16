@@ -426,6 +426,21 @@ def test_sort(query):
     assert '492 pages' in page.text()
 
 
+def test_search_partial():
+    url = reverse('search:search') + '?partial=1'
+    response = client.get(url)
+
+    assert response.status_code == 200
+
+
+def test_search_invalid_page():
+    url = reverse('search:search') + '?q=foo&page=-1'
+    response = client.get(url)
+
+    assert response.status_code == 302
+    assert response['Location'] == reverse('search:search') + '?q=foo'
+
+
 def test_advanced_search_form_available():
     url = reverse('search:search')
     response = client.get(url)
