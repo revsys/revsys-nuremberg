@@ -179,6 +179,27 @@ def test_document_retrieve_external_metadata(django_assert_num_queries):
         assert list(map(str, result)) == [str(e) for e in expected]
 
 
+def test_document_retrieve_external_metadata_order(django_assert_num_queries):
+    code = 'PS-123456789'
+    doc = make_document(evidence_codes=[code])
+
+    sources = [
+        baker.make(
+            'DocumentExternalMetadataSource', name=f'Source {i}', priority=i
+        )
+        for i in range(3)
+    ]
+    expected = [
+        make_document_external_metadata(evidence_code=code, source=source)
+        for source in reversed(sources)  # priorities sort higher -> lower
+    ]
+
+    result = doc.external_metadata()
+
+    with django_assert_num_queries(1):
+        assert list(map(str, result)) == [str(e) for e in expected]
+
+
 def test_author_slug_full_name():
     author = make_author(
         first_name='First Name: So Many #$ different Characters! ♡',
