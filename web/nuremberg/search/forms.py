@@ -1,8 +1,25 @@
 import re
 from collections import deque
 
+from django import forms
+from django.forms import ValidationError
+from django.utils.functional import lazy
+from django.utils.translation import gettext_lazy as _
 from haystack.forms import SearchForm
 from haystack.inputs import AutoQuery
+
+from nuremberg.documents.models import (
+    EVIDENCE_CODE_RE,
+    EXHIBIT_CODE_RE,
+    DocumentActivity,
+    DocumentCase,
+    DocumentEvidencePrefix,
+    DocumentExhibitCode,
+    DocumentExhibitCodeName,
+    DocumentGroupAuthor,
+    DocumentLanguage,
+    DocumentPersonalAuthor,
+)
 
 
 class EmptyFacetsSearchForm(SearchForm):
@@ -302,3 +319,270 @@ class FieldedSearchForm(SearchForm):
 
 class DocumentSearchForm(EmptyFacetsSearchForm, FieldedSearchForm):
     pass
+
+
+CHOICE_EMPTY = ('', _('Choose one...'))
+
+
+class AdvancedDocumentSearchForm(forms.Form):
+
+    AUTHOR_CHOICES = lazy(
+        lambda: [CHOICE_EMPTY]
+        + sorted(
+            (i.full_name(), i.full_name())
+            for i in DocumentPersonalAuthor.objects.all()
+        )
+        + sorted(
+            (i.name, i.name)
+            for i in DocumentGroupAuthor.objects.all()
+            .filter(name__isnull=False)
+            .exclude(name='')
+        ),
+        list,
+    )
+    DEFENDANT_CHOICES = lazy(
+        lambda: [CHOICE_EMPTY]
+        + [
+            (i, i)
+            for i in DocumentExhibitCodeName.objects.filter(name__isnull=False)
+            .exclude(name='')
+            .order_by('name')
+            .values_list('name', flat=True)
+            .distinct()
+        ],
+        list,
+    )
+    ISSUE_CHOICES = lazy(
+        lambda: [CHOICE_EMPTY]
+        + [
+            (i.short_name, i.short_name)
+            for i in DocumentActivity.objects.all().order_by('name').distinct()
+            if i.short_name
+        ],
+        list,
+    )
+    TRIAL_CHOICES = lazy(
+        lambda: [CHOICE_EMPTY]
+        + [
+            (case.tag_name, case.short_name)
+            for case in DocumentCase.objects.filter(id__lt=14)
+            .distinct()
+            .order_by('id')
+        ],
+        list,
+    )
+    EVIDENCE_PREFIX_CHOICES = lazy(
+        lambda: [CHOICE_EMPTY]
+        + [
+            (prefix.code, prefix.code)
+            for prefix in DocumentEvidencePrefix.objects.all()
+            .distinct()
+            .order_by('code')
+        ],
+        list,
+    )
+    EXHIBIT_CHOICES = lazy(
+        lambda: [CHOICE_EMPTY, ('Prosecution', _('Prosecution'))]
+        + [
+            (i, i)
+            for i in DocumentExhibitCode.objects.filter(
+                defense_name_denormalized__isnull=False
+            )
+            .order_by('defense_name_denormalized')
+            .values_list('defense_name_denormalized', flat=True)
+            .distinct()
+        ],
+        list,
+    )
+    BOOK_CHOICES = lazy(
+        lambda: [CHOICE_EMPTY, ('Prosecution', _('Prosecution'))]
+        + [
+            (i, i)
+            for i in DocumentExhibitCode.objects.filter(
+                defense_doc_book_name__isnull=False
+            )
+            .exclude(defense_doc_book_name=0)
+            .order_by('defense_doc_book_name')
+            .values_list('defense_doc_book_name', flat=True)
+            .distinct()
+        ],
+        list,
+    )
+    LANGUAGE_CHOICES = lazy(
+        lambda: [CHOICE_EMPTY]
+        + [
+            (lang.name.lower(), lang.name)
+            for lang in DocumentLanguage.objects.all().order_by('id')
+        ],
+        list,
+    )
+    keywords = forms.CharField(required=False)
+    title = forms.CharField(required=False)
+    author = forms.ChoiceField(required=False, choices=AUTHOR_CHOICES)
+    defendant = forms.ChoiceField(required=False, choices=DEFENDANT_CHOICES)
+    issue = forms.ChoiceField(
+        label=_('Trial Issues'), required=False, choices=ISSUE_CHOICES
+    )
+    trial = forms.ChoiceField(required=False, choices=TRIAL_CHOICES)
+    language = forms.ChoiceField(required=False, choices=LANGUAGE_CHOICES)
+    notes = forms.CharField(required=False)
+    source = forms.CharField(required=False)
+
+    # Evidence, Exhibit and Book fields should really be MultiValueField
+    # https://docs.djangoproject.com/en/4.1/ref/forms/fields/#multivaluefield
+
+    evidence = forms.ChoiceField(
+        label=_('Evidence File Code'),
+        required=False,
+        choices=EVIDENCE_PREFIX_CHOICES,
+    )
+    evidence_num = forms.CharField(
+        required=False,
+        widget=forms.TextInput(
+            attrs={'size': '10', 'placeholder': _('Number')}
+        ),
+    )
+    evidence_suffix = forms.CharField(
+        required=False,
+        widget=forms.TextInput(
+            attrs={'size': '10', 'placeholder': _('Suffix')}
+        ),
+    )
+    exhibit = forms.ChoiceField(
+        label=_('Trial Exhibit'), required=False, choices=EXHIBIT_CHOICES
+    )
+    exhibit_num = forms.CharField(
+        required=False,
+        widget=forms.TextInput(
+            attrs={'size': '10', 'placeholder': _('Number')}
+        ),
+    )
+    book = forms.ChoiceField(
+        label=_('Document Book'), required=False, choices=BOOK_CHOICES
+    )
+    book_num = forms.CharField(
+        required=False,
+        widget=forms.TextInput(
+            attrs={'size': '10', 'placeholder': _('Number')}
+        ),
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        # Handle evidence, exhibit and book codes using the combined widgets.
+        # See comment above about ideally using MultiWidget
+        # https://docs.djangoproject.com/en/4.1/ref/forms/widgets/#django.forms.MultiWidget
+
+        evidence = cleaned_data.get('evidence')
+        evidence_num = cleaned_data.get('evidence_num')
+        if bool(evidence) != bool(evidence_num):
+            self.add_error(
+                'evidence',
+                ValidationError('Evidence code is incomplete', code='invalid'),
+            )
+        elif evidence:
+            suffix = cleaned_data.get('evidence_suffix', '')
+            cleaned_data[
+                'evidence_code'
+            ] = f'{evidence}-{evidence_num}{suffix}'
+
+        exhibit = cleaned_data.get('exhibit')
+        exhibit_num = cleaned_data.get('exhibit_num')
+        if bool(exhibit) != bool(exhibit_num):
+            self.add_error(
+                'exhibit',
+                ValidationError(
+                    'Exhibit information is incomplete',
+                    code='invalid',
+                ),
+            )
+        elif exhibit:
+            cleaned_data['exhibit_code'] = f'{exhibit} {exhibit_num}'
+
+        book = cleaned_data.get('book')
+        book_num = cleaned_data.get('book_num')
+        if bool(book) != bool(book_num):
+            self.add_error(
+                'book',
+                ValidationError(
+                    'Book information is incomplete', code='invalid'
+                ),
+            )
+        elif book:
+            cleaned_data['book_code'] = f'{book} {book_num}'
+
+        return cleaned_data
+
+    def as_search_qs(self, data=None):
+        # Allow search qs to be built both from form's data or any other data
+        if data is None:
+            data = self.cleaned_data
+
+        terms = []
+        for term in (
+            'keywords',
+            'title',
+            'author',
+            'defendant',
+            'issue',
+            'trial',
+            'language',
+            'notes',
+            'source',
+        ):
+            value = data.get(term)
+            if value:
+                terms.append(f'{term}:"{value}"')
+
+        # special treatment, uses `_code` suffix for field name
+        for term in ('evidence', 'exhibit', 'book'):
+            value = data.get(f'{term}_code')
+            if value:
+                terms.append(f'{term}:"{value}"')
+
+        # This assumes AND operation between search fields
+        q = ' '.join(terms)
+        return q
+
+    @classmethod
+    def from_search_qs(cls, qs, errors=None):
+        # This assumes AND operation between search fields
+        expr = re.compile(r'([a-z0-9_]+):("[^"]+"|[^"\s]+)\s*')
+        initial = {k: v.strip('"') for k, v in expr.findall(qs)}
+
+        # handle evidence code
+        evidence = initial.get('evidence')
+        if evidence:
+            matches = EVIDENCE_CODE_RE.match(evidence)
+            if matches:
+                evidence, evidence_num, evidence_suffix = matches.groups()
+                initial['evidence'] = evidence
+                initial['evidence_num'] = evidence_num
+                initial['evidence_suffix'] = evidence_suffix
+
+        # handle exhibit and book codes similarly to how evidence is handled
+        exhibit = initial.get('exhibit')
+        if exhibit:
+            matches = EXHIBIT_CODE_RE.match(exhibit)
+            if matches:
+                exhibit, exhibit_num = matches.groups()
+                initial['exhibit'] = exhibit
+                initial['exhibit_num'] = exhibit_num
+
+        book = initial.get('book')
+        if book:
+            matches = EXHIBIT_CODE_RE.match(book)
+            if matches:
+                book, book_num = matches.groups()
+                initial['book'] = book
+                initial['book_num'] = book_num
+
+        result = cls(data=initial)
+
+        if errors:
+            result.cleaned_data = {}
+            for field, error in errors.items():
+                result.add_error(field, error)
+
+        return result
