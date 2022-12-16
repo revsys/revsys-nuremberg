@@ -167,6 +167,7 @@ class Document(models.Model):
                 ),
             )
             .filter(evidence_code__in=evidence_codes)
+            .order_by('source__name')
         )
 
 

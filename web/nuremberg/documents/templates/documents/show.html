@@ -244,18 +244,29 @@
       {% endwith %}
 
       <!-- Summary (taken from external sources) -->
-      {% with document.external_metadata.all as external_metadata %}
+      {% with external_metadata=document.external_metadata.all codes_length=evidence_codes|length %}
       {% if external_metadata %}
         <h2 class="h6">Document Summary</h2>
         <div class="summary">
-          {% for item in external_metadata %}
-          <div class="accordion {% if forloop.first %}active{% endif %}" title="{{ item.source.description }}">
-            {{ item.source.name }}
+
+        {% regroup external_metadata by source as source_list %}
+        {% for source in source_list %}
+          <div class="accordion {% if forloop.first %}active{% endif %}" title="{{ source.grouper.description }}">
+            {{ source.grouper.name }}
           </div>
           <div class="accordion-panel {% if forloop.first %}active{% endif %}">
-            <p><strong>{{ item.evidence_code }}</strong>: {{ item.summary }}</p>
-          </div>
+          {% for item in source.list|slice:6 %}
+            <p>
+              {% if codes_length > 1 %}<strong>{{ item.evidence_code }}</strong>: {% endif %}
+              {{ item.summary }}
+            </p>
           {% endfor %}
+          {% if source.list|length > 6 %}
+          <span class="ellipsis">[ ... ]</span>
+          {% endif %}
+          </div>
+        {% endfor %}
+
         </div>
       {% endif %}
       {% endwith %}
