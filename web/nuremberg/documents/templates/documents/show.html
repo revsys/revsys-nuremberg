@@ -38,6 +38,7 @@
       </div>
       <hr />
     {% endif %}
+    {% if mode != 'text' %}
     <div class="document-tools">
       {% block document_controls %}
         <div class="zoom-buttons">
@@ -74,8 +75,9 @@
         </a>
       </div>
     </div>
+    <hr />
+    {% endif %}
   {% endblock %}
-  <hr />
   <div class="sidebar-layout">
     <div class="sidebar-column document-info">
       <div class="material-icon small material-documents"></div>
