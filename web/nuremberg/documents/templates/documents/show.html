@@ -110,7 +110,9 @@
       </div>
       {% endif %}
       <h1 class="h3" aria-role="heading" aria-level="1">{{document.title}}</h1>
+      {% if document.literal_title %}
       <div class="h5">{{document.literal_title}}</div>
+      {% endif %}
       {% block document_details %}
         <p class="date">
           {% with document.date as date %}
