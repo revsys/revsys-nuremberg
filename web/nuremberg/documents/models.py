@@ -167,7 +167,7 @@ class Document(models.Model):
                 ),
             )
             .filter(evidence_code__in=evidence_codes)
-            .order_by('source__name')
+            .order_by('-source__priority')
         )
 
 
@@ -950,6 +950,7 @@ class DocumentExternalMetadataSource(models.Model):
     id = models.AutoField(db_column='SourceID', primary_key=True)
     name = models.CharField(db_column='SourceLabel', max_length=300)
     description = models.TextField(db_column='Source')
+    priority = models.IntegerField(db_column='Priority')
 
     class Meta:
         managed = False
