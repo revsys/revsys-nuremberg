@@ -1,5 +1,6 @@
 import logging
 import operator
+import re
 from collections import defaultdict
 
 from django.db import models
@@ -16,6 +17,8 @@ from nuremberg.documents.helpers import (
 )
 
 
+EVIDENCE_CODE_RE = re.compile(r'^([A-Z]+)-([0-9]+)([a-z]{0,1})$')
+EXHIBIT_CODE_RE = re.compile(r'^([A-Za-z\,\./\s]+) ([0-9\s]+)$')
 logger = logging.getLogger(__name__)
 
 

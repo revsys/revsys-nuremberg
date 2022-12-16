@@ -32,7 +32,7 @@ def handler404(request, exception):
     )
 
 
-def handler400(request, exception):
+def handler400(request, exception):  # pragma: no cover
     return render_error(
         request,
         400,
@@ -45,7 +45,7 @@ def handler400(request, exception):
     )
 
 
-def handler403(request, exception):
+def handler403(request, exception):  # pragma: no cover
     return render_error(
         request,
         403,
@@ -58,7 +58,7 @@ def handler403(request, exception):
     )
 
 
-def handler500(request):
+def handler500(request):  # pragma: no cover
     return render_error(
         request,
         500,

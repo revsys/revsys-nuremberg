@@ -7,6 +7,27 @@
 
 {% block javascript_module %}search{% endblock %}
 
+{% block javascript %}
+  {{ block.super }}
+  {% comment %}
+  As a reference for what it comes below, please check the search/views.py,
+  where there is a comment and code similar to this:
+        # Lastly, for every form error, add an "overloaded" error message with
+        # the error encoded as JSON. This will be rendered in the `search.html`
+        # template as <script> blocks to allow for more fancy error showing,
+        # in a potentail future improvement of the UI.
+        for field, error in form.errors.items():
+            messages.error(request, error.as_json(), extra_tags=field)
+  {% endcomment %}
+  {% for message in messages %}
+    {% if message.extra_tags %}
+    <script id="message-{{ message.level_tag }}-{{ message.extra_tags }}" type="application/json">
+    {{ message|safe }}
+    </script>
+    {% endif %}
+  {% endfor %}
+{% endblock javascript %}
+
 {% block content %}
 
 <section role="search" aria-label="Search the archive" class="theme-beige thin">
@@ -16,9 +37,9 @@
   <div class="full-width">
     <form class="results-search" role="search" aria-label="full-text search" action='{% url 'search:search' %}' method='GET'>
       {% include 'search/search-bar.html' %}
-      <div class="show-advanced-search"><a>Advanced Search</a></div>
     </form>
-    {% include 'search/advanced-search-help.html' %}
+    <div class="show-advanced-search"><a>Advanced Search</a></div>
+    <p>{% include 'search/advanced-search-form.html' with form=advanced_search_form %}</p>
 </section>
 <section class="theme-light results">
   <div class="sidebar-layout">
