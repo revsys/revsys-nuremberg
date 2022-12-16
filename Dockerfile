@@ -1,6 +1,6 @@
 
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
-FROM python:alpine as b2v
+FROM python:3.10-alpine as b2v
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
 
 RUN apk --no-cache add git figlet
@@ -65,7 +65,7 @@ FROM builder as release
 
 ENV DJANGO_SETTINGS_MODULE nuremberg.settings
 ENV BASE_DIR=/code
-ENV IMAGE_VERSION v0.3.11r3
+ENV IMAGE_VERSION v0.3.15-r4
 
 RUN ln -s /node/node_modules/less/bin/lessc /bin/lessc
 
@@ -118,7 +118,7 @@ ENV SOLR_CORE nuremberg_dev
 
 COPY solr_conf /opt/solr-8.11.2/solr_conf
 
-ENV IMAGE_VERSION v0.3.11r3-solr
+ENV IMAGE_VERSION v0.3.15-r4-solr
 
 RUN --mount=type=bind,source=./dist/var-solr.tgz,target=/mnt/var-solr.tgz \
 	cd / && \

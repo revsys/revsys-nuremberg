@@ -2,7 +2,7 @@
 set dotenv-load := false
 IMAGE_REGISTRY := 'registry.revsys.com/nuremberg'
 CACHE_REGISTRY := 'registry.revsys.com/cache/nuremberg'
-VERSION := 'v0.3.11r3'
+VERSION := 'v0.3.15-r4'
 
 set shell := ["/bin/bash", "-c"]
 
@@ -125,19 +125,16 @@ _bk-up:
     docker buildx use default
     docker buildx stop nuremberg-builder
 
-# target that wraps simple strings with figlet(6)
-# e.g.: just banner version
+# target that wraps simple strings with figlet(6) e.g.: just banner version
 banner args='':
     #!/usr/bin/env bash
-    docker inspect registry.revsys.com/bump2version >& /dev/null || (
-        docker pull registry.revsys.com/bump2version >& /dev/null || (
-            just _make-bv && just banner {{args}}
-        )
-    )
-    just _figlet $( just {{args}} )
+    docker inspect registry.revsys.com/bump2version >& /dev/null ||
+        docker pull registry.revsys.com/bump2version >& /dev/null ||
+        just _make-bv &&
+        just _figlet $( just {{args}} )
 
 _figlet args='':
     #!/usr/bin/env bash
-    docker run --entrypoint figlet --rm registry.revsys.com/bump2version -c -f standard -m0 -w115 {{args}}
+    docker run --entrypoint figlet --rm registry.revsys.com/bump2version -c -f standard -m0 -w117 {{args}}
 
 
