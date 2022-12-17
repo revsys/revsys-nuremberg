@@ -12,10 +12,3 @@ def test_404():
     page = PyQuery(response.content)
 
     assert "can't find" in page('h1').text()
-
-
-def test_bug_repro():
-    response = client.get('')
-
-    error = response.context['session'].get('a-key')
-    assert error is None

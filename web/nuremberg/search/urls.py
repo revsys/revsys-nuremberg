@@ -5,4 +5,5 @@ app_name = 'search'
 urlpatterns = [
     path('', views.Search.as_view(), name='search'),
     path('advanced', views.advanced_search, name='advanced-search'),
+    path('test', views.test, name='test'),
 ]

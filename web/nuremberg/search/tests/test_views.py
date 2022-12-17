@@ -497,3 +497,10 @@ def test_advanced_search_post_with_errors():
         ('author', invalid_choice),
     ]
     assert actual == expected
+
+
+def test_bug_repro():
+    response = client.get(reverse('search:test'), follow=True)
+
+    error = response.context['session'].get('a-key')
+    assert error is None

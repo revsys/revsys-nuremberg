@@ -193,3 +193,7 @@ def advanced_search(request):
 
     qs = parse.urlencode({Search.search_field: q})
     return redirect(reverse('search:search') + '?' + qs + '#advanced')
+
+
+def test(request):
+    return redirect(reverse('search:search'))
