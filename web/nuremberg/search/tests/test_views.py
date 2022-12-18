@@ -502,5 +502,5 @@ def test_advanced_search_post_with_errors():
 def test_bug_repro():
     response = client.get(reverse('search:test'), follow=True)
 
-    error = response.context['session'].get('a-key')
+    error = response.context['request'].session.get('a-key')
     assert error is None
