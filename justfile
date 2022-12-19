@@ -51,7 +51,7 @@ build step='release' action='--load' verbosity='1':
     echo "Building {{IMAGE_REGISTRY}}:${endbits}"
     set -o xtrace
 
-    docker buildx build ${verbosity} ${cache} {{action}} -t  {{IMAGE_REGISTRY}}:${endbits} --target {{step}} . ||
+    docker buildx build ${verbosity} ${cache} {{action}} --platform linux/amd64 -t  {{IMAGE_REGISTRY}}:${endbits} --target {{step}} . ||
         docker buildx build --progress plain ${cache} {{action}} -t  {{IMAGE_REGISTRY}}:${endbits} --target {{step}} .
 
 
