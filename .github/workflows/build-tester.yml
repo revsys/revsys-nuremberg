@@ -35,6 +35,6 @@ jobs:
             username: github
             password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
         - name: Current Version
-          run: just version | tee -a $GITHUB_OUTPUT
+          run: echo $( just version ) >> $GITHUB_OUTPUT
         - name: Build test runner
           run: just push tester
