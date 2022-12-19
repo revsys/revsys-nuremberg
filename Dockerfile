@@ -6,10 +6,10 @@ FROM python:3.10-alpine as b2v
 RUN apk --no-cache add git figlet
 
 RUN --mount=type=cache,target=/root/.cache \
-	pip install bump2version
+    pip install bump2version
 
 RUN git config --system user.email ci@revsys.com
-RUN git config --system user.name "Maynard G. Krebbs"
+RUN git config --system user.name "REVSYS CI"
 RUN git config --system --add safe.directory /code
 RUN git config --system init.defaultBranch main
 
@@ -121,5 +121,5 @@ COPY solr_conf /opt/solr-8.11.2/solr_conf
 ENV IMAGE_VERSION v0.3.20-solr
 
 RUN --mount=type=bind,source=./dist/var-solr.tgz,target=/mnt/var-solr.tgz \
-	cd / && \
-	tar xvfpz /mnt/var-solr.tgz
+    cd / && \
+    tar xvfpz /mnt/var-solr.tgz
