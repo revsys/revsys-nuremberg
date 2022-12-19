@@ -7,7 +7,8 @@ on:
       - ci--setup-job-run-specs
 
 jobs:
-  Run:
+
+  bumpversion:
 
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -44,8 +45,7 @@ jobs:
           run: just bump patch
         - name: New Version
           run: just banner version && git push --tags && git push
-        - name: Run tests
-          run: just test
-        - name: Get logs on failure
-          run: just ci-dc logs
-          if: failure()
+
+  test-run:
+    uses: ./.github/workflows/actions/run-tests.yml
+    needs: [bumpversion]
