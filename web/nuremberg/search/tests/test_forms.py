@@ -16,7 +16,7 @@ def test_advanced_search_form_errors():
         'trial': 'CASE',  # Not a valid trial
         'language': 'spanish',  # Not a valid lang
         'notes': 'A description',
-        'source': 'Case in english',
+        'source': 'Case in english',  # Not a valid source
     }
     form = AdvancedDocumentSearchForm(data)
 
@@ -26,6 +26,7 @@ def test_advanced_search_form_errors():
         'defendant',
         'issue',
         'language',
+        'source',
         'trial',
     ]
 
@@ -40,13 +41,13 @@ def test_advanced_search_form_as_search_qs_simple():
         'trial': 'IMT',
         'language': 'Croatian',
         'notes': 'A description',
-        'source': 'Case in english',
+        'source': 'Photostat',
     }
     form = AdvancedDocumentSearchForm()
     expected = (
         'keywords:"foo bar|baz" title:"Some Title" author:"Adolf Hitler" '
         'defendant:"Rose" issue:"A Trial Issue" trial:"IMT" '
-        'language:"Croatian" notes:"A description" source:"Case in english"'
+        'language:"Croatian" notes:"A description" source:"Photostat"'
     )
     assert form.as_search_qs(data) == expected
 
@@ -60,7 +61,7 @@ def test_advanced_search_form_as_search_qs_cleaned_data():
         'trial': 'IMT',
         'language': 'english',
         'notes': 'A description',
-        'source': 'Case in english',
+        'source': 'Photostat',
     }
     form = AdvancedDocumentSearchForm(data)
 
@@ -68,7 +69,7 @@ def test_advanced_search_form_as_search_qs_cleaned_data():
     expected = (
         'keywords:"foo bar|baz" title:"Some Title" author:"Adolf Hitler" '
         'defendant:"Rose" trial:"IMT" language:"english" '
-        'notes:"A description" source:"Case in english"'
+        'notes:"A description" source:"Photostat"'
     )
     assert form.as_search_qs() == expected
 

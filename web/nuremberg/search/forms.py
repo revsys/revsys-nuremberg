@@ -19,6 +19,7 @@ from nuremberg.documents.models import (
     DocumentGroupAuthor,
     DocumentLanguage,
     DocumentPersonalAuthor,
+    DocumentSource,
 )
 
 
@@ -412,12 +413,22 @@ class AdvancedDocumentSearchForm(forms.Form):
         lambda: [CHOICE_EMPTY]
         + [
             (lang.name.lower(), lang.name)
-            for lang in DocumentLanguage.objects.all().order_by('id')
+            for lang in DocumentLanguage.objects.all().order_by('name')
+        ],
+        list,
+    )
+    SOURCE_CHOICES = lazy(
+        lambda: [CHOICE_EMPTY]
+        + [
+            (source.name, source.name)
+            for source in DocumentSource.objects.all().order_by('id')
+            if source.name.lower() != 'unspecified'
         ],
         list,
     )
     keywords = forms.CharField(required=False)
     title = forms.CharField(required=False)
+    notes = forms.CharField(required=False)
     author = forms.ChoiceField(required=False, choices=AUTHOR_CHOICES)
     defendant = forms.ChoiceField(required=False, choices=DEFENDANT_CHOICES)
     issue = forms.ChoiceField(
@@ -425,8 +436,7 @@ class AdvancedDocumentSearchForm(forms.Form):
     )
     trial = forms.ChoiceField(required=False, choices=TRIAL_CHOICES)
     language = forms.ChoiceField(required=False, choices=LANGUAGE_CHOICES)
-    notes = forms.CharField(required=False)
-    source = forms.CharField(required=False)
+    source = forms.ChoiceField(required=False, choices=SOURCE_CHOICES)
 
     # Evidence, Exhibit and Book fields should really be MultiValueField
     # https://docs.djangoproject.com/en/4.1/ref/forms/fields/#multivaluefield
