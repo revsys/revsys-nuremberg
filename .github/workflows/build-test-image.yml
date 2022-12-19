@@ -1,6 +1,16 @@
 name: Build-Test-Image
 
-on: *triggers
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - ci--auto-dev-deploy
+
+  pull_request:
+    types:
+      - closed
+    branches:
+      - ci--auto-dev-deploy
 
 jobs:
   build-test-image:
