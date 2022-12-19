@@ -1,6 +1,6 @@
 name: nuremberg-ci
 
-on:
+on: &triggers
   workflow_dispatch:
   push:
     branches:
@@ -22,8 +22,9 @@ jobs:
       fail-fast: false
 
     needs:
-      - Test
-      - Auto-Dev-Deploy
+      - Build-Test-Image
+      #- Test
+      #- Auto-Dev-Deploy
 
     steps:
         - name: Checkout code

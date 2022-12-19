@@ -1,5 +1,7 @@
 name: Build-Test-Image
 
+on: *triggers
+
 jobs:
   build-test-image:
 
