@@ -237,7 +237,7 @@
         <h2 class="h6">Trial Issue{{activities|length|pluralize}}</h2>
         <p>
           {% for activity in activities %}
-              <a class="tag-button" href="{% search_query issue=activity.short_name %}">{{activity.short_name}}</a>
+            <a class="tag-button" href="{% search_query issue=activity.short_name %}">{{activity.short_name|truncatechars:75}}</a>
           {% endfor %}
         </p>
       {% endif %}
@@ -249,23 +249,28 @@
         <h2 class="h6">Document Summary</h2>
         <div class="summary">
 
-        {% regroup external_metadata by source as source_list %}
-        {% for source in source_list %}
+        {% regroup external_metadata by source as metadata_sources %}
+        {% for source in metadata_sources|slice:6 %}
           <div class="accordion {% if forloop.first %}active{% endif %}" title="{{ source.grouper.description }}">
             {{ source.grouper.name }}
           </div>
           <div class="accordion-panel {% if forloop.first %}active{% endif %}">
-          {% for item in source.list|slice:6 %}
+          {% for item in source.list|slice:5 %}
             <p>
-              {% if codes_length > 1 %}<strong>{{ item.evidence_code }}</strong>: {% endif %}
+              {% if codes_length > 1 or forloop.first %}
+              <a href="{% search_query evidence=item.evidence_code %}">{{ item.evidence_code }}</a>:
+              {% endif %}
               {{ item.summary }}
             </p>
           {% endfor %}
-          {% if source.list|length > 6 %}
+          {% if source.list|length > 5 %}
           <span class="ellipsis">[ ... ]</span>
           {% endif %}
           </div>
         {% endfor %}
+        {% if metadata_sources|length > 6 %}
+        <span class="ellipsis">[ ... ]</span>
+        {% endif %}
 
         </div>
       {% endif %}
