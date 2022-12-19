@@ -1,0 +1,30 @@
+name: Auto-Dev-Deploy
+
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
+  push:
+    branches: ci--setup-job-run-specs
+
+jobs:
+  auto-deploy-to-dev:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      max-parallel: 4
+      fail-fast: false
+    needs:
+      - Push-Release-Image
+    steps:
+        - name: Checkout code
+          uses: actions/checkout@v3
+        - uses: extractions/setup-just@v1
+          with:
+            just-version: '1.9.0'
+        - name: Current Version
+          run: just banner version >> $GITHUB_OUTPUT
+        - name: deploy to dev
+          run: echo "will run: just deploy dev" >> $GITHUB_OUTPUT

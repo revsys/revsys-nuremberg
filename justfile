@@ -53,7 +53,6 @@ build step='release' action='--load' verbosity='':
     docker buildx build ${verbosity} ${cache} {{action}} -t  {{IMAGE_REGISTRY}}:${endbits} --target {{step}} . ||
         docker buildx build --progress plain ${cache} {{action}} -t  {{IMAGE_REGISTRY}}:${endbits} --target {{step}} .
 
-    [[ "{{ step }}" == "release" ]] && docker tag {{IMAGE_REGISTRY}}:${endbits} {{IMAGE_REGISTRY}}:last || echo
 
 # push image to registry
 push step='release':
