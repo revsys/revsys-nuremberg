@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - main
+      - ci--auto-dev-deploy
 
   pull_request:
     types:
@@ -24,6 +24,8 @@ jobs:
     steps:
         - name: Checkout code
           uses: actions/checkout@v3
+          with:
+            fetch-depth: 0
         - name: update docker-compose
           run: |
             mkdir -pv $HOME/.docker/cli-plugins
@@ -44,9 +46,11 @@ jobs:
         - name: bumpversion on PR merge
           if: github.event.pull_request.merged == true
           run: just bump patch
-        - name: bumpversion
+        - name: bumpversion on non-PR merge
           if: github.event.pull_request.merged == false
           run: just bump build
+        - name: New Version
+          run: just banner version
         - name: Build test runner
           run: just build tester
         - name: Run tests

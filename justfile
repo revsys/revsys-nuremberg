@@ -2,7 +2,7 @@
 set dotenv-load := false
 IMAGE_REGISTRY := 'registry.revsys.com/nuremberg'
 CACHE_REGISTRY := 'registry.revsys.com/cache/nuremberg'
-VERSION := 'v0.3.11_2'
+VERSION := 'v0.3.17'
 
 set shell := ["/bin/bash", "-c"]
 
@@ -32,7 +32,6 @@ _test-packages:
 # build [step], tag it with {{IMAGE_REGISTRY}}:{{VERSION}}-{{step}} except for release target
 build step='release' action='--load' verbosity='':
     #!/usr/bin/env bash
-    #set -o xtrace
     just _bk-up
     if [[ "{{ step }}" == "release" ]];
     then
@@ -49,12 +48,12 @@ build step='release' action='--load' verbosity='':
     [[ "{{step}}" == "tester" ]] && cache="--cache-from {{CACHE_REGISTRY}}:last"
 
     echo "Building {{IMAGE_REGISTRY}}:${endbits}"
+    set -o xtrace
 
     docker buildx build ${verbosity} ${cache} {{action}} -t  {{IMAGE_REGISTRY}}:${endbits} --target {{step}} . ||
         docker buildx build --progress plain ${cache} {{action}} -t  {{IMAGE_REGISTRY}}:${endbits} --target {{step}} .
 
-    [[ "{{ step }}" == "release" ]] && docker tag {{IMAGE_REGISTRY}}:${endbits} {{IMAGE_REGISTRY}}:last
-    just _bk-down
+    [[ "{{ step }}" == "release" ]] && docker tag {{IMAGE_REGISTRY}}:${endbits} {{IMAGE_REGISTRY}}:last || echo
 
 # push image to registry
 push step='release':
@@ -100,11 +99,12 @@ _solr-compose:
 # executes bump2version on local repository (e.g.: just bump patch; just bump build)
 @bump part='build' args='':
     docker inspect registry.revsys.com/bump2version >& /dev/null || ( just _make-bv && just bump {{part}} )
-    docker run -u ${UID} --rm -it -v $PWD:/code --workdir /code registry.revsys.com/bump2version {{part}} --verbose {{args}} || exit 1
+    docker run -u ${UID} --rm -v $PWD:/code --workdir /code registry.revsys.com/bump2version {{part}} {{args}} || exit 1
 
 
 # updates last/{{env}}/deploy and {{env}}/deploy tags to trigger flux deployment
 @deploy env='dev':
+    git fetch --tags -f
     git tag -f last/{{env}}/deploy {{env}}/deploy
     git tag -f {{env}}/deploy {{VERSION}}
     git push --tags --force
@@ -112,7 +112,7 @@ _solr-compose:
 @_make-bv:
     just build b2v
     docker tag $( just tag )-b2v registry.revsys.com/bump2version
-    docker push registry.revsys.com/bump2version
+    docker push registry.revsys.com/bump2version > /dev/null
 
 _bk-up:
     #!/bin/bash
@@ -125,12 +125,15 @@ _bk-up:
     docker buildx use default
     docker buildx stop nuremberg-builder
 
-# target that wraps simple strings with figlet(6)
-# e.g.: just banner version
-@banner args='':
-    just _figlet $( just {{args}} )
+# target that wraps simple strings with figlet(6) e.g.: just banner version
+banner args='':
+    #!/usr/bin/env bash
+    docker inspect registry.revsys.com/bump2version >& /dev/null &&
+        just _figlet $( just {{args}} ) ||
+        ( docker pull registry.revsys.com/bump2version >& /dev/null || just _make-bv && just _figlet $( just {{args}} ) )
 
-@_figlet args='':
-    docker run -it --entrypoint figlet --rm registry.revsys.com/bump2version -c -f standard -m0 -w115 {{args}}
+_figlet args='':
+    #!/usr/bin/env bash
+    docker run --entrypoint figlet --rm registry.revsys.com/bump2version -c -f standard -m0 -w117 {{args}}
 
 
