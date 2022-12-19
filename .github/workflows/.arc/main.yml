@@ -1,6 +1,6 @@
 name: nuremberg-ci
 
-on: &triggers
+on:
   workflow_dispatch:
   push:
     branches:
