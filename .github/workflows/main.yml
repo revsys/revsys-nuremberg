@@ -28,6 +28,6 @@ jobs:
           with:
             just-version: '1.9.0'
         - name: Current Version
-          run: just version | tee -a $GITHUB_OUTPUT
+          run: just banner version
         - name: Build Test Image
           uses: ./.github/workflows/actions/build-tester.yml
