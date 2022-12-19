@@ -1,14 +1,5 @@
 name: Push-Release-Image
 
-on:
-  workflow_dispatch:
-
-  pull_request:
-    types:
-      - closed
-    branches:
-      - main
-
 jobs:
   build-and-test:
 

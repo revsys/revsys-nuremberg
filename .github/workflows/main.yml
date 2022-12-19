@@ -1,14 +1,30 @@
-name: Auto-Dev-Deploy
+name: nuremberg-ci
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - ci--auto-dev-deploy
+
+  pull_request:
+    types:
+      - closed
+    branches:
+      - ci--auto-dev-deploy
 
 jobs:
-  auto-deploy-to-dev:
+  Run:
+
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
       max-parallel: 4
       fail-fast: false
+
     needs:
-      - Push-Release-Image
+      - Test
+      - Auto-Dev-Deploy
+
     steps:
         - name: Checkout code
           uses: actions/checkout@v3
@@ -16,6 +32,4 @@ jobs:
           with:
             just-version: '1.9.0'
         - name: Current Version
-          run: just banner version >> $GITHUB_OUTPUT
-        - name: deploy to dev
-          run: echo "will run: just deploy dev" >> $GITHUB_OUTPUT
+          run: just version | tee -a $GITHUB_OUTPUT

@@ -1,8 +1,8 @@
 name: Test
 
-on:
-  workflow_dispatch:
-  push: []
+# on:
+#   workflow_dispatch:
+#   push: []
 
 jobs:
   build-test-image:
@@ -37,9 +37,9 @@ jobs:
             username: github
             password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
         - name: Current Version
-          run: just banner version
-        - name: Build test runner
-          run: just build tester
+          run: just version | tee -a $GITHUB_OUTPUT
+        - name: Run tests
+          run: just test
         - name: Get logs on failure
           run: just ci-dc logs
           if: failure()
