@@ -1330,12 +1330,13 @@ class DocumentText(models.Model):
     )
     load_timestamp = models.DateTimeField(db_column='LoadDateTime')
     text = models.TextField(db_column='DocText', blank=True, null=True)
+    language = models.CharField(db_column='Language', max_length=100)
 
     objects = DocumentTextQuerySet.as_manager()
 
     class Meta:
         managed = False
-        db_table = 'tblNurembergDocTexts'
+        db_table = 'tblNurembergFullTexts'
 
     def __str__(self):
         return f'{self.title}'
