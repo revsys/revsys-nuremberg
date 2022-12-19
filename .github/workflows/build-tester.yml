@@ -5,13 +5,13 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - ci--auto-dev-deploy
+      - ci--setup-job-run-specs
 
   pull_request:
     types:
       - closed
     branches:
-      - ci--auto-dev-deploy
+      - ci--setup-job-run-specs
 
 jobs:
   build-test-image:
