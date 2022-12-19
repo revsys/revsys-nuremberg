@@ -191,7 +191,7 @@ def test_document_retrieve_external_metadata_order(django_assert_num_queries):
     ]
     expected = [
         make_document_external_metadata(evidence_code=code, source=source)
-        for source in reversed(sources)  # priorities sort higher -> lower
+        for source in sources  # priorities sort lower -> higher
     ]
 
     result = doc.external_metadata()
