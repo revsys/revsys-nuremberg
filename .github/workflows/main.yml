@@ -6,12 +6,6 @@ on:
     branches:
       - ci--setup-job-run-specs
 
-  pull_request:
-    types:
-      - closed
-    branches:
-     - ci--setup-job-run-specs
-
 jobs:
   Run:
 
@@ -41,6 +35,14 @@ jobs:
             username: github
             password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
         - name: Current Version
+          run: just banner version
+        - name: bumpversion build on push
+          if: github.event.pull_request.merged == false
+          run: just bump build
+        - name: bumpversion patch on PR merge
+          if: github.event.pull_request.merged == true
+          run: just bump patch
+        - name: New Version
           run: just banner version
         - name: Run tests
           run: just test
