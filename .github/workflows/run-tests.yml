@@ -10,9 +10,6 @@ jobs:
       max-parallel: 4
       fail-fast: false
 
-    needs:
-      - Build-Test-Image
-
     steps:
         - name: Current Version
           run: just version | tee -a $GITHUB_OUTPUT

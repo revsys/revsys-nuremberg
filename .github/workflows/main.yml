@@ -45,7 +45,10 @@ jobs:
           run: just bump patch
         - name: New Version
           run: just banner version && git push --tags && git push
-
-  test-run:
-    uses: ./.github/workflows/run-tests.yml
-    needs: [bumpversion]
+        - name: Current Version
+          run: just banner version
+        - name: Run tests
+          run: just test
+        - name: Get logs on failure
+          run: just ci-dc logs
+          if: failure()
