@@ -47,5 +47,5 @@ jobs:
           run: just banner version && git push --tags && git push
 
   test-run:
-    uses: ./.github/workflows/actions/run-tests.yml
+    uses: ./run-tests.yml
     needs: [bumpversion]
