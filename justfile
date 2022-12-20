@@ -1,4 +1,5 @@
 # vim: filetype=just tabstop=4 shiftwidth=4 expandtab number
+# poke
 set dotenv-load := false
 IMAGE_REGISTRY := 'registry.revsys.com/nuremberg'
 CACHE_REGISTRY := 'registry.revsys.com/cache/nuremberg'
