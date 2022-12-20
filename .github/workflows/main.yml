@@ -47,7 +47,7 @@ jobs:
               level: patch
         - name: bumpversion (pr)
           id: bv-build
-          if: github.event.pull_request.created == true
+          if: github.event.pull_request.opened == true
           uses: ./.github/workflows/bumpversion.yml
           with:
               level: build
