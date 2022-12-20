@@ -7,12 +7,7 @@ on:
         description: bumpversion level (major, minor, patch, build[default])
         required: true
         default: build
-        type: choice
-        options:
-          - major
-          - minor
-          - patch
-          - build
+        type: string
     outputs:
       previous:
         value: ${{ jobs.bumpversion.outputs.original }}
