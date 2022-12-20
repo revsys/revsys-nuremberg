@@ -36,13 +36,13 @@ jobs:
             username: github
             password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
         - name: bumpversion
-          id: bv
+          id: bv-merged
           if: github.event.pull_request.merged == true
           uses: ./.github/workflows/bumpversion.yml
           with:
               level: patch
         - name: bumpversion (pr)
-          id: bv
+          id: bv-build
           if: github.event.pull_request.created == true
           uses: ./.github/workflows/bumpversion.yml
           with:
