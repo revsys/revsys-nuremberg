@@ -1,7 +1,7 @@
 name: increment version particle
 
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
       level:
         description: bumpversion level (major, minor, patch, build[default])
