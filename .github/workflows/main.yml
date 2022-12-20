@@ -45,7 +45,6 @@ jobs:
             username: github
             password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
         - name: lets-see
-          needs: [jobs.bumpversion-new-pr, jobs.bumpversion-merged]
           run: |
             #!/usr/bin/env bash
             echo "previous = ${{ needs.bumpversion-new-pr.outputs.previous }}"
