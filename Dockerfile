@@ -1,3 +1,32 @@
+#.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
+FROM rust:alpine as just-builder
+#.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
+
+ENV VERSION v0.9.4
+
+#RUN apt update; apt -y install git --no-install-recommends
+RUN apk add git musl-dev
+RUN git clone https://github.com/casey/just /just
+
+WORKDIR /just
+
+RUN git checkout ${VERSION}
+
+
+RUN RUSTFLAGS='-C target-feature=+crt-static' cargo build --release --target x86_64-unknown-linux-musl
+
+RUN cp target/*/release/just /bin/
+
+
+#.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
+FROM debian:11-slim as just
+#.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
+
+COPY --from=just-builder /bin/just /
+
+ENTRYPOINT ["/bin/bash", "-c"]
+
+CMD ["cp /just /dist/just && chown $UID /dist/just"]
 
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
 FROM python:3.10-alpine as b2v
@@ -16,22 +45,13 @@ RUN git config --system init.defaultBranch main
 ENTRYPOINT ["bump2version"]
 
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
-FROM revolutionsystems/python:3.10-wee-lto-optimized as just
-#.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
-
-RUN apt update; apt -y install curl
-
-RUN curl -L https://github.com/casey/just/releases/download/1.9.0/just-1.9.0-x86_64-unknown-linux-musl.tar.gz | tar -xz -f - -C /usr/bin just
-
-
-#.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
 FROM revolutionsystems/python:3.10-wee-lto-optimized as runner
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
 
 ENV PYTHON_PATH /code
 ENV PATH /.venv/bin:/node/bin:${PATH}
 
-COPY --from=just /usr/bin/just /usr/bin/just
+COPY --from=just-builder /just/target/release/just /usr/bin/just
 
 WORKDIR /code
 

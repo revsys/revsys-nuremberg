@@ -1,18 +1,13 @@
 name: increment version particle
 
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
       level:
         description: bumpversion level (major, minor, patch, build[default])
         required: true
         default: build
-        type: choice
-        options:
-          - major
-          - minor
-          - patch
-          - build
+        type: string
     outputs:
       previous:
         value: ${{ jobs.bumpversion.outputs.original }}
@@ -31,29 +26,24 @@ jobs:
       fail-fast: false
 
     steps:
-        - name: Checkout code
-          #uses: actions/checkout@v3
-          uses: gladiatr72/checkout-action@v3-no-noise
-        - uses: extractions/setup-just@v1
-          with:
-            just-version: '1.9.0'
-        - name: update docker-compose
-          run: |
-            mkdir -pv $HOME/.docker/cli-plugins
-            curl -Ls -o $HOME/.docker/cli-plugins/docker-compose https://github.com/docker/compose/releases/download/v2.13.0/docker-compose-linux-x86_64
-            chmod 755 $HOME/.docker/cli-plugins/docker-compose
-            ln -sfv $HOME/.docker/cli-plugins/docker-compose $( which docker-compose )
-        - name: Login to REVSYS Container Registry
-          uses: docker/login-action@v2
-          with:
-            registry: registry.revsys.com
-            username: github
-            password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
-        - name: Current Version
-          run: just banner version && echo "previous=$( just version )" >> $GITHUB_OUTPUT
-        - name: Run
-          run: just bump ${{ inputs.level }}
-        - name: New Version
-          run: just banner version && echo "current=$( just version )" >> $GITHUB_OUTPUT
-        - name: push new version commits (no tags)
-          run: git push
+      - name: Checkout code
+        uses: gladiatr72/checkout-action@v3-no-noise
+      - name: Login to REVSYS Container Registry
+        id: reglogin
+        uses: docker/login-action@v2
+        with:
+          registry: registry.revsys.com
+          username: github
+          password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
+      - name: Install Just
+        run: |
+          docker run -v /home/runner/.local/bin:/dist --rm registry.revsys.com/just && just version
+      - name: Current Version
+        run: |
+          just banner version && echo "previous=$( just version )" >> $GITHUB_OUTPUT
+      - name: Run
+        run: just bump ${{ inputs.level }}
+      - name: New Version
+        run: just banner version && echo "current=$( just version )" >> $GITHUB_OUTPUT
+      - name: push new version commits (no tags)
+        run: git push origin HEAD:${GITHUB_HEAD_REF} || env | grep GITHUB

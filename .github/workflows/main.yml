@@ -4,18 +4,19 @@ on:
 #    push:
 #      branches:
 #        - ci--setup-job-run-specs
+  workflow_dispatch:
 
   pull_request:
     branches: 
       - ci--*
-#    types:
-#      - opened
-#      - closed
+    types:
+      - opened
+      - synchronize
 
 
 jobs:
 
-  test:
+  setup:
 
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -27,9 +28,15 @@ jobs:
         - name: Checkout code
           #uses: actions/checkout@v3
           uses: gladiatr72/checkout-action@v3-no-noise
-        - uses: extractions/setup-just@v1
+        - name: Login to REVSYS Container Registry
+          uses: docker/login-action@v2
           with:
-            just-version: '1.9.0'
+            registry: registry.revsys.com
+            username: github
+            password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
+        - name: install just
+          run: |
+            docker run -v /home/runner/.local/bin:/dist --rm registry.revsys.com/just
         - name: update docker-compose
           run: |
             mkdir -pv $HOME/.docker/cli-plugins
@@ -37,25 +44,38 @@ jobs:
               https://github.com/docker/compose/releases/download/v2.13.0/docker-compose-linux-x86_64
             chmod 755 $HOME/.docker/cli-plugins/docker-compose
             ln -sfv $HOME/.docker/cli-plugins/docker-compose $( which docker-compose )
-        - name: Login to REVSYS Container Registry
-          uses: docker/login-action@v2
-          with:
-            registry: registry.revsys.com
-            username: github
-            password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
-        - name: bumpversion
-          id: bv
-          if: github.event.pull_request.merged == true
-          uses: ./.github/workflows/bumpversion.yml
-          with:
-              level: patch
-        - name: bumpversion
-          id: bv-pr
-          if: github.event.action == "opened"
-          uses: ./.github/workflows/bumpversion.yml
-          with:
-              level: build
-        -
-          name: lets see
-          run: echo "${{ toJson(github.event) }}"
+        - name: just version
+          run: just --version
+
+  bumpversion-new-pr:
+    if: github.event.action == 'opened'
+    uses: ./.github/workflows/bumpversion.yml
+    secrets: inherit
+    with:
+      level: build
+
+  bumpversion-merged:
+    if: github.event.pull_request.merged == true
+    uses: ./.github/workflows/bumpversion.yml
+    with:
+      level: patch
+
+  lets-see:
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      max-parallel: 4
+      fail-fast: false
+
+    needs: [bumpversion-new-pr,bumpversion-merged]
+
+    steps:
+      - name: wut
+        run: |
+          #!/usr/bin/env bash
+          echo "previous = ${{ needs.bumpversion-new-pr.outputs.previous }}"
+          echo -en "current = "
+          [[ -n "${{ needs.bumpversion-new-pr.outputs.current }}" ]]  && echo "${{ needs.bumpversion-new-pr.outputs.current }}"
+          [[ -n "${{ needs.bumpversion-merged.outputs.current }}" ]] && echo "${{ needs.bumpversion-merged.outputs.current }}"
 
