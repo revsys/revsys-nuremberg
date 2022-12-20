@@ -44,7 +44,8 @@ jobs:
             registry: registry.revsys.com
             username: github
             password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
-        - lets-see:
+        - name: lets-see
+          needs: [jobs.bumpversion-new-pr, jobs.bumpversion-merged]
           run: |
             #!/usr/bin/env bash
             echo "previous = ${{ needs.bumpversion-new-pr.outputs.previous }}"
@@ -53,7 +54,6 @@ jobs:
              && echo "${{ needs.bumpversion-new-pr.outputs.current }}"
             [[ -n "${{ needs.bumpversion-merged.outputs.current }}" ]] \
              && echo "${{ needs.bumpversion-merged.outputs.current }}"
-          needs: [bv-opened, bv-merge]
 
   bumpversion-new-pr:
     if: github.event.action == 'opened'
