@@ -16,13 +16,13 @@ on:
 
 jobs:
 
-  runs-on: ubuntu-latest
-  timeout-minutes: 15
-  strategy:
-    max-parallel: 4
-    fail-fast: false
-
   setup:
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      max-parallel: 4
+      fail-fast: false
 
     steps:
         - name: Checkout code
@@ -61,6 +61,13 @@ jobs:
 
 
   lets-see:
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      max-parallel: 4
+      fail-fast: false
+
     steps:
       - run: echo ${{ toJson(github.event.action) }}
 #   lets-see:
