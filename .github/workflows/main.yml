@@ -4,6 +4,7 @@ on:
 #    push:
 #      branches:
 #        - ci--setup-job-run-specs
+  workflow_dispatch:
 
   pull_request:
     branches: 
@@ -42,20 +43,26 @@ jobs:
           with:
             registry: registry.revsys.com
             username: github
+        - lets-see:
+          run: |
+            echo "previous = ${{ needs.bumpversion-new-pr.outputs.previous }}"
+            echo -en "current = "
+            [[ -n "${{ needs.bumpversion-new-pr.outputs.current }}" ]] \
+             && echo "${{ needs.bumpversion-merged.outputs.current }}"
+            [[ -n "${{ needs.bumpversion-merged.outputs.current }}" ]] \
+          needs: [bv-opened, bv-merge]
             password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
-        - name: bumpversion
-          id: bv
-          if: github.event.pull_request.merged == true
-          uses: ./.github/workflows/bumpversion.yml
-          with:
-              level: patch
-        - name: bumpversion
-          id: bv-pr
-          if: github.event.action == 'opened'
-          uses: ./.github/workflows/bumpversion.yml
-          with:
-              level: build
-        -
-          name: lets see
-          run: echo "${{ toJson(github.event) }}"
+
+  bumpversion-new-pr:
+    if: github.event.action == 'opened'
+    uses: ./.github/workflows/bumpversion.yml
+    with:
+      level: build
+
+  bumpversion-merged:
+    if: github.event.pull_request.merged == true
+    uses: ./.github/workflows/bumpversion.yml
+    with:
+        level: patch
+
 
