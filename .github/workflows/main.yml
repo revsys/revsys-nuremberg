@@ -1,9 +1,9 @@
 name: nuremberg-ci
 
 on:
-  push:
-    branches:
-      - ci--setup-job-run-specs
+#   push:
+#     branches:
+#       - ci--setup-job-run-specs
 
   pull_request:
     branches: [pr/**]
