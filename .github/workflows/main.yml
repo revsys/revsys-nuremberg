@@ -57,5 +57,5 @@ jobs:
               level: build
         -
           name: lets see
-          run: echo ${{ github.event.pull_request }}
+          run: echo "${{ github.event }}"
 
