@@ -59,6 +59,10 @@ jobs:
     with:
         level: patch
 
+
+  lets-see:
+    steps:
+      - run: echo ${{ toJson(github.event.action) }}
 #   lets-see:
 #     steps
 #     run: |
