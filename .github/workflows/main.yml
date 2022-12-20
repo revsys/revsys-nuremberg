@@ -47,8 +47,4 @@ jobs:
           uses: ./.github/workflows/bumpversion.yml
           with:
               level: build
-        - name: was
-          run: echo "${{ jobs.test.bv.previous }}"
-        - name: is
-          run: echo "${{ jobs.test.bv.current }}"
 
