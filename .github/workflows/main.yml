@@ -5,6 +5,11 @@ on:
     branches:
       - ci--setup-job-run-specs
 
+on:
+  pull_request:
+    branches: [pr/**]
+
+
 jobs:
 
   test:
