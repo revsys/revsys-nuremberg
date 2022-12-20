@@ -26,17 +26,16 @@ jobs:
       fail-fast: false
 
     steps:
-       - name: Checkout code
-         #uses: actions/checkout@v3
-         uses: gladiatr72/checkout-action@v3-no-noise
-       - uses: extractions/setup-just@v1
-         with:
-           just-version: '1.9.0'
-        - name: Current Version
-          run: just banner version && echo "previous=$( just version )" >> $GITHUB_OUTPUT
-        - name: Run
-          run: just bump ${{ inputs.level }}
-        - name: New Version
-          run: just banner version && echo "current=$( just version )" >> $GITHUB_OUTPUT
-        - name: push new version commits (no tags)
-          run: git push
+      - name: Checkout code
+        uses: gladiatr72/checkout-action@v3-no-noise
+      - uses: extractions/setup-just@v1
+        with:
+          just-version: '1.9.0'
+      - name: Current Version
+        run: just banner version && echo "previous=$( just version )" >> $GITHUB_OUTPUT
+      - name: Run
+        run: just bump ${{ inputs.level }}
+      - name: New Version
+        run: just banner version && echo "current=$( just version )" >> $GITHUB_OUTPUT
+      - name: push new version commits (no tags)
+        run: git push
