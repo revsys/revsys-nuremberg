@@ -57,5 +57,5 @@ jobs:
               level: build
         -
           name: lets see
-          run: echo "${{ github.event }}"
+          run: echo "${{ toJson(github.event.pull_request) }}"
 
