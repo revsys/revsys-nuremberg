@@ -48,8 +48,9 @@ jobs:
             echo "previous = ${{ needs.bumpversion-new-pr.outputs.previous }}"
             echo -en "current = "
             [[ -n "${{ needs.bumpversion-new-pr.outputs.current }}" ]] \
-             && echo "${{ needs.bumpversion-merged.outputs.current }}"
+             && echo "${{ needs.bumpversion-new-pr.outputs.current }}"
             [[ -n "${{ needs.bumpversion-merged.outputs.current }}" ]] \
+             && echo "${{ needs.bumpversion-merged.outputs.current }}"
           needs: [bv-opened, bv-merge]
             password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
 
