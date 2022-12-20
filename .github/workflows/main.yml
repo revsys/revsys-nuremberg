@@ -16,7 +16,7 @@ on:
 
 jobs:
 
-  test:
+  setup:
 
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -44,26 +44,29 @@ jobs:
             registry: registry.revsys.com
             username: github
             password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
-        - name: lets-see
-          run: |
-            #!/usr/bin/env bash
-            echo "previous = ${{ needs.bumpversion-new-pr.outputs.previous }}"
-            echo -en "current = "
-            [[ -n "${{ needs.bumpversion-new-pr.outputs.current }}" ]] \
-             && echo "${{ needs.bumpversion-new-pr.outputs.current }}"
-            [[ -n "${{ needs.bumpversion-merged.outputs.current }}" ]] \
-             && echo "${{ needs.bumpversion-merged.outputs.current }}"
 
   bumpversion-new-pr:
     if: github.event.action == 'opened'
     uses: ./.github/workflows/bumpversion.yml
+    needs: [setup]
     with:
       level: build
 
   bumpversion-merged:
     if: github.event.pull_request.merged == true
     uses: ./.github/workflows/bumpversion.yml
+    needs: [setup]
     with:
         level: patch
 
-
+#   lets-see:
+#     steps
+#     run: |
+#       #!/usr/bin/env bash
+#       echo "previous = ${{ needs.bumpversion-new-pr.outputs.previous }}"
+#       echo -en "current = "
+#       [[ -n "${{ needs.bumpversion-new-pr.outputs.current }}" ]] \
+#        && echo "${{ needs.bumpversion-new-pr.outputs.current }}"
+#       [[ -n "${{ needs.bumpversion-merged.outputs.current }}" ]] \
+#        && echo "${{ needs.bumpversion-merged.outputs.current }}"
+# 
