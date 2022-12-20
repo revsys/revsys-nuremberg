@@ -16,13 +16,13 @@ on:
 
 jobs:
 
-  setup:
+  runs-on: ubuntu-latest
+  timeout-minutes: 15
+  strategy:
+    max-parallel: 4
+    fail-fast: false
 
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    strategy:
-      max-parallel: 4
-      fail-fast: false
+  setup:
 
     steps:
         - name: Checkout code
