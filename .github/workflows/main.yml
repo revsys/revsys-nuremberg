@@ -7,6 +7,7 @@ on:
 
   pull_request:
     branches: [pr/**]
+    types: [opened, closed]
 
 
 jobs:
@@ -40,15 +41,18 @@ jobs:
             username: github
             password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
         - name: bumpversion
-          id: bv-merged
+          id: bv
           if: github.event.pull_request.merged == true
           uses: ./.github/workflows/bumpversion.yml
           with:
               level: patch
-        - name: bumpversion (pr)
-          id: bv-build
-          if: github.event.pull_request.opened == true
+        - name: bumpversion
+          id: bv-pr
+          if: github.event.pull_request.merged == false && github.event.pull_request.opened == true
           uses: ./.github/workflows/bumpversion.yml
           with:
               level: build
+        -
+          name: lets see
+          run: echo ${{ github.event.pull_request }}
 
