@@ -27,6 +27,12 @@ jobs:
       fail-fast: true
 
     steps:
+        - name: Login to REVSYS Container Registry
+          uses: docker/login-action@v2
+          with:
+            registry: registry.revsys.com
+            username: github
+            password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
         - name: install just
           run: |
             docker inspect registry.revsys.com/just >& /dev/null || docker pull registry.revsys.com/just
@@ -34,12 +40,6 @@ jobs:
         - name: Checkout code
           #uses: actions/checkout@v3
           uses: gladiatr72/checkout-action@v3-no-noise
-        - name: Login to REVSYS Container Registry
-          uses: docker/login-action@v2
-          with:
-            registry: registry.revsys.com
-            username: github
-            password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
         - name: update docker-compose
           run: |
             mkdir -pv $HOME/.docker/cli-plugins
