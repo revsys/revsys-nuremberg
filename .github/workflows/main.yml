@@ -16,36 +16,36 @@ on:
 
 jobs:
 
-  setup:
-
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    strategy:
-      max-parallel: 4
-      fail-fast: false
-
-    steps:
-        - name: Checkout code
-          #uses: actions/checkout@v3
-          uses: gladiatr72/checkout-action@v3-no-noise
-        - name: Login to REVSYS Container Registry
-          uses: docker/login-action@v2
-          with:
-            registry: registry.revsys.com
-            username: github
-            password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
-        - name: install just
-          run: |
-            docker run -v /home/runner/.local/bin:/dist --rm registry.revsys.com/just
-        - name: update docker-compose
-          run: |
-            mkdir -pv $HOME/.docker/cli-plugins
-            curl -Ls -o $HOME/.docker/cli-plugins/docker-compose \
-              https://github.com/docker/compose/releases/download/v2.13.0/docker-compose-linux-x86_64
-            chmod 755 $HOME/.docker/cli-plugins/docker-compose
-            ln -sfv $HOME/.docker/cli-plugins/docker-compose $( which docker-compose )
-        - name: just version
-          run: just --version
+#  setup:
+#
+#    runs-on: ubuntu-latest
+#    timeout-minutes: 15
+#    strategy:
+#      max-parallel: 4
+#      fail-fast: false
+#
+#    steps:
+#        - name: Checkout code
+#          #uses: actions/checkout@v3
+#          uses: gladiatr72/checkout-action@v3-no-noise
+#        - name: Login to REVSYS Container Registry
+#          uses: docker/login-action@v2
+#          with:
+#            registry: registry.revsys.com
+#            username: github
+#            password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
+#        - name: install just
+#          run: |
+#            docker run -v /home/runner/.local/bin:/dist --rm registry.revsys.com/just
+#        - name: update docker-compose
+#          run: |
+#            mkdir -pv $HOME/.docker/cli-plugins
+#            curl -Ls -o $HOME/.docker/cli-plugins/docker-compose \
+#              https://github.com/docker/compose/releases/download/v2.13.0/docker-compose-linux-x86_64
+#            chmod 755 $HOME/.docker/cli-plugins/docker-compose
+#            ln -sfv $HOME/.docker/cli-plugins/docker-compose $( which docker-compose )
+#        - name: just version
+#          run: just --version
 
   pr-new:
     if: github.event.action == 'opened'
@@ -70,7 +70,7 @@ jobs:
 
     steps:
       - name: wut
-        if: ${{ contains(join(needs.pr-*.result, ','), 'success') }}
+        if: ${{ contains(join(needs.*.result, ','), 'success') }}
         run: |
           #!/usr/bin/env bash
           echo -en "previous = "
