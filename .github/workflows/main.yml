@@ -60,7 +60,7 @@ jobs:
     with:
       level: patch
 
-  lets-see:
+  lets-see-pr-new:
 
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -69,17 +69,31 @@ jobs:
       fail-fast: false
     needs:
       - pr-new
+
+    steps:
+      - name: wut
+        if: ${{ contains(join(needs.pr-new.result, ','), 'success') }}
+        run: |
+          #!/usr/bin/env bash
+          echo "previous = ${{ needs.pr-new.outputs.previous }}"
+          echo "current = ${{ needs.pr-new.outputs.current }}"
+
+  lets-see-pr-merged:
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      max-parallel: 4
+      fail-fast: false
+    needs:
       - pr-merged
 
     steps:
       - name: wut
-        if: ${{ contains(join(needs.*.result, ','), 'success') }}
+        if: ${{ contains(join(needs.pr-merged.result, ','), 'success') }}
         run: |
           #!/usr/bin/env bash
-          echo -en "previous = "
-          [[ -n "${{ needs.pr-new.outputs.previous }}" ]]  && echo "${{ needs.pr-new.outputs.previous }}"
-          [[ -n "${{ needs.pr-merged.outputs.previous }}" ]] && echo "${{ needs.pr-merged.outputs.previous }}"
-          echo -en "current = "
-          [[ -n "${{ needs.pr-new.outputs.current }}" ]]  && echo "${{ needs.pr-new.outputs.current }}"
-          [[ -n "${{ needs.pr-merged.outputs.current }}" ]] && echo "${{ needs.pr-merged.outputs.current }}"
+          echo "previous = ${{ needs.pr-merged.outputs.previous }}"
+          echo "current = ${{ needs.pr-merged.outputs.current }}"
+
 
