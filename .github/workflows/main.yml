@@ -67,6 +67,9 @@ jobs:
     strategy:
       max-parallel: 4
       fail-fast: false
+    needs:
+      - pr-new
+      - pr-merged
 
     steps:
       - name: wut
