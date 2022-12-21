@@ -53,7 +53,6 @@ jobs:
     secrets: inherit
     with:
       level: build
-      registry-pw: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
 
   bumpversion-merged:
     if: github.event.pull_request.merged == true
@@ -62,7 +61,6 @@ jobs:
     secrets: inherit
     with:
       level: patch
-      registry-pw: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
 
   lets-see:
 
