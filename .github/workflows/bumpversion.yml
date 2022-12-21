@@ -37,12 +37,10 @@ jobs:
           password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
       - name: Install Just
         run: |
-          docker run -v $PWD/.bin:/dist --rm registry.revsys.com/just
-          echo "$HOME/.bin" >> $GITHUB_PATH
+          docker run -v /home/runner/.local/bin:/dist --rm registry.revsys.com/just && just version
       - name: Current Version
         run: |
-          echo $PATH | tr ':' '\n'
-          $HOME/.bin/just banner version && echo "previous=$( just version )" >> $GITHUB_OUTPUT
+          just banner version && echo "previous=$( just version )" >> $GITHUB_OUTPUT
       - name: Run
         run: just bump ${{ inputs.level }}
       - name: New Version
