@@ -17,4 +17,4 @@ dist/
 dumps/.*
 dumps/new
 dumps/old
-
+.bin/

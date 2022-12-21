@@ -28,9 +28,10 @@ jobs:
         - name: Checkout code
           #uses: actions/checkout@v3
           uses: gladiatr72/checkout-action@v3-no-noise
-        - uses: extractions/setup-just@v1
-          with:
-            just-version: '1.9.0'
+        - name: install just
+          run: |
+            docker run -it -v $PWD/.bin:/dist --rm registry.revsys.com/just
+            echo "$HOME/.bin" >> $GITHUB_PATH
         - name: update docker-compose
           run: |
             mkdir -pv $HOME/.docker/cli-plugins
@@ -51,6 +52,7 @@ jobs:
     needs: [setup]
     with:
       level: build
+      registry-pw: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
 
   bumpversion-merged:
     if: github.event.pull_request.merged == true
@@ -58,7 +60,7 @@ jobs:
     needs: [setup]
     with:
         level: patch
-
+      registry-pw: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
 
   lets-see:
 
@@ -68,16 +70,16 @@ jobs:
       max-parallel: 4
       fail-fast: false
 
+    needs: [bumpversion-new-pr,bumpversion-merged]
+
     steps:
-      - run: echo ${{ toJson(github.event.action) }}
-#   lets-see:
-#     steps
-#     run: |
-#       #!/usr/bin/env bash
-#       echo "previous = ${{ needs.bumpversion-new-pr.outputs.previous }}"
-#       echo -en "current = "
-#       [[ -n "${{ needs.bumpversion-new-pr.outputs.current }}" ]] \
-#        && echo "${{ needs.bumpversion-new-pr.outputs.current }}"
-#       [[ -n "${{ needs.bumpversion-merged.outputs.current }}" ]] \
-#        && echo "${{ needs.bumpversion-merged.outputs.current }}"
-# 
+      - name: wut
+        run: |
+          #!/usr/bin/env bash
+          echo "previous = ${{ needs.bumpversion-new-pr.outputs.previous }}"
+          echo -en "current = "
+          [[ -n "${{ needs.bumpversion-new-pr.outputs.current }}" ]] \
+           && echo "${{ needs.bumpversion-new-pr.outputs.current }}"
+          [[ -n "${{ needs.bumpversion-merged.outputs.current }}" ]] \
+         && echo "${{ needs.bumpversion-merged.outputs.current }}"
+
