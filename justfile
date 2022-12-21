@@ -121,7 +121,7 @@ _solr-compose:
 
 @_drop-just:
     docker pull registry.revsys.com/just >& /dev/null || just _make-just
-    docker run -it --user $UID --rm -v $PWD/.bin:/dist registry.revsys.com/just
+    docker run --user $UID --rm -v $PWD/.bin:/dist registry.revsys.com/just
 
 _bk-up:
     #!/bin/bash
