@@ -11,7 +11,7 @@ on:
       - ci--*
     types:
       - opened
-      - synchronized
+      - synchronize
 
 
 jobs:
