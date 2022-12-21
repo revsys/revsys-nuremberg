@@ -7,93 +7,55 @@ on:
   workflow_dispatch:
 
   pull_request:
-    branches: 
+    branches:
       - ci--*
     types:
       - opened
-    #- synchronize
+      - reopened
+      - synchronize
+      - closed
 
 
 jobs:
 
-#  setup:
-#
-#    runs-on: ubuntu-latest
-#    timeout-minutes: 15
-#    strategy:
-#      max-parallel: 4
-#      fail-fast: false
-#
-#    steps:
-#        - name: Checkout code
-#          #uses: actions/checkout@v3
-#          uses: gladiatr72/checkout-action@v3-no-noise
-#        - name: Login to REVSYS Container Registry
-#          uses: docker/login-action@v2
-#          with:
-#            registry: registry.revsys.com
-#            username: github
-#            password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
-#        - name: install just
-#          run: |
-#            docker run -v /home/runner/.local/bin:/dist --rm registry.revsys.com/just
-#        - name: update docker-compose
-#          run: |
-#            mkdir -pv $HOME/.docker/cli-plugins
-#            curl -Ls -o $HOME/.docker/cli-plugins/docker-compose \
-#              https://github.com/docker/compose/releases/download/v2.13.0/docker-compose-linux-x86_64
-#            chmod 755 $HOME/.docker/cli-plugins/docker-compose
-#            ln -sfv $HOME/.docker/cli-plugins/docker-compose $( which docker-compose )
-#        - name: just version
-#          run: just --version
-
-  pr-new:
-    if: github.event.action == 'opened'
-    uses: ./.github/workflows/bumpversion.yml
-    secrets: inherit
-    with:
-      level: build
-
-  pr-merged:
-    if: github.event.pull_request.merged == true
-    uses: ./.github/workflows/bumpversion.yml
-    with:
-      level: patch
-
-  lets-see-pr-new:
+  setup:
 
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
       max-parallel: 4
       fail-fast: false
-    needs:
-      - pr-new
 
     steps:
-      - name: wut
-        if: ${{ contains(join(needs.pr-new.result, ','), 'success') }}
-        run: |
-          #!/usr/bin/env bash
-          echo "previous = ${{ needs.pr-new.outputs.previous }}"
-          echo "current = ${{ needs.pr-new.outputs.current }}"
+        - name: Checkout code
+          #uses: actions/checkout@v3
+          uses: gladiatr72/checkout-action@v3-no-noise
+        - name: Login to REVSYS Container Registry
+          uses: docker/login-action@v2
+          with:
+            registry: registry.revsys.com
+            username: github
+            password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
+        - name: install just
+          run: |
+            docker run -v /home/runner/.local/bin:/dist --rm registry.revsys.com/just
+        - name: update docker-compose
+          run: |
+            mkdir -pv $HOME/.docker/cli-plugins
+            curl -Ls -o $HOME/.docker/cli-plugins/docker-compose \
+              https://github.com/docker/compose/releases/download/v2.13.0/docker-compose-linux-x86_64
+            chmod 755 $HOME/.docker/cli-plugins/docker-compose
+            ln -sfv $HOME/.docker/cli-plugins/docker-compose $( which docker-compose )
+        - if: github.event.action == 'opened'
+          run: just bump build
+        - if: github.event.pull_request.merged == true
+          run:
+            just bump patch
+        - run: just build tester
+        - run: just test
+        - if: github.event.pull_request.merged == true
+          run: git push
 
-  lets-see-pr-merged:
 
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    strategy:
-      max-parallel: 4
-      fail-fast: false
-    needs:
-      - pr-merged
-
-    steps:
-      - name: wut
-        if: ${{ contains(join(needs.pr-merged.result, ','), 'success') }}
-        run: |
-          #!/usr/bin/env bash
-          echo "previous = ${{ needs.pr-merged.outputs.previous }}"
-          echo "current = ${{ needs.pr-merged.outputs.current }}"
 
 
