@@ -37,7 +37,8 @@ jobs:
           run: |
             docker inspect registry.revsys.com/just >& /dev/null || docker pull registry.revsys.com/just
             docker run -v /home/runner/.local/bin:/dist --rm registry.revsys.com/just && just --version
-            git config --global advice.detachedHead=false
+            git config --global advice.detachedHead false
+
         - name: Checkout code
           #uses: actions/checkout@v3
           uses: gladiatr72/checkout-action@v3-no-noise
