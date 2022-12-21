@@ -35,17 +35,15 @@ jobs:
           registry: registry.revsys.com
           username: github
           password: ${{ secrets.registry-pw }}
-      - uses: extractions/setup-just@v1
-        with:
-          just-version: '1.9.0'
+      - name: Install Just
+        run: |
+          docker run -v $PWD/.bin:/dist --rm registry.revsys.com/just
+          echo "$HOME/.bin" >> $GITHUB_PATH
       - name: Current Version
-        needs: [reglogin]
         run: just banner version && echo "previous=$( just version )" >> $GITHUB_OUTPUT
       - name: Run
         run: just bump ${{ inputs.level }}
-        needs: [reglogin]
       - name: New Version
-        needs: [reglogin]
         run: just banner version && echo "current=$( just version )" >> $GITHUB_OUTPUT
       - name: push new version commits (no tags)
         run: git push
