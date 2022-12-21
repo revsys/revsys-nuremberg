@@ -23,10 +23,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
-      max-parallel: 4
-      fail-fast: false
+      max-parallel: 8
+      fail-fast: true
 
     steps:
+        - name: install just
+          run: |
+            docker inspect registry.revsys.com/just >& /dev/null || docker pull registry.revsys.com/just
+            docker run -v /home/runner/.local/bin:/dist --rm registry.revsys.com/just && just --version
         - name: Checkout code
           #uses: actions/checkout@v3
           uses: gladiatr72/checkout-action@v3-no-noise
@@ -36,9 +40,6 @@ jobs:
             registry: registry.revsys.com
             username: github
             password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
-        - name: install just
-          run: |
-            docker run -v /home/runner/.local/bin:/dist --rm registry.revsys.com/just
         - name: update docker-compose
           run: |
             mkdir -pv $HOME/.docker/cli-plugins
@@ -47,14 +48,15 @@ jobs:
             chmod 755 $HOME/.docker/cli-plugins/docker-compose
             ln -sfv $HOME/.docker/cli-plugins/docker-compose $( which docker-compose )
         - if: github.event.action == 'opened'
+          name: new PR bump (build)
           run: just bump build
         - if: github.event.pull_request.merged == true
-          run:
-            just bump patch
-        - run: just build tester
+          name: merged PR bump (patch)
+          run: just bump patch
+        - run: just build tester --load verbosity=1
         - run: just test
         - if: github.event.pull_request.merged == true
-          run: git push
+          run: git push --follow-tags
 
 
 
