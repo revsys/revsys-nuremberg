@@ -8,6 +8,7 @@ on:
         required: true
         default: build
         type: string
+    secrets:
       registry-pw:
         required: true
         type: string
@@ -36,7 +37,7 @@ jobs:
         with:
           registry: registry.revsys.com
           username: github
-          password: ${{ inputs.registry-pw }}
+          password: ${{ secrets.registry-pw }}
       - uses: extractions/setup-just@v1
         with:
           just-version: '1.9.0'
