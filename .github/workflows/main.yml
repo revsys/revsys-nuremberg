@@ -78,8 +78,6 @@ jobs:
           #!/usr/bin/env bash
           echo "previous = ${{ needs.bumpversion-new-pr.outputs.previous }}"
           echo -en "current = "
-          [[ -n "${{ needs.bumpversion-new-pr.outputs.current }}" ]] \
-           && echo "${{ needs.bumpversion-new-pr.outputs.current }}"
-          [[ -n "${{ needs.bumpversion-merged.outputs.current }}" ]] \
-         && echo "${{ needs.bumpversion-merged.outputs.current }}"
+          [[ -n "${{ needs.bumpversion-new-pr.outputs.current }}" ]]  && echo "${{ needs.bumpversion-new-pr.outputs.current }}"
+          [[ -n "${{ needs.bumpversion-merged.outputs.current }}" ]] && echo "${{ needs.bumpversion-merged.outputs.current }}"
 
