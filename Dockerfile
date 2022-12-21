@@ -52,7 +52,7 @@ FROM revolutionsystems/python:3.10-wee-lto-optimized as runner
 ENV PYTHON_PATH /code
 ENV PATH /.venv/bin:/node/bin:${PATH}
 
-COPY --from=just /just /usr/bin/just
+#COPY --from=just /just /usr/bin/just
 
 WORKDIR /code
 
