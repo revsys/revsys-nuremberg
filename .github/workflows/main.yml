@@ -59,7 +59,7 @@ jobs:
     uses: ./.github/workflows/bumpversion.yml
     needs: [setup]
     with:
-        level: patch
+      level: patch
       registry-pw: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
 
   lets-see:
