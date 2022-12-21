@@ -4,32 +4,44 @@ on:
 #    push:
 #      branches:
 #        - ci--setup-job-run-specs
+  workflow_dispatch:
 
   pull_request:
-    branches: 
+    branches:
       - ci--*
-#    types:
-#      - opened
-#      - closed
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - closed
 
 
 jobs:
 
-  test:
+  setup:
 
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
-      max-parallel: 4
-      fail-fast: false
+      max-parallel: 8
+      fail-fast: true
 
     steps:
+        - name: Login to REVSYS Container Registry
+          uses: docker/login-action@v2
+          with:
+            registry: registry.revsys.com
+            username: github
+            password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
+        - name: install just
+          run: |
+            docker inspect registry.revsys.com/just >& /dev/null || docker pull registry.revsys.com/just
+            docker run -v /home/runner/.local/bin:/dist --rm registry.revsys.com/just && just --version
+            git config --global advice.detachedHead false
+
         - name: Checkout code
           #uses: actions/checkout@v3
           uses: gladiatr72/checkout-action@v3-no-noise
-        - uses: extractions/setup-just@v1
-          with:
-            just-version: '1.9.0'
         - name: update docker-compose
           run: |
             mkdir -pv $HOME/.docker/cli-plugins
@@ -37,25 +49,17 @@ jobs:
               https://github.com/docker/compose/releases/download/v2.13.0/docker-compose-linux-x86_64
             chmod 755 $HOME/.docker/cli-plugins/docker-compose
             ln -sfv $HOME/.docker/cli-plugins/docker-compose $( which docker-compose )
-        - name: Login to REVSYS Container Registry
-          uses: docker/login-action@v2
-          with:
-            registry: registry.revsys.com
-            username: github
-            password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
-        - name: bumpversion
-          id: bv
-          if: github.event.pull_request.merged == true
-          uses: ./.github/workflows/bumpversion.yml
-          with:
-              level: patch
-        - name: bumpversion
-          id: bv-pr
-          if: github.event.action == "opened"
-          uses: ./.github/workflows/bumpversion.yml
-          with:
-              level: build
-        -
-          name: lets see
-          run: echo "${{ toJson(github.event) }}"
+        - if: github.event.action == 'opened'
+          name: new PR bump (build)
+          run: just bump build
+        - if: github.event.pull_request.merged == true
+          name: merged PR bump (patch)
+          run: just bump patch
+        - run: just build tester --load verbosity=1
+        - run: just test
+        - if: github.event.pull_request.merged == true
+          run: git push --follow-tags
+
+
+
 

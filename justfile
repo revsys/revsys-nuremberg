@@ -1,9 +1,9 @@
 # vim: filetype=just tabstop=4 shiftwidth=4 expandtab number
-# poke 7
+# poke 9
 set dotenv-load := false
 IMAGE_REGISTRY := 'registry.revsys.com/nuremberg'
 CACHE_REGISTRY := 'registry.revsys.com/cache/nuremberg'
-VERSION := 'v0.3.20-r2'
+VERSION := 'v0.3.20-r6'
 
 set shell := ["/bin/bash", "-c"]
 
@@ -113,6 +113,15 @@ _solr-compose:
     just build b2v
     docker tag $( just tag )-b2v registry.revsys.com/bump2version
     docker push registry.revsys.com/bump2version > /dev/null
+
+@_make-just:
+    just build just
+    docker tag $( just tag )-just registry.revsys.com/just
+    docker push registry.revsys.com/just
+
+_drop-just:
+    docker pull registry.revsys.com/just >& /dev/null || just _make-just
+    docker run --user ${UID} --rm -v $PWD/.bin:/dist registry.revsys.com/just
 
 _bk-up:
     #!/bin/bash
