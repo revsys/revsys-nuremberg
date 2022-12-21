@@ -8,10 +8,6 @@ on:
         required: true
         default: build
         type: string
-    secrets:
-      registry-pw:
-        required: true
-        type: string
     outputs:
       previous:
         value: ${{ jobs.bumpversion.outputs.original }}

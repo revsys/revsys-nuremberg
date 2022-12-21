@@ -50,6 +50,7 @@ jobs:
     if: github.event.action == 'opened'
     uses: ./.github/workflows/bumpversion.yml
     needs: [setup]
+    secrets: inherit
     with:
       level: build
       registry-pw: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
@@ -58,6 +59,7 @@ jobs:
     if: github.event.pull_request.merged == true
     uses: ./.github/workflows/bumpversion.yml
     needs: [setup]
+    secrets: inherit
     with:
       level: patch
       registry-pw: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
