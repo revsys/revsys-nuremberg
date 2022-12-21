@@ -19,14 +19,15 @@ RUN cp target/*/release/just /bin/
 
 
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
-FROM debian:11-slim as just
+FROM alpine as just
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
 
 COPY --from=just-builder /bin/just /
 
-ENTRYPOINT ["/bin/bash", "-c"]
+#ENTRYPOINT ["/bin/sh", "-c"]
 
-CMD ["cp /just /dist/just && chown $UID /dist/just"]
+ENTRYPOINT  ["/bin/sh", "-c"]
+CMD ["install -o $UID -m 0755 -t /dist /just"]
 
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
 FROM python:3.10-alpine as b2v
@@ -51,7 +52,7 @@ FROM revolutionsystems/python:3.10-wee-lto-optimized as runner
 ENV PYTHON_PATH /code
 ENV PATH /.venv/bin:/node/bin:${PATH}
 
-COPY --from=just-builder /just/target/release/just /usr/bin/just
+COPY --from=just /just /usr/bin/just
 
 WORKDIR /code
 
