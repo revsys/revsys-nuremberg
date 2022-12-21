@@ -11,7 +11,7 @@ on:
       - ci--*
     types:
       - opened
-      - synchronize
+    #- synchronize
 
 
 jobs:
@@ -70,9 +70,12 @@ jobs:
 
     steps:
       - name: wut
+        if: ${{ contains(join(needs.pr-*.result, ','), 'success') }}
         run: |
           #!/usr/bin/env bash
-          echo "previous = ${{ needs.bumpversion-new-pr.outputs.previous }}"
+          echo -en "previous = "
+          [[ -n "${{ needs.pr-new.outputs.previous }}" ]]  && echo "${{ needs.pr-new.outputs.previous }}"
+          [[ -n "${{ needs.pr-merged.outputs.previous }}" ]] && echo "${{ needs.pr-merged.outputs.previous }}"
           echo -en "current = "
           [[ -n "${{ needs.pr-new.outputs.current }}" ]]  && echo "${{ needs.pr-new.outputs.current }}"
           [[ -n "${{ needs.pr-merged.outputs.current }}" ]] && echo "${{ needs.pr-merged.outputs.current }}"
