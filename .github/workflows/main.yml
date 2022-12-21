@@ -57,7 +57,6 @@ jobs:
   bumpversion-merged:
     if: github.event.pull_request.merged == true
     uses: ./.github/workflows/bumpversion.yml
-    needs: [setup]
     with:
       level: patch
 
