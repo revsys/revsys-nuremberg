@@ -46,4 +46,4 @@ jobs:
       - name: New Version
         run: just banner version && echo "current=$( just version )" >> $GITHUB_OUTPUT
       - name: push new version commits (no tags)
-        run: git push
+        run: git push || ( git describe; git describe --tags )
