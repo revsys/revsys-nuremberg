@@ -34,7 +34,7 @@ jobs:
         with:
           registry: registry.revsys.com
           username: github
-          password: ${{ secrets.registry-pw }}
+          password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
       - name: Install Just
         run: |
           docker run -v $PWD/.bin:/dist --rm registry.revsys.com/just
