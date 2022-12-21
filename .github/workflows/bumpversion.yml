@@ -40,7 +40,7 @@ jobs:
           docker run -v $PWD/.bin:/dist --rm registry.revsys.com/just
           echo "$HOME/.bin" >> $GITHUB_PATH
       - name: Current Version
-        run: just banner version && echo "previous=$( just version )" >> $GITHUB_OUTPUT
+        run: ./bin/just banner version && echo "previous=$( just version )" >> $GITHUB_OUTPUT
       - name: Run
         run: just bump ${{ inputs.level }}
       - name: New Version
