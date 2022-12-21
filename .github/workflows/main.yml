@@ -47,14 +47,14 @@ jobs:
         - name: just version
           run: just --version
 
-  bumpversion-new-pr:
+  pr-new:
     if: github.event.action == 'opened'
     uses: ./.github/workflows/bumpversion.yml
     secrets: inherit
     with:
       level: build
 
-  bumpversion-merged:
+  pr-merged:
     if: github.event.pull_request.merged == true
     uses: ./.github/workflows/bumpversion.yml
     with:
@@ -68,14 +68,12 @@ jobs:
       max-parallel: 4
       fail-fast: false
 
-    needs: [bumpversion-new-pr,bumpversion-merged]
-
     steps:
       - name: wut
         run: |
           #!/usr/bin/env bash
           echo "previous = ${{ needs.bumpversion-new-pr.outputs.previous }}"
           echo -en "current = "
-          [[ -n "${{ needs.bumpversion-new-pr.outputs.current }}" ]]  && echo "${{ needs.bumpversion-new-pr.outputs.current }}"
-          [[ -n "${{ needs.bumpversion-merged.outputs.current }}" ]] && echo "${{ needs.bumpversion-merged.outputs.current }}"
+          [[ -n "${{ needs.pr-new.outputs.current }}" ]]  && echo "${{ needs.pr-new.outputs.current }}"
+          [[ -n "${{ needs.pr-merged.outputs.current }}" ]] && echo "${{ needs.pr-merged.outputs.current }}"
 
