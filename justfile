@@ -114,6 +114,15 @@ _solr-compose:
     docker tag $( just tag )-b2v registry.revsys.com/bump2version
     docker push registry.revsys.com/bump2version > /dev/null
 
+@_make-just:
+    just build just
+    docker tag $( just tag )-just registry.revsys.com/just
+    docker push registry.revsys.com/just
+
+@_drop-just:
+    docker pull registry.revsys.com/just >& /dev/null || just _make-just
+    docker run -it --user $UID --rm -v $PWD/.bin:/dist registry.revsys.com/just
+
 _bk-up:
     #!/bin/bash
     set -o pipefail
