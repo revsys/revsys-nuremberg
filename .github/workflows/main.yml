@@ -30,7 +30,7 @@ jobs:
           uses: gladiatr72/checkout-action@v3-no-noise
         - name: install just
           run: |
-            docker run -it -v $PWD/.bin:/dist --rm registry.revsys.com/just
+            docker run -v $PWD/.bin:/dist --rm registry.revsys.com/just
             echo "$HOME/.bin" >> $GITHUB_PATH
         - name: update docker-compose
           run: |
