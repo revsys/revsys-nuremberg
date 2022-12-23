@@ -51,7 +51,7 @@ jobs:
             password: ${{ secrets.GITHUB_TOKEN }}
         - name: install just
           run: |
-            docker run -v /home/runner/.local/bin:/dist ghcr.io/revsys/just:0.9.4 && just --version
+            docker run -v /home/runner/.local/bin:/dist ghcr.io/revsys/revsys-nuremberg/just:v0.9.4 && just --version
         - name: Checkout code
           uses: gladiatr72/checkout-action@v3-no-noise
         - name: update docker-compose
