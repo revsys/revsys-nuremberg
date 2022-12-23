@@ -2,8 +2,9 @@
 # poke 9
 set dotenv-load := false
 IMAGE_REGISTRY := 'registry.revsys.com/nuremberg'
-CACHE_REGISTRY := 'registry.revsys.com/cache/nuremberg'
-VERSION := 'v0.3.22'
+CACHE_REGISTRY := env_var_or_default('CACHE_REGISTRY', 'registry.revsys.com/cache/nuremberg')
+
+VERSION := 'v0.4.0'
 
 set shell := ["/bin/bash", "-c"]
 
@@ -98,8 +99,7 @@ _solr-compose:
 
 # executes bump2version on local repository (e.g.: just bump patch; just bump build)
 @bump part='build' args='':
-    docker inspect registry.revsys.com/bump2version >& /dev/null || ( just _make-bv && just bump {{part}} )
-    docker run -u ${UID} --rm -v $PWD:/code --workdir /code registry.revsys.com/bump2version {{part}} {{args}} || exit 1
+    docker run -u ${UID} --rm -v $PWD:/code --workdir /code ghcr.io/revsys/bump2version {{part}} {{args}}
 
 
 # updates last/{{env}}/deploy and {{env}}/deploy tags to trigger flux deployment
@@ -112,7 +112,9 @@ _solr-compose:
 @_make-bv:
     just build b2v
     docker tag $( just tag )-b2v registry.revsys.com/bump2version
+    docker tag $( just tag )-b2v ghcr.io/revsys.com/bump2version
     docker push registry.revsys.com/bump2version > /dev/null
+    docker push ghcr.io/revsys/bump2version > /dev/null
 
 @_make-just:
     just build just

@@ -16,6 +16,10 @@ on:
       - closed
 
 
+concurrency:
+  group: ci-tests-${{ github.ref }}-1
+  cancel-in-progress: true
+
 jobs:
 
   setup:
@@ -26,6 +30,12 @@ jobs:
       max-parallel: 8
       fail-fast: true
 
+    permissions:
+      packages: read
+
+    env:
+      CACHE_REGISTRY: ghcr.io/revsys/revsys-nuremberg
+
     steps:
         - name: Login to REVSYS Container Registry
           uses: docker/login-action@v2
@@ -33,14 +43,16 @@ jobs:
             registry: registry.revsys.com
             username: github
             password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
+        - name: Login to ghcr
+          uses: docker/login-action@v2
+          with:
+            registry: ghcr.io/revsys/revsys-nuremberg
+            username: ${{ github.actor }}
+            password: ${{ secrets.GITHUB_TOKEN }}
         - name: install just
           run: |
-            docker inspect registry.revsys.com/just >& /dev/null || docker pull registry.revsys.com/just
-            docker run -v /home/runner/.local/bin:/dist --rm registry.revsys.com/just && just --version
-            git config --global advice.detachedHead false
-
+            docker run -v /home/runner/.local/bin:/dist registry.revsys.com/just:0.9.4 > /dev/null  && just --version
         - name: Checkout code
-          #uses: actions/checkout@v3
           uses: gladiatr72/checkout-action@v3-no-noise
         - name: update docker-compose
           run: |
@@ -58,7 +70,7 @@ jobs:
         - run: just build tester --load verbosity=1
         - run: just test
         - if: github.event.pull_request.merged == true
-          run: git push --follow-tags
+          run: git push --tags
 
 
 
