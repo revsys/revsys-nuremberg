@@ -98,7 +98,7 @@ _solr-compose:
 
 # executes bump2version on local repository (e.g.: just bump patch; just bump build)
 @bump part='build' args='':
-    docker run -u ${UID} --rm -v $PWD:/code --workdir /code ghcr.io/revsys/bump2version {{part}} {{args}}
+    docker run -u ${UID} --rm -v $PWD:/code --workdir /code registry.revsys.com/bump2version {{part}} {{args}}
 
 
 # updates last/{{env}}/deploy and {{env}}/deploy tags to trigger flux deployment
