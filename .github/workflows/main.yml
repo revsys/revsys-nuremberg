@@ -16,6 +16,10 @@ on:
       - closed
 
 
+concurrency:
+  group: ci-tests-${{ github.ref }}-1
+  cancel-in-progress: true
+
 jobs:
 
   setup:
@@ -34,13 +38,10 @@ jobs:
             username: github
             password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
         - name: install just
-          run: |
-            docker inspect registry.revsys.com/just >& /dev/null || docker pull registry.revsys.com/just
-            docker run -v /home/runner/.local/bin:/dist --rm registry.revsys.com/just && just --version
-            git config --global advice.detachedHead false
-
+          container:
+            image: registry.revsys.com/just:v0.9.4
+            volumes: /home/runner/.local/bin:/dist
         - name: Checkout code
-          #uses: actions/checkout@v3
           uses: gladiatr72/checkout-action@v3-no-noise
         - name: update docker-compose
           run: |
@@ -58,7 +59,7 @@ jobs:
         - run: just build tester --load verbosity=1
         - run: just test
         - if: github.event.pull_request.merged == true
-          run: git push --follow-tags
+          run: git push --tags
 
 
 
