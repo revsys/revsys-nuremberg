@@ -34,8 +34,7 @@ jobs:
       packages: read
 
     env:
-      - name: CACHE_REGISTRY
-        value: ghcr.io/revsys/revsys-nuremberg
+      CACHE_REGISTRY: ghcr.io/revsys/revsys-nuremberg
 
     steps:
         - name: Login to REVSYS Container Registry
