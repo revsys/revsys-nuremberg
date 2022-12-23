@@ -41,6 +41,7 @@ jobs:
           container:
             image: registry.revsys.com/just:v0.9.4
             volumes: /home/runner/.local/bin:/dist
+          run: just --version
         - name: Checkout code
           uses: gladiatr72/checkout-action@v3-no-noise
         - name: update docker-compose
