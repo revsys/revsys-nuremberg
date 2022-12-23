@@ -37,6 +37,12 @@ jobs:
             registry: registry.revsys.com
             username: github
             password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
+        - name: Login to ghcr
+          uses: docker/login-action@v2
+          with:
+            registry: registry.revsys.com
+            username: ${{ github.actor }}
+            password: ${{ secrets.GITHUB_TOKEN }}
         - name: install just
           run: |
             docker run -v /home/runner/.local/bin:/dist ghcr.io/revsys/just:0.9.4 && just --version
