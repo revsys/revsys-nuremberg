@@ -1,9 +1,9 @@
 # vim: filetype=just tabstop=4 shiftwidth=4 expandtab number
-# poke 3
+# poke 4
 set dotenv-load := false
 IMAGE_REGISTRY := 'registry.revsys.com/nuremberg'
 CACHE_REGISTRY := env_var_or_default('CACHE_REGISTRY', 'registry.revsys.com/cache/nuremberg')
-VERSION := 'v0.4.1-r2'
+VERSION := 'v0.4.1-r3'
 
 set shell := ["/bin/bash", "-c"]
 
