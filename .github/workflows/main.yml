@@ -47,6 +47,8 @@ jobs:
             docker run -v /home/runner/.local/bin:/dist registry.revsys.com/just:0.9.4 || just --version
         - name: Checkout code
           uses: gladiatr72/checkout-action@v3-no-noise
+          with:
+            ref: ${{ github.event.pull_request.head.ref }}
         - name: update docker-compose
           run: |
             mkdir -pv $HOME/.docker/cli-plugins
@@ -69,7 +71,4 @@ jobs:
         #- run: just test
         - if: github.event.pull_request.merged == true
           run: git push --tags
-
-
-
-
+        - run: git push
