@@ -17,7 +17,7 @@ on:
 
 
 concurrency:
-  group: ci-tests-${{ github.ref }}-1
+  group: ci-tests-${{ github.event.pull_request.head.ref }}-1
   cancel-in-progress: true
 
 jobs:
@@ -52,6 +52,7 @@ jobs:
         - name: install just
           run: |
             docker run -v /home/runner/.local/bin:/dist registry.revsys.com/just:0.9.4 > /dev/null  && just --version
+            docker pull ghcr.io/revsys/revsys-nuremberg/just || exit 1
         - name: Checkout code
           uses: gladiatr72/checkout-action@v3-no-noise
         - name: update docker-compose
