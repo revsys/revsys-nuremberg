@@ -26,8 +26,10 @@ COPY --from=just-builder /bin/just /
 
 #ENTRYPOINT ["/bin/sh", "-c"]
 
+LABEL org.opencontainers.image.source https://github.com/revsys/revsys-nuremberg
+
 ENTRYPOINT  ["/bin/sh", "-c"]
-CMD ["install -m 0755 -t /dist /just"]
+CMD ["install -v -m 0755 -t /dist /just && /just --version"]
 
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
 FROM python:3.10-alpine as b2v
