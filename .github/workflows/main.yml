@@ -49,7 +49,7 @@ jobs:
         - name: install just
           run: |
             docker run -v /home/runner/.local/bin:/dist registry.revsys.com/just:0.9.4 > /dev/null  && just --version
-          docker tag registry.revsys.com/just:0.9.4 ghcr.io/revsys/revsys-nuremberg/just && docker push ghcr.io/revsys/revsys-nuremberg/just
+            docker tag registry.revsys.com/just:0.9.4 ghcr.io/revsys/revsys-nuremberg/just && docker push ghcr.io/revsys/revsys-nuremberg/just
         - name: Checkout code
           uses: gladiatr72/checkout-action@v3-no-noise
         - name: update docker-compose
