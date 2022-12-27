@@ -24,8 +24,6 @@ concurrency:
   group: ci-tests-${{ github.event.pull_request.head.ref }}-1
   cancel-in-progress: true
 
-permissions: read-all
-
 jobs:
 
   setup:
@@ -56,14 +54,19 @@ jobs:
               https://github.com/docker/compose/releases/download/v2.13.0/docker-compose-linux-x86_64
             chmod 755 $HOME/.docker/cli-plugins/docker-compose
             ln -sfv $HOME/.docker/cli-plugins/docker-compose $( which docker-compose )
+        - name: version
+          run: just banner version
         - if: github.event.action == 'opened'
           name: new PR bump (build)
           run: just bump build
         - if: github.event.pull_request.merged == true
           name: merged PR bump (patch)
           run: just bump patch
-        - run: just build tester --load verbosity=1
-        - run: just test
+        - name: new version
+          if: github.event.action == 'opened' || github.event.pull_request.merged == true
+          run: just banner version
+        #- run: just build tester --load verbosity=1
+        #- run: just test
         - if: github.event.pull_request.merged == true
           run: git push --tags
 
