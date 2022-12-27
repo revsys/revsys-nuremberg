@@ -20,6 +20,8 @@ concurrency:
   group: ci-tests-${{ github.event.pull_request.head.ref }}-1
   cancel-in-progress: true
 
+permissions: read-all
+
 jobs:
 
   setup:
@@ -30,8 +32,6 @@ jobs:
       max-parallel: 8
       fail-fast: true
 
-#    permissions:
-#      packages: read
 
     steps:
         - name: Login to REVSYS Container Registry
