@@ -111,9 +111,7 @@ _solr-compose:
 @_make-bv:
     just build b2v
     docker tag $( just tag )-b2v registry.revsys.com/bump2version
-    docker tag $( just tag )-b2v ghcr.io/revsys.com/bump2version
     docker push registry.revsys.com/bump2version > /dev/null
-    docker push ghcr.io/revsys/bump2version > /dev/null
 
 @_make-just:
     just build just

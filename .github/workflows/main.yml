@@ -33,9 +33,6 @@ jobs:
     permissions:
       packages: read
 
-    env:
-      CACHE_REGISTRY: ghcr.io/revsys/revsys-nuremberg/cache
-
     steps:
         - name: Login to REVSYS Container Registry
           uses: docker/login-action@v2
@@ -43,15 +40,16 @@ jobs:
             registry: registry.revsys.com
             username: github
             password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
-        - name: Login to ghcr
+        - name: Log in to the Container registry
           uses: docker/login-action@v2
           with:
-            registry: ghcr.io/revsys/revsys-nuremberg
+            registry: ghcr.io
             username: ${{ github.actor }}
             password: ${{ secrets.GITHUB_TOKEN }}
         - name: install just
           run: |
             docker run -v /home/runner/.local/bin:/dist registry.revsys.com/just:0.9.4 > /dev/null  && just --version
+          docker tag registry.revsys.com/just:0.9.4 ghcr.io/revsys/revsys-nuremberg/just && docker push ghcr.io/revsys/revsys-nuremberg/just
         - name: Checkout code
           uses: gladiatr72/checkout-action@v3-no-noise
         - name: update docker-compose
