@@ -69,6 +69,7 @@ jobs:
         #- run: just test
         - if: github.event.pull_request.merged == true
           run: git push --tags
+        - run: git push
 
 
 
