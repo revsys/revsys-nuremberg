@@ -30,8 +30,8 @@ jobs:
       max-parallel: 8
       fail-fast: true
 
-    permissions:
-      packages: read
+#    permissions:
+#      packages: read
 
     steps:
         - name: Login to REVSYS Container Registry
