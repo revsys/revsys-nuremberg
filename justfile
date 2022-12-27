@@ -97,7 +97,7 @@ _solr-compose:
     just ci-dc down -v
 
 # executes bump2version on local repository (e.g.: just bump patch; just bump build)
-@bump part='build' args='':
+@bump part='build' *args='':
     docker run -u ${UID} --rm -v $PWD:/code --workdir /code registry.revsys.com/bump2version {{part}} {{args}}
 
 

@@ -44,7 +44,7 @@ jobs:
         run: |
           just banner version && echo "previous=$( just version )" >> $GITHUB_OUTPUT
       - name: Run
-        run: just bump ${{ inputs.level }}
+        run: just bump ${{ inputs.level }} --verbose
       - name: New Version
         run: just banner version && echo "current=$( just version )" >> $GITHUB_OUTPUT
       - name: push new version commits (no tags)
