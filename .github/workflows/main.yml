@@ -85,7 +85,7 @@ jobs:
             chmod 755 $HOME/.docker/cli-plugins/docker-compose
             ln -sfv $HOME/.docker/cli-plugins/docker-compose $( which docker-compose )
         - name: version
-          run: just banner version
+          run: echo "### $( just version )" >> $GITHUB_STEP_SUMMARY
         - if: github.event.action == 'opened'
           name: new PR bump (build)
           run: just bump build
