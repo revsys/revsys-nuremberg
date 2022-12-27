@@ -24,8 +24,6 @@ concurrency:
   group: ci-tests-${{ github.event.pull_request.head.ref }}-1
   cancel-in-progress: true
 
-permissions: read-all
-
 jobs:
 
   setup:
