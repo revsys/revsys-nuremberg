@@ -1,0 +1,22 @@
+name: Push to Main
+
+on:
+  push:
+    branches:
+      - ci--setup-job-run-specs
+
+  workflow_dispatch:
+
+
+concurrency:
+  group: ci-push-to-main-${{ github.ref }}
+
+jobs:
+  contexts:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: github
+        run: echo "$GITHUB_CONTEXT"
+
+

@@ -1,14 +1,10 @@
-name: nuremberg-ci
+name: Pull Requests
 
 on:
 #    push:
 #      branches:
 #        - ci--setup-job-run-specs
   workflow_dispatch:
-
-  push:
-    branches:
-      - ci--*
 
   pull_request:
     branches:
@@ -85,11 +81,11 @@ jobs:
             chmod 755 $HOME/.docker/cli-plugins/docker-compose
             ln -sfv $HOME/.docker/cli-plugins/docker-compose $( which docker-compose )
         - name: version
-          run: echo "### $( just version )" >> $GITHUB_STEP_SUMMARY
+          run: echo "### $( just version )" >> $GITHUB_STEP_SUMMARY; just banner version
         - if: github.event.action == 'opened'
           name: new PR bump (build)
           run: just bump build
-        - if: github.event.pull_request.merged == true
+        - if: github.event.commits.committer.name == "GitHub" && github.event.
           name: merged PR bump (patch)
           run: just bump patch
         - name: new version
@@ -99,4 +95,3 @@ jobs:
         #- run: just test
         - if: github.event.pull_request.merged == true
           run: git push --tags
-        - run: git push
