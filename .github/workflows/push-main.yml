@@ -37,7 +37,7 @@ jobs:
       - name: Checkout code
         uses: gladiatr72/checkout-action@v3-no-noise
       - name: bump version
-        if: ${{ github.event.commits.comitter.name == "GitHub" }}
+        if: ${{ github.event.commits.comitter.name == 'GitHub' }}
         run: |
           bumpversion patch && \
           git push &&  \
