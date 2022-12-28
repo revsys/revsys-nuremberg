@@ -10,6 +10,7 @@ on:
 
 concurrency:
   group: ci-push-to-main-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   contexts:
@@ -20,5 +21,32 @@ jobs:
         env:
             GITHUB_CONTEXT: ${{ toJson(github) }}
         run: echo "$GITHUB_CONTEXT"
+
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login to REVSYS Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: registry.revsys.com
+          username: github
+          password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
+      - name: install just
+        run: |
+          docker run -v /home/runner/.local/bin:/dist registry.revsys.com/just:0.9.4 || just --version
+      - name: Checkout code
+        uses: gladiatr72/checkout-action@v3-no-noise
+      - name: bump version
+        if: ${{ github.event.commits.comitter.name == "GitHub" }}
+        run: |
+          bumpversion patch && \
+          git push &&  \
+          git push --tags && \
+          echo "### Version Update: $( just version )" >> $GITHUB_STEP_SUMMARY
+      - name: version
+        run: just banner version
+      - run: just build tester
+      - run: just test
+      - run: just push
 
 

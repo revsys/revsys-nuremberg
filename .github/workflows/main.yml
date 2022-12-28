@@ -1,4 +1,4 @@
-name: Pull Requests
+name: Test
 
 on:
 #    push:
@@ -11,9 +11,7 @@ on:
       - ci--*
     types:
       - opened
-      - reopened
       - synchronize
-      - closed
 
 
 concurrency:
@@ -22,35 +20,7 @@ concurrency:
 
 jobs:
 
-  contexts:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Dump GitHub context
-        env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-        run: echo "$GITHUB_CONTEXT"
-      - name: Dump job context
-        env:
-          JOB_CONTEXT: ${{ toJson(job) }}
-        run: echo "$JOB_CONTEXT"
-      - name: Dump steps context
-        env:
-          STEPS_CONTEXT: ${{ toJson(steps) }}
-        run: echo "$STEPS_CONTEXT"
-      - name: Dump runner context
-        env:
-          RUNNER_CONTEXT: ${{ toJson(runner) }}
-        run: echo "$RUNNER_CONTEXT"
-      - name: Dump strategy context
-        env:
-          STRATEGY_CONTEXT: ${{ toJson(strategy) }}
-        run: echo "$STRATEGY_CONTEXT"
-      - name: Dump matrix context
-        env:
-          MATRIX_CONTEXT: ${{ toJson(matrix) }}
-        run: echo "$MATRIX_CONTEXT"
-
-  setup:
+  test:
 
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -80,18 +50,5 @@ jobs:
               https://github.com/docker/compose/releases/download/v2.13.0/docker-compose-linux-x86_64
             chmod 755 $HOME/.docker/cli-plugins/docker-compose
             ln -sfv $HOME/.docker/cli-plugins/docker-compose $( which docker-compose )
-        - name: version
-          run: echo "### $( just version )" >> $GITHUB_STEP_SUMMARY; just banner version
-        - if: github.event.action == 'opened'
-          name: new PR bump (build)
-          run: just bump build
-        - if: github.event.commits.committer.name == "GitHub" && github.event.
-          name: merged PR bump (patch)
-          run: just bump patch
-        - name: new version
-          if: github.event.action == 'opened' || github.event.pull_request.merged == true
-          run: just banner version
-        #- run: just build tester --load verbosity=1
-        #- run: just test
-        - if: github.event.pull_request.merged == true
-          run: git push --tags
+        - run: just build tester
+        - run: just test
