@@ -7,7 +7,7 @@ services:
     volumes: []
 
   web:
-    image: registry.revsys.com/nuremberg:v0.4.1-r8-tester
+    image: registry.revsys.com/nuremberg:v0.4.1-r9-tester
     volumes:
       - ./media:/code/media
 
