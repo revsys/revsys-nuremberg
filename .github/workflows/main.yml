@@ -1,4 +1,4 @@
-name: nuremberg-ci
+name: Test
 
 on:
 #    push:
@@ -6,18 +6,12 @@ on:
 #        - ci--setup-job-run-specs
   workflow_dispatch:
 
-  push:
-    branches:
-      - ci--*
-
   pull_request:
     branches:
       - ci--*
     types:
       - opened
-      - reopened
       - synchronize
-      - closed
 
 
 concurrency:
@@ -25,36 +19,16 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-
   contexts:
     runs-on: ubuntu-latest
     steps:
-      - name: Dump GitHub context
+      -
+        name: github
         env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
+            GITHUB_CONTEXT: ${{ toJson(github) }}
         run: echo "$GITHUB_CONTEXT"
-      - name: Dump job context
-        env:
-          JOB_CONTEXT: ${{ toJson(job) }}
-        run: echo "$JOB_CONTEXT"
-      - name: Dump steps context
-        env:
-          STEPS_CONTEXT: ${{ toJson(steps) }}
-        run: echo "$STEPS_CONTEXT"
-      - name: Dump runner context
-        env:
-          RUNNER_CONTEXT: ${{ toJson(runner) }}
-        run: echo "$RUNNER_CONTEXT"
-      - name: Dump strategy context
-        env:
-          STRATEGY_CONTEXT: ${{ toJson(strategy) }}
-        run: echo "$STRATEGY_CONTEXT"
-      - name: Dump matrix context
-        env:
-          MATRIX_CONTEXT: ${{ toJson(matrix) }}
-        run: echo "$MATRIX_CONTEXT"
 
-  setup:
+  test:
 
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -64,39 +38,32 @@ jobs:
 
 
     steps:
-        - name: Login to REVSYS Container Registry
-          uses: docker/login-action@v2
-          with:
-            registry: registry.revsys.com
-            username: github
-            password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
-        - name: install just
-          run: |
-            docker run -v /home/runner/.local/bin:/dist registry.revsys.com/just:0.9.4 || just --version
-        - name: Checkout code
-          uses: gladiatr72/checkout-action@v3-no-noise
-          with:
-            ref: ${{ github.event.pull_request.head.ref }}
-        - name: update docker-compose
-          run: |
-            mkdir -pv $HOME/.docker/cli-plugins
-            curl -Ls -o $HOME/.docker/cli-plugins/docker-compose \
-              https://github.com/docker/compose/releases/download/v2.13.0/docker-compose-linux-x86_64
-            chmod 755 $HOME/.docker/cli-plugins/docker-compose
-            ln -sfv $HOME/.docker/cli-plugins/docker-compose $( which docker-compose )
-        - name: version
-          run: echo "### $( just version )" >> $GITHUB_STEP_SUMMARY
-        - if: github.event.action == 'opened'
-          name: new PR bump (build)
-          run: just bump build
-        - if: github.event.pull_request.merged == true
-          name: merged PR bump (patch)
-          run: just bump patch
-        - name: new version
-          if: github.event.action == 'opened' || github.event.pull_request.merged == true
-          run: just banner version
-        #- run: just build tester --load verbosity=1
-        #- run: just test
-        - if: github.event.pull_request.merged == true
-          run: git push --tags
-        - run: git push
+      -
+        name: Login to REVSYS Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: registry.revsys.com
+          username: github
+          password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
+      -
+        name: Expose GitHub Runtime
+        uses: crazy-max/ghaction-github-runtime@v2
+      -
+        name: install just
+        run: |
+          docker run -v /home/runner/.local/bin:/dist registry.revsys.com/just:0.9.4 || just --version
+      -
+        name: Checkout code
+        uses: gladiatr72/checkout-action@v3-no-noise
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+      -
+        name: update docker-compose
+        run: |
+          mkdir -pv $HOME/.docker/cli-plugins
+          curl -Ls -o $HOME/.docker/cli-plugins/docker-compose \
+            https://github.com/docker/compose/releases/download/v2.13.0/docker-compose-linux-x86_64
+          chmod 755 $HOME/.docker/cli-plugins/docker-compose
+          ln -sfv $HOME/.docker/cli-plugins/docker-compose $( which docker-compose )
+      - run: just build tester
+      - run: just test

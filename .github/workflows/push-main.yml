@@ -1,0 +1,79 @@
+name: Push to Main
+
+on:
+  push:
+    branches:
+      - ci--setup-job-run-specs
+
+  workflow_dispatch:
+
+
+concurrency:
+  group: ci-push-to-main-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contexts:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: github
+        env:
+            GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
+
+  run:
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 3
+      fail-fast: true
+
+    steps:
+      -
+        name: Login to REVSYS Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: registry.revsys.com
+          username: github
+          password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
+      -
+        name: Expose GitHub Runtime
+        uses: crazy-max/ghaction-github-runtime@v2
+      -
+        name: install just
+        run: |
+          docker run -v /home/runner/.local/bin:/dist registry.revsys.com/just:0.9.4 || just --version
+      -
+        name: Checkout code
+        uses: gladiatr72/checkout-action@v3-no-noise
+        with:
+          ref: ${{ github.ref_name }}
+      -
+        name: initial version
+        run: |
+          just banner version
+          echo "### Version: $( just version )" >> $GITHUB_STEP_SUMMARY
+      -
+        name: bump version (pr merge)
+        if: ${{ contains(github.event.commits.*.committer.name, 'GitHub') }}
+        run: |
+          just bump patch && \
+          git push &&  \
+          git push --tags && \
+          echo "### Version Update: $( just version )" >> $GITHUB_STEP_SUMMARY
+      -
+        name: bump version (direct commit)
+        if: ${{ ! contains(github.event.commits.*.committer.name, 'GitHub') }}
+        run: |
+          just bump build && \
+          git push &&  \
+          git push --tags && \
+          echo "### Version Update: $( just version )" >> $GITHUB_STEP_SUMMARY
+      -
+        run: just build tester
+      -
+        run: just test
+      -
+        run: just push
+
+
