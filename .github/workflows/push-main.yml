@@ -59,7 +59,7 @@ jobs:
       - name: version
         run: just banner version
       - run: just build tester --load --verbosity=1
-      - run: just test
-      - run: just push
+        #- run: just test
+        #- run: just push
 
 
