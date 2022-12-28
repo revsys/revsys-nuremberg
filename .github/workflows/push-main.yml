@@ -45,7 +45,7 @@ jobs:
           echo "### Version Update: $( just version )" >> $GITHUB_STEP_SUMMARY
       - name: version
         run: just banner version
-      - run: just build --load
+      - run: just build release ' '
       - run: just build tester --load --verbosity=1
       - run: just test
       - run: just push
