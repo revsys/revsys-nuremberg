@@ -36,7 +36,7 @@ jobs:
           docker run -v /home/runner/.local/bin:/dist registry.revsys.com/just:0.9.4 || just --version
       - name: Checkout code
         uses: gladiatr72/checkout-action@v3-no-noise
-      - name: bump version
+      - name: bump version (pr merge)
         if: ${{ github.event.commits.comitter.name == 'GitHub' }}
         run: |
           bumpversion patch && \
@@ -45,7 +45,8 @@ jobs:
           echo "### Version Update: $( just version )" >> $GITHUB_STEP_SUMMARY
       - name: version
         run: just banner version
-      - run: just build tester
+      - run: just build '' --verbosity=1
+      - run: just build tester --load --verbosity=1
       - run: just test
       - run: just push
 
