@@ -52,7 +52,7 @@ jobs:
         name: initial version
         run: |
           just banner version
-        echo "### Version: $( just version )" >> $GITHUB_STEP_SUMMARY
+          echo "### Version: $( just version )" >> $GITHUB_STEP_SUMMARY
       -
         name: bump version (pr merge)
         if: ${{ contains(github.event.commits.*.committer.name, 'GitHub') }}
