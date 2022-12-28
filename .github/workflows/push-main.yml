@@ -29,37 +29,47 @@ jobs:
       fail-fast: true
 
     steps:
-      - name: Login to REVSYS Container Registry
+      -
+        name: Login to REVSYS Container Registry
         uses: docker/login-action@v2
         with:
           registry: registry.revsys.com
           username: github
           password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
-      - name: install just
+      -
+        name: Expose GitHub Runtime
+        uses: crazy-max/ghaction-github-runtime@v2
+      -
+        name: install just
         run: |
           docker run -v /home/runner/.local/bin:/dist registry.revsys.com/just:0.9.4 || just --version
-      - name: Checkout code
+      -
+        name: Checkout code
         uses: gladiatr72/checkout-action@v3-no-noise
         with:
           ref: ${{ github.ref_name }}
-      - name: bump version (pr merge)
+      -
+        name: bump version (pr merge)
         if: ${{ github.event.commits.committer.name == 'GitHub' }}
         run: |
           just bump patch && \
           git push &&  \
           git push --tags && \
           echo "### Version Update: $( just version )" >> $GITHUB_STEP_SUMMARY
-      - name: bump version (direct commit)
+      -
+        name: bump version (direct commit)
         if: ${{ github.event.commits.committer.name != 'GitHub' }}
         run: |
           just bump build && \
           git push &&  \
           git push --tags && \
           echo "### Version Update: $( just version )" >> $GITHUB_STEP_SUMMARY
-      - name: version
+      -
+        name: version
         run: just banner version
-      - run: just build tester --load --verbosity=1
-      - run: just test
-      - run: just push
+      -
+        run: just build tester --load --verbosity=1
+        #- run: just test
+        #- run: just push
 
 
