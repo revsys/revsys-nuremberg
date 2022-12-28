@@ -31,7 +31,7 @@ _test-packages:
   @tail -n  $( echo $(( $( wc -l web/requirements.in | cut -d" " -f1 ) - $( grep -nie '^#[[:blank:]]*test' web/requirements.in  | cut -d":" -f1) ))  ) web/requirements.in
 
 # build [step], tag it with {{IMAGE_REGISTRY}}:{{VERSION}}-{{step}} except for release target
-build step='release' action='--load' verbosity='':
+build step='release' action='--load' verbosity='1':
     #!/usr/bin/env bash
     just _bk-up
     if [[ "{{ step }}" == "release" ]];
@@ -43,10 +43,10 @@ build step='release' action='--load' verbosity='':
         cendbits=last-{{step}}
     fi
 
-    [[ -n "{{verbosity}}" ]] && verbosity="--progress plain" || verbosity="--quiet"
+    [[ -n "{{verbosity}}" ]] && verbosity="--progress auto" || verbosity="--quiet"
 
     cache="--cache-from {{CACHE_REGISTRY}}:last --cache-from {{CACHE_REGISTRY}}:${cendbits} --cache-to type=registry,dest={{CACHE_REGISTRY}}:${cendbits},mode=max"
-    [[ "{{step}}" == "tester" ]] && cache="--cache-from {{CACHE_REGISTRY}}:last"
+    [[ "{{step}}" == "tester" ]] && cache="--cache-from {{CACHE_REGISTRY}}:last --cache-to type=registry,dest={{CACHE_REGISTRY}}:last,mode=max"
 
     echo "Building {{IMAGE_REGISTRY}}:${endbits}"
     set -o xtrace

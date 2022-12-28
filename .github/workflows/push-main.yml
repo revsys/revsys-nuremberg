@@ -43,9 +43,15 @@ jobs:
           git push &&  \
           git push --tags && \
           echo "### Version Update: $( just version )" >> $GITHUB_STEP_SUMMARY
+      - name: bump version (direct commit)
+        if: ${{ github.event.commits.comitter.name != 'GitHub' }}
+        run: |
+          bumpversion build && \
+          git push &&  \
+          git push --tags && \
+          echo "### Version Update: $( just version )" >> $GITHUB_STEP_SUMMARY
       - name: version
         run: just banner version
-      - run: just build release ' '
       - run: just build tester --load --verbosity=1
       - run: just test
       - run: just push
