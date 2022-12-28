@@ -45,8 +45,8 @@ build step='release' action='--load' verbosity='1':
 
     [[ -n "{{verbosity}}" ]] && verbosity="--progress auto" || verbosity="--quiet"
 
-    cache="--cache-from type=registry,ref={{CACHE_REGISTRY}}:last --cache-from type=registry,ref={{CACHE_REGISTRY}}:${cendbits} --cache-to type=registry,ref={{CACHE_REGISTRY}}:${cendbits},mode=max"
-    [[ "{{step}}" == "tester" ]] && cache="--cache-from type=registry,ref={{CACHE_REGISTRY}}:last"
+    cache="--cache-from=type=registry,ref={{CACHE_REGISTRY}}:last --cache-from=type=registry,ref={{CACHE_REGISTRY}}:${cendbits} --cache-to=type=registry,ref={{CACHE_REGISTRY}}:${cendbits},mode=max"
+    [[ "{{step}}" == "tester" ]] && cache="--cache-from=type=registry,ref={{CACHE_REGISTRY}}:last --cache-from=type=gha --cache-to=type=gha"
 
     echo "Building {{IMAGE_REGISTRY}}:${endbits}"
     set -o xtrace
