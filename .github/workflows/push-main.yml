@@ -39,14 +39,14 @@ jobs:
       - name: bump version (pr merge)
         if: ${{ github.event.commits.comitter.name == 'GitHub' }}
         run: |
-          bumpversion patch && \
+          just bump patch && \
           git push &&  \
           git push --tags && \
           echo "### Version Update: $( just version )" >> $GITHUB_STEP_SUMMARY
       - name: bump version (direct commit)
         if: ${{ github.event.commits.comitter.name != 'GitHub' }}
         run: |
-          bumpversion build && \
+          just bump build && \
           git push &&  \
           git push --tags && \
           echo "### Version Update: $( just version )" >> $GITHUB_STEP_SUMMARY
