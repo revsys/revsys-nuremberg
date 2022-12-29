@@ -11,9 +11,10 @@ venv
 src
 *.pyc
 nuremberg_dev.db
-*/**/.t/
+*/**/.t
+.t/
 dist/
 dumps/.*
 dumps/new
 dumps/old
-
+.bin/

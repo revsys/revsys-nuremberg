@@ -1,0 +1,69 @@
+name: Test
+
+on:
+#    push:
+#      branches:
+#        - ci--setup-job-run-specs
+  workflow_dispatch:
+
+  pull_request:
+    branches:
+      - ci--*
+    types:
+      - opened
+      - synchronize
+
+
+concurrency:
+  group: ci-tests-${{ github.event.pull_request.head.ref }}-1
+  cancel-in-progress: true
+
+jobs:
+  contexts:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: github
+        env:
+            GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
+
+  test:
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      max-parallel: 8
+      fail-fast: true
+
+
+    steps:
+      -
+        name: Login to REVSYS Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: registry.revsys.com
+          username: github
+          password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
+      -
+        name: Expose GitHub Runtime
+        uses: crazy-max/ghaction-github-runtime@v2
+      -
+        name: install just
+        run: |
+          docker run -v /home/runner/.local/bin:/dist registry.revsys.com/just:0.9.4 || just --version
+      -
+        name: Checkout code
+        uses: gladiatr72/checkout-action@v3-no-noise
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+      -
+        name: update docker-compose
+        run: |
+          mkdir -pv $HOME/.docker/cli-plugins
+          curl -Ls -o $HOME/.docker/cli-plugins/docker-compose \
+            https://github.com/docker/compose/releases/download/v2.13.0/docker-compose-linux-x86_64
+          chmod 755 $HOME/.docker/cli-plugins/docker-compose
+          ln -sfv $HOME/.docker/cli-plugins/docker-compose $( which docker-compose )
+      - run: just build tester
+      - run: just test
