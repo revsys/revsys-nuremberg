@@ -1,8 +1,9 @@
 # vim: filetype=just tabstop=4 shiftwidth=4 expandtab number
+# poke 7
 set dotenv-load := false
 IMAGE_REGISTRY := 'registry.revsys.com/nuremberg'
-CACHE_REGISTRY := 'registry.revsys.com/cache/nuremberg'
-VERSION := 'v0.3.23'
+CACHE_REGISTRY := env_var_or_default('CACHE_REGISTRY', 'registry.revsys.com/cache/nuremberg')
+VERSION := 'v0.4.6-r1'
 
 set shell := ["/bin/bash", "-c"]
 
@@ -30,7 +31,7 @@ _test-packages:
   @tail -n  $( echo $(( $( wc -l web/requirements.in | cut -d" " -f1 ) - $( grep -nie '^#[[:blank:]]*test' web/requirements.in  | cut -d":" -f1) ))  ) web/requirements.in
 
 # build [step], tag it with {{IMAGE_REGISTRY}}:{{VERSION}}-{{step}} except for release target
-build step='release' action='--load' verbosity='':
+build step='release' action='--load' verbosity='1':
     #!/usr/bin/env bash
     just _bk-up
     if [[ "{{ step }}" == "release" ]];
@@ -42,10 +43,10 @@ build step='release' action='--load' verbosity='':
         cendbits=last-{{step}}
     fi
 
-    [[ -n "{{verbosity}}" ]] && verbosity="--progress plain" || verbosity="--quiet"
+    [[ -n "{{verbosity}}" ]] && verbosity="--progress auto" || verbosity="--quiet"
 
-    cache="--cache-from {{CACHE_REGISTRY}}:last --cache-from {{CACHE_REGISTRY}}:${cendbits} --cache-to type=registry,dest={{CACHE_REGISTRY}}:${cendbits},mode=max"
-    [[ "{{step}}" == "tester" ]] && cache="--cache-from {{CACHE_REGISTRY}}:last"
+    cache="--cache-from=type=registry,ref={{CACHE_REGISTRY}}:last --cache-from=type=registry,ref={{CACHE_REGISTRY}}:${cendbits} --cache-to=type=registry,ref={{CACHE_REGISTRY}}:${cendbits},mode=max"
+    [[ "{{step}}" == "tester" ]] && cache="--cache-from=type=registry,ref={{CACHE_REGISTRY}}:last --cache-from=type=gha --cache-to=type=gha"
 
     echo "Building {{IMAGE_REGISTRY}}:${endbits}"
     set -o xtrace
@@ -87,18 +88,17 @@ _solr-compose:
     docker-compose -f ./docker-compose.yml -f ./docker-compose.override.yml -f ./docker-compose.ci.yml -p ci {{args}}
 
 # target for running tests IN CI
-@test:
+test:
     docker inspect $( just tag )-tester >& /dev/null || just build tester
     just ci-dc up -d --quiet-pull
-    just ci-dc exec -u0  web find /tmp /nuremberg /code -type f -not -user ${UID} -exec chown -Rv $UID {} +  | wc -l
-    @just ci-dc exec -u$UID web pytest || exit 1
-    @just ci-dc exec -u$UID web pytest --no-cov nuremberg/documents/browser_tests.py || exit 1
+    just ci-dc exec -T -u0  web find /tmp /nuremberg /code -type f -not -user ${UID} -exec chown -Rv $UID {} +  | wc -l
+    just ci-dc exec -T -u$UID web pytest --verbose || exit 1
+    just ci-dc exec -T -u$UID web pytest --verbose --no-cov nuremberg/documents/browser_tests.py || exit 1
     just ci-dc down -v
 
 # executes bump2version on local repository (e.g.: just bump patch; just bump build)
-@bump part='build' args='':
-    docker inspect registry.revsys.com/bump2version >& /dev/null || ( just _make-bv && just bump {{part}} )
-    docker run -u ${UID} --rm -v $PWD:/code --workdir /code registry.revsys.com/bump2version {{part}} {{args}} || exit 1
+@bump part='build' *args='':
+    docker run -u ${UID} --rm -v $PWD:/code --workdir /code registry.revsys.com/bump2version {{part}} {{args}}
 
 
 # updates last/{{env}}/deploy and {{env}}/deploy tags to trigger flux deployment
@@ -112,6 +112,15 @@ _solr-compose:
     just build b2v
     docker tag $( just tag )-b2v registry.revsys.com/bump2version
     docker push registry.revsys.com/bump2version > /dev/null
+
+@_make-just:
+    just build just
+    docker tag $( just tag )-just registry.revsys.com/just
+    docker push registry.revsys.com/just
+
+_drop-just:
+    docker pull registry.revsys.com/just >& /dev/null || just _make-just
+    docker run --user ${UID} --rm -v $PWD/.bin:/dist registry.revsys.com/just
 
 _bk-up:
     #!/bin/bash

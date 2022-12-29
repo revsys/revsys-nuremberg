@@ -1,0 +1,36 @@
+name: nuremberg-ci
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - ci--auto-dev-deploy
+
+  pull_request:
+    types:
+      - closed
+    branches:
+      - ci--auto-dev-deploy
+
+jobs:
+  Run:
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      max-parallel: 4
+      fail-fast: false
+
+    needs:
+      - Build-Test-Image
+      #- Test
+      #- Auto-Dev-Deploy
+
+    steps:
+        - name: Checkout code
+          uses: actions/checkout@v3
+        - uses: extractions/setup-just@v1
+          with:
+            just-version: '1.9.0'
+        - name: Current Version
+          run: just version | tee -a $GITHUB_OUTPUT
