@@ -4,3 +4,7 @@ web/Dockerfile
 docker-compose*
 .github/
 */**/coverage
+.bin/
+chart/
+Dockerfile
+docker-compose*

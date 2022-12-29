@@ -1,3 +1,35 @@
+#.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
+FROM rust:alpine as just-builder
+#.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
+
+ENV VERSION v0.9.4
+
+#RUN apt update; apt -y install git --no-install-recommends
+RUN apk add git musl-dev
+RUN git clone https://github.com/casey/just /just
+
+WORKDIR /just
+
+RUN git checkout ${VERSION}
+
+
+RUN RUSTFLAGS='-C target-feature=+crt-static' cargo build --release --target x86_64-unknown-linux-musl
+
+RUN cp target/*/release/just /bin/
+
+
+#.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
+FROM alpine as just
+#.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
+
+COPY --from=just-builder /bin/just /
+
+#ENTRYPOINT ["/bin/sh", "-c"]
+
+LABEL org.opencontainers.image.source https://github.com/revsys/revsys-nuremberg
+
+ENTRYPOINT  ["/bin/sh", "-c"]
+CMD ["install -v -m 0755 -t /dist /just && /just --version"]
 
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
 FROM python:3.10-alpine as b2v
@@ -16,22 +48,14 @@ RUN git config --system init.defaultBranch main
 ENTRYPOINT ["bump2version"]
 
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
-FROM revolutionsystems/python:3.10-wee-lto-optimized as just
-#.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
-
-RUN apt update; apt -y install curl
-
-RUN curl -L https://github.com/casey/just/releases/download/1.9.0/just-1.9.0-x86_64-unknown-linux-musl.tar.gz | tar -xz -f - -C /usr/bin just
-
-
-#.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
+FROM registry.revsys.com/just as j
 FROM revolutionsystems/python:3.10-wee-lto-optimized as runner
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
 
 ENV PYTHON_PATH /code
 ENV PATH /.venv/bin:/node/bin:${PATH}
 
-COPY --from=just /usr/bin/just /usr/bin/just
+COPY --from=j /just /usr/bin/just
 
 WORKDIR /code
 
@@ -65,7 +89,7 @@ FROM builder as release
 
 ENV DJANGO_SETTINGS_MODULE nuremberg.settings
 ENV BASE_DIR=/code
-ENV IMAGE_VERSION v0.3.23
+ENV IMAGE_VERSION v0.4.6-r1
 
 RUN ln -s /node/node_modules/less/bin/lessc /bin/lessc
 
@@ -118,7 +142,7 @@ ENV SOLR_CORE nuremberg_dev
 
 COPY solr_conf /opt/solr-8.11.2/solr_conf
 
-ENV IMAGE_VERSION v0.3.23-solr
+ENV IMAGE_VERSION v0.4.6-r1-solr
 
 RUN --mount=type=bind,source=./dist/var-solr.tgz,target=/mnt/var-solr.tgz \
     cd / && \
