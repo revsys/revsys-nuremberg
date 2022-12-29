@@ -3,7 +3,7 @@ name: Push to Main
 on:
   push:
     branches:
-      - ci--setup-job-run-specs
+      - main
 
   workflow_dispatch:
 
