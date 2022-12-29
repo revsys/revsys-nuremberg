@@ -70,10 +70,16 @@ jobs:
           git push --tags && \
           echo "### Version Update: $( just version )" >> $GITHUB_STEP_SUMMARY
       -
+        name: build test image
         run: just build tester
       -
+        name: run tests
         run: just test
       -
+        name: push docker image to registry
         run: just push
+      -
+        name: deploy to dev
+        run: just deploy
 
 
