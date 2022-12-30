@@ -37,7 +37,7 @@ jobs:
         name: check for new dump
         id: check-dumps
         run: |
-          lastUpdate=$( git log -1 --format=%H HEAD^ -- dumps/nuremberg_prod_dump_latest.sqlite3.zip )
+          lastUpdate=$( git log -1 --format=%H HEAD -- dumps/nuremberg_prod_dump_latest.sqlite3.zip )
           [[ -n "${lastUpdate}" ]] && ( \
             [[ "${{ github.sha }}" == "${lastUpdate}" ]] && \
               (echo "change-detected=true" >> $GITHUB_OUTPUT && echo "::notice::new data available" ) || \
