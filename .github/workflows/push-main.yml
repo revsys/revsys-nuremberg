@@ -97,7 +97,10 @@ jobs:
           echo "::notice::version update: $( just version )"
       -
         name: wut
-        run: echo "${{ env.probablyNotPr }}"
+        run: |
+          echo "prly not a pr: ${{ env.probablyNotPr }}"
+          echo "prly a pr: ${{ env.probablyPr }}"
+          echo "buildSolr: ${{ env.buildSolr }}"
       -
         name: bump version (direct commit)
         if: ${{ env.probablyNotPr == true }}
