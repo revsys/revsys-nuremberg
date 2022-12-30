@@ -97,7 +97,7 @@ jobs:
           echo "::notice::version update: $( just version )"
       -
         name: wut
-        run: echo ${{ toJson(jobs) }} | jq -C .
+        run: echo ${{ toJson(jobs.run.env) }} | jq -C .
       -
         name: bump version (direct commit)
         if: ${{ jobs.run.env.probablyNotPr == true }}
