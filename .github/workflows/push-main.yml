@@ -53,9 +53,9 @@ jobs:
     needs:
       - solr
 
-    env:
+    outputs:
       probablyPr: "${{ contains(github.event.commits.*.committer.name, 'GitHub') && ( github.ref_name == 'main' && github.ref_type == 'branch' ) }}"
-      probablyNotPr: "${{ ! contains(github.event.committs.*.committer.name, 'GitHub') && (github.ref_name == 'main' && github.ref_type == 'branch' ) }}"
+      probablyNotPr: "${{ ! contains(github.event.commits.*.committer.name, 'GitHub') && (github.ref_name == 'main' && github.ref_type == 'branch' ) }}"
       buildSolr: "${{ jobs.solr.outputs.change-detected }}"
 
     steps:
@@ -86,14 +86,14 @@ jobs:
           echo "::notice::$( just version )"
       -
         name: bump version (pr merge)
-        if: ${{ env.probablyPr == true }}
+        if: ${{ jobs.run.outputs.probablyPr == true }}
         run: |
           just bump patch && \
           echo "### Version Update: $( just version )" >> $GITHUB_STEP_SUMMARY
           echo "::notice::$( just version )"
       -
         name: bump version (direct commit)
-        if: ${{ env.probablyNotPr == true }}
+        if: ${{ jobs.run.outputs.probablyNotPr == true }}
         run: |
           just bump build && \
           echo "### Version Update: $( just version )" >> $GITHUB_STEP_SUMMARY
@@ -103,7 +103,7 @@ jobs:
         run: just build tester
       -
         name: build solr
-        if: ${{ env.buildSolr == 'true' }}
+        if: ${{ jobs.run.outputs.buildSolr == true }}
         run: echo "::notice::this is where the solr build would happen"
 #      -
 #        name: run tests
