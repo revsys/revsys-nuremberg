@@ -99,17 +99,17 @@ jobs:
 #        run: just test
       -
         name: push version updates to repo
-        if: ${{ github.ref_type == branch && github.ref_name == main }}
+        if: ${{ github.ref_type == 'branch' && github.ref_name == 'main' }}
         run: |
           git push && \
           git push --tags
       -
         name: push docker image to registry
-        if: ${{ github.ref_type == branch && github.ref_name == main }}
+        if: ${{ github.ref_type == 'branch' && github.ref_name == 'main' }}
         run: just push
       -
         name: deploy to dev
-        if: ${{ github.ref_type == branch && github.ref_name == main }}
+        if: ${{ github.ref_type == 'branch' && github.ref_name == 'main' }}
         run: just deploy
 
 
