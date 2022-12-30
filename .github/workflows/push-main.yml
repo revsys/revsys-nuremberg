@@ -96,6 +96,9 @@ jobs:
           echo "::notice::$( just version )"
           echo "::notice::version update: $( just version )"
       -
+        name: wut
+        run: ${{ toJson(env) }}
+      -
         name: bump version (direct commit)
         if: ${{ env.probablyNotPr == true }}
         run: |
