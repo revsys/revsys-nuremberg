@@ -39,8 +39,8 @@
 
 .accordion {
   &:extend(.tag-button);
-    display: block;
-    width: 100%;
+  display: block;
+  width: 100%;
 }
 
 .accordion.active {
@@ -53,7 +53,7 @@
   overflow: hidden;
 }
 
-.accordion-panel.active{
+.accordion-panel.active {
   display: block;
 }
 
@@ -75,7 +75,7 @@ input[type=search] {
     -webkit-box-shadow: 0 0 0 1000px @white inset;
   }
 
-  &:not(:valid) ~ .button-wrapper .clear-search {
+  &:not(:valid)~.button-wrapper .clear-search {
     display: none;
   }
 }
@@ -122,23 +122,43 @@ button.clear-search {
   cursor: pointer;
 }
 
-input[type=text], input[type=number], .text-input {
+input[type=text],
+input[type=number],
+.text-input {
   .sans-serif(normal, 14px, 20px);
   .box-sizing(content-box);
   .border-radius(3px);
 
   height: 15px;
   width: 100%;
-  padding-top: 10px;
-  padding-bottom: 9px;
+  padding: 10px;
 
   background-color: @white;
   border: 1px solid @light-gray;
   color: @black;
 
   -moz-appearance: textfield;
-  &::-webkit-inner-spin-button, &::-webkit-outer-spin-button {
+
+  &::-webkit-inner-spin-button,
+  &::-webkit-outer-spin-button {
     -webkit-appearance: none;
+  }
+
+  &::placeholder {
+    /* Chrome, Firefox, Opera, Safari 10.1+ */
+    color: @light-gray;
+    opacity: 1;
+    /* Firefox */
+  }
+
+  &:-ms-input-placeholder {
+    /* Internet Explorer 10-11 */
+    color: @light-gray;
+  }
+
+  &::-ms-input-placeholder {
+    /* Microsoft Edge */
+    color: @light-gray;
   }
 }
 
@@ -160,13 +180,22 @@ select {
   width: inherit;
   margin-right: 7px;
   vertical-align: bottom;
+
+  option {
+    &:first-of-type {
+      color: @light-gray;
+    }
+  }
 }
+
 button {
   border: none;
   background: none;
   vertical-align: top;
 }
-.search-button, .go-button {
+
+.search-button,
+.go-button {
   .btn();
   .btn-primary();
   .sans-serif(@light, 14px, 20px);
@@ -188,13 +217,14 @@ button {
     position: absolute;
     background-color: @dark-blue;
   }
+
   .ui-slider-handle {
     .border-radius(7.5px);
 
     width: 15px;
     height: 15px;
     top: -6px;
-    margin-left:-7.5px;
+    margin-left: -7.5px;
     position: absolute;
     background-color: @black;
   }
