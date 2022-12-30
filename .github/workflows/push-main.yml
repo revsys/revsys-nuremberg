@@ -19,12 +19,13 @@ jobs:
       -
         name: github
         env:
-            GITHUB_CONTEXT: ${{ toJson(github) }}
+          GITHUB_CONTEXT: ${{ toJson(github) }}
         run: echo "$GITHUB_CONTEXT"
 
 
   solr:
     runs-on: ubuntu-latest
+
     outputs:
       change-detected: ${{ steps.check-dumps.outputs.change-detected }}
 
@@ -36,9 +37,9 @@ jobs:
           lastUpdate=$( git log -1 --format=%H HEAD^ -- dumps/nuremberg_prod_dump_latest.sqlite3.zip )
           [[ -n "${lastUpdate}" ]] && ( \
             [[ "${{ github.ref }}" == "${lastUpdate}" ]] && \
-              echo "change-detected=true" >> $GITHUB_ENV || \
-              echo "change-detected=false" >> $GITHUB_ENV \
-          ) || echo "change-detected=true" >> $GITHUB_ENV
+              echo "change-detected=true" >> $GITHUB_OUTPUT || \
+              echo "change-detected=false" >> $GITHUB_OUTPUT \
+          ) || echo "change-detected=true" >> $GITHUB_OUTPUT
 
   run:
     runs-on: ubuntu-latest
