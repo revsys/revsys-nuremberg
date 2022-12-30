@@ -32,7 +32,7 @@ jobs:
         uses: gladiatr72/checkout-action@v3-no-noise
         with:
           ref: ${{ github.ref_name }}
-          depth: 5
+          fetch-depth: 5
       -
         name: check for new dump
         id: check-dumps
