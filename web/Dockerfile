@@ -10,7 +10,7 @@ ENV PIP_NO_CACHE_DIR=off \
 ENV PYTHONDONTWRITEBYTECODE=true
 ENV PYTHONUNBUFFERED 1
 
-# Get Node 10 instead of version in APT repository.
+# Get Node 18 instead of version in APT repository.
 # Downloads an installation script, which ends by running
 # apt-get update: no need to re-run at this layer
 RUN curl -sL https://deb.nodesource.com/setup_18.x | bash - \
