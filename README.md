@@ -12,12 +12,15 @@
 The client uses [Docker/Docker Compose](https://docs.docker.com/compose/). In
 the host computer, run:
 
-    docker compose up -d
+```shell
+    docker compose up
+```
 
 Populate the database and the search engine index (this could take some time):
 
+```shell
     ./init.sh
-
+```
 
 > **_NOTE:_**  For a faster search index setup, set the env var
 > `SOLR_RESTORE_SNAPSHOPT` so Solr indexes are restored from a snapshot.
@@ -25,26 +28,25 @@ Populate the database and the search engine index (this could take some time):
 > [this file](.github/workflows/tests.yml).
 
 
-Start the Django development server with:
-
-    docker compose exec web python manage.py runserver 0.0.0.0:8000
-
 Then visit [localhost:8000](http://localhost:8000).
 
 To run with production settings, set appropriate `SECRET_KEY`,
 `ALLOWED_HOSTS`, and `HOST_NAME` env vars, and run:
 
+```shell
     docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
     docker compose exec web python manage.py compress
     docker compose exec web python manage.py collectstatic
+```
 
 Then visit [localhost:8080](http://localhost:8080).
 (If you get a 502 wait a few seconds and then refresh the page.)
 
 When you are finished,
 
+```shell
     docker compose -f docker-compose.yml -f docker-compose.prod.yml down
-
+```
 
 ## Project Structure
 
@@ -75,20 +77,19 @@ persistent, greatly speeding up setup and teardown time.
 Make sure you have initialized the database and solr index as described in
 [Setup](#setup) above. Then run:
 
-```
+```shell
 docker compose exec web pytest
 ```
 
 Pytest is configured in `pytest.ini` to run all files named `tests.py`.
 
-There is also a Selenium suite to test the behavior of the document viewer
-front-end. These tests take a while to run, don't produce coverage data, and
+There is also a Selenium suite to test the behavior of the document viewer front end. These tests take a while to run, don't produce coverage data, and
 are relatively unreliable, so they aren't run as part of the default suite.
-However they are still useful, as they exercise the full stack all the way
+However, they are still useful, as they exercise the full stack all the way
 through image downloading and preloading. They can be run explicitly when
 necessary.
 
-```
+```shell
 docker compose exec web pytest nuremberg/documents/browser_tests.py
 ```
 
@@ -99,14 +100,13 @@ docker compose exec web pytest nuremberg/documents/browser_tests.py
 > [heroku](https://github.com/harvard-lil/nuremberg/tree/heroku) branch as
 > `staging.py`.
 
-Environment-specific Django settings live in the `nuremberg/settings`
-directory, and inherit from `nuremberg.settings.generic`. The settings module
+Environment-specific Django settings live in the `nuremberg`/settings` directory and inherit from `nuremberg.settings.generic`. The settings module
 is configured by the `DJANGO_SETTINGS_MODULE` environment variable; the default
 value is `nuremberg.settings.dev`.
 
 Secrets (usernames, passwords, security tokens, nonces, etc.) should not be
 placed in a settings file or committed into git. The proper place for these is
-an environment variable configured on the host, and read via `os.environ`. If
+an environment variable configured on the host and read via `os.environ`. If
 they must live in a `.py` file, they should be included in the environment
 settings file via an `import` statement and uploaded separately as part of the
 deployment process.
@@ -117,7 +117,7 @@ deployment process.
 ## Data
 
 Since it is expected that this app will host a largely static dataset, the
-Django admin is enabled purely in read only mode. Updates can be made directly in SQLite. Just ensure that any changes are reindexed by Solr.
+Django admin is enabled purely in read-only mode. Updates can be made directly in SQLite. Just ensure that any changes are reindexed by Solr.
 
 An admin interface is provided via the usual `/admin` URL. For it to be
 operable, you will need to use the Django management command to create an admin
@@ -132,14 +132,18 @@ dumps. To import a SQL dump named `some-table.sql`, follow these steps:
 
 2. Run the converter (no side effect yet):
 
-    `./mysql2sqlite some-table.sql > some-table-converted.sql`
+```shell
+    ./mysql2sqlite some-table.sql > some-table-converted.sql
+```
 
 3. Review the converted SQL, it may need one or two new directives
    to drop a table if it exists or similar.
 
 4. Once the converted SQL looks good, run:
 
-    `sqlite3  web/nuremberg_dev.db < some-table-converted.sql`
+```shell
+    sqlite3  web/nuremberg_dev.db < some-table-converted.sql
+```
 
 > **_NOTE:_** The converter's README says: *both mysql2sqlite and
 > sqlite3 might write something to stdout and stderr - e.g. memory coming
@@ -147,9 +151,8 @@ dumps. To import a SQL dump named `some-table.sql`, follow these steps:
 
 ### Updating the database dump in the repo
 
-In order to update the database dump included in the repo, first of all every
-local user should be removed. To do so open a python shell using
-`docker compose exec web python manage.py shell` and then run:
+In order to update the database dump included in the repo, first of all, every
+local user should be removed. To do so open a python shell using `docker compose run --rm web python manage.py shell` and then run:
 
     Python 3.10.7 (main, Oct  5 2022, 14:33:54) [GCC 10.2.1 20210110] on linux
     Type "help", "copyright", "credits" or "license" for more information.
@@ -162,17 +165,21 @@ local user should be removed. To do so open a python shell using
 Then, zip the sqlite DB creating a new zip file in the `dumps` folder, and
 re-point the existing `latest` symlink to it:
 
+```shell
     cd web/
     zip -FS ../dumps/nuremberg_prod_dump_`date -I`.sqlite3.zip nuremberg_dev.db
     cd ..
     ln -fs nuremberg_prod_dump_`date -I`.sqlite3.zip dumps/nuremberg_prod_dump_latest.sqlite3.zip
+```
 
 Review the changes and potentially:
 
  1. Confirm that the symlink `dumps/nuremberg_prod_dump_latest.sqlite3.zip` is
  pointing to a valid zipfile:
 
+```shell
         ls -la `realpath dumps/nuremberg_prod_dump_latest.sqlite3.zip`
+```
 
  2. Remove older dump(s)
  3. Stage and commit your changes to the git repo
@@ -188,8 +195,8 @@ indexing configuration is in the
 
 To build a brand new Solr schema, run:
 
-```
-docker compose exec web python manage.py build_solr_schema --configure-dir=solr_conf
+```shell
+docker compose run --rm web python manage.py build_solr_schema --configure-dir=solr_conf
 ```
 
 This will generate both `schema.xml` and `solrconfig.xml` under the `solr_conf`
@@ -201,7 +208,7 @@ of the existing solr container and `docker compose up -d` to start a fresh one.
 To rebuild the index contents, run:
 
 ```
-docker compose exec web python manage.py rebuild_index
+docker compose run --rm web python manage.py rebuild_index
 ```
 
 (It will take a couple of minutes to reindex fully.)
@@ -225,14 +232,14 @@ to update the snapshopt of such index used to speed up tests and potentially
 local setup. To do so, ensure that services were started as described in
 [Setup](#setup) and that the Solr index is up to date. Then:
 
-```
+```shell
 curl "http://localhost:8983/solr/nuremberg_dev/replication?command=backup&name=`date +%y%m%d`"
 ```
 
 Wait until the snapshot is completed (check for `snapshotCompletedAt` and
 confirm that `status` is a `success`):
 
-```
+```shell
 curl http://localhost:8983/solr/nuremberg_dev/replication?command=details
 ```
 
@@ -241,7 +248,7 @@ host's `dumps` folder. The tarball will be split in < 100M files so they can
 be pushed to GitHub, no worries the `init.sh` script will put the pieces
 together when necessary:
 
-```
+```shell
 rm dumps/nuremberg_solr_snapshot_latest/*
 docker compose exec solr tar czvf - -C /var/solr/data/nuremberg_dev/data/ snapshot.`date +%y%m%d` | split -b 95M - dumps/nuremberg_solr_snapshot_latest/nuremberg_solr_snapshot_`date +%y%m%d`.tar.gz-part-
 ```
@@ -254,7 +261,7 @@ Review the changes and potentially:
  2. Stage and commit your changes to the git repo
  3. Update the `SOLR_SNAPSHOT_NAME` variable in the `init.sh` script
 
-```
+```shell
 sed -i s/SOLR_SNAPSHOT_NAME=\".*\"/SOLR_SNAPSHOT_NAME=\"`date +%y%m%d`\"/g init.sh
 ```
 
@@ -316,6 +323,8 @@ In production, all site javascript is compacted into a single minified blob by
 `compressor`. (The exception is the rarely-needed dependency `jsPDF`.)
 
 ### In Production
+
+**NOTE:*** This information is incorrect for the new upcoming production environment in Kubernetes!!!!
 
 When deploying, you should run `docker compose exec web python manage.py compress` to bundle, minify and
 compress CSS and JS files, and `docker compose exec web python manage.py collectstatic` to move the remaining
