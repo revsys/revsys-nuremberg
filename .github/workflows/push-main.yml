@@ -39,10 +39,11 @@ jobs:
         run: |
           lastUpdate=$( git log -1 --format=%H HEAD^ -- dumps/nuremberg_prod_dump_latest.sqlite3.zip )
           [[ -n "${lastUpdate}" ]] && ( \
-            [[ "${{ github.ref }}" == "${lastUpdate}" ]] && \
-              echo "change-detected=true" >> $GITHUB_OUTPUT || \
-              echo "change-detected=false" >> $GITHUB_OUTPUT \
-          ) || echo "change-detected=true" >> $GITHUB_OUTPUT
+            [[ "${{ github.sha }}" == "${lastUpdate}" ]] && \
+              (echo "change-detected=true" >> $GITHUB_OUTPUT && echo "::notice::new data available" ) || \
+              (echo "change-detected=false" >> $GITHUB_OUTPUT && echo "::notice::no new data" ) \
+          ) || \
+          ( echo "change-detected=true" >> $GITHUB_OUTPUT && echo "rebuild solr" )
 
   run:
     runs-on: ubuntu-latest
