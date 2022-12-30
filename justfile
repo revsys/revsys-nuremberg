@@ -145,3 +145,7 @@ _figlet args='':
     docker run --entrypoint figlet --rm registry.revsys.com/bump2version -c -f standard -m0 -w117 {{args}}
 
 
+# Get a bash shell in the web container
+shell:
+    docker run --rm web bash
+
