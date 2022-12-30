@@ -89,7 +89,7 @@ jobs:
           echo "::notice::current version: $( just version )"
       -
         name: bump version (pr merge)
-        if: ${{ jobs.run.env.probablyPr == true }}
+        if: ${{ env.probablyPr == true }}
         run: |
           just bump patch && \
           echo "### Version Update: $( just version )" >> $GITHUB_STEP_SUMMARY
