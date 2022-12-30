@@ -58,16 +58,12 @@ jobs:
         if: ${{ contains(github.event.commits.*.committer.name, 'GitHub') }}
         run: |
           just bump patch && \
-          git push &&  \
-          git push --tags && \
           echo "### Version Update: $( just version )" >> $GITHUB_STEP_SUMMARY
       -
         name: bump version (direct commit)
         if: ${{ ! contains(github.event.commits.*.committer.name, 'GitHub') }}
         run: |
           just bump build && \
-          git push &&  \
-          git push --tags && \
           echo "### Version Update: $( just version )" >> $GITHUB_STEP_SUMMARY
       -
         name: build test image
@@ -75,6 +71,11 @@ jobs:
       -
         name: run tests
         run: just test
+      -
+        name: push version updates to repo
+        run: |
+          git push && \
+          git push --tags
       -
         name: push docker image to registry
         run: just push
