@@ -7,9 +7,8 @@ services:
     volumes: []
 
   web:
-<<<<<<< HEAD
     image: registry.revsys.com/nuremberg:v0.4.8-r2-tester
-    entrypoint: /bin/bashenv)
+    entrypoint: /bin/bash
     command: ""
     volumes:
       - ./media:/code/media
