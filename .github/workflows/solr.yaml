@@ -1,0 +1,31 @@
+name: Solr
+
+on:
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+concurrency:
+  group: solr-${{ github.ref }}
+  cancel-in-progress: true
+
+
+jobs:
+  check-dumps:
+    runs-on: ubuntu-latest
+    outputs:
+      change-detected: ${{ steps.check-dumps.outputs.change-detected }}
+
+    steps:
+      -
+        name: check for new data in ./dumps
+        id: check-dumps
+        run: |
+
+
+
+
+  
+

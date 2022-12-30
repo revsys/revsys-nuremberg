@@ -22,11 +22,36 @@ jobs:
             GITHUB_CONTEXT: ${{ toJson(github) }}
         run: echo "$GITHUB_CONTEXT"
 
+
+  solr:
+    runs-on: ubuntu-latest
+    outputs:
+      change-detected: ${{ steps.check-dumps.outputs.change-detected }}
+
+    steps:
+      -
+        name: check for new dump
+        id: check-dumps
+        run: |
+          lastUpdate=$( git log -1 --format=%H HEAD^ -- dumps/nuremberg_prod_dump_latest.sqlite3.zip )
+          [[ -n "${lastUpdate}" ]] && ( \
+            [[ "${{ github.ref }}" == "${lastUpdate}" ]] && \
+              echo "change-detected=true" >> $GITHUB_ENV || \
+              echo "change-detected=false" >> $GITHUB_ENV \
+          ) || echo "change-detected=true" >> $GITHUB_ENV
+
   run:
     runs-on: ubuntu-latest
     strategy:
       max-parallel: 3
       fail-fast: true
+
+    needs:
+      - solr
+
+    env:
+      probablyPr: "${{ contains(github.event.commits.*.committer.name, 'GitHub') && ( github.ref_name == 'main' && github.ref_type == 'branch' ) }}"
+      probablyNotPr: "${{ ! contains(github.event.committs.*.committer.name, 'GitHub') && (github.ref_name == 'main' && github.ref_type == 'branch' ) }}"
 
     steps:
       -
@@ -53,34 +78,42 @@ jobs:
         run: |
           just banner version
           echo "### Version: $( just version )" >> $GITHUB_STEP_SUMMARY
+          echo "::notice::$( just version )"
       -
         name: bump version (pr merge)
-        if: ${{ contains(github.event.commits.*.committer.name, 'GitHub') }}
+        #if: ${{ contains(github.event.commits.*.committer.name, 'GitHub') && github.ref_name }}
+        if: ${{ env.probablyPr }}
         run: |
           just bump patch && \
           echo "### Version Update: $( just version )" >> $GITHUB_STEP_SUMMARY
+          echo "::notice::$( just version )"
       -
         name: bump version (direct commit)
+        if: ${{ env.probablyNotPr }}
         if: ${{ ! contains(github.event.commits.*.committer.name, 'GitHub') }}
         run: |
           just bump build && \
           echo "### Version Update: $( just version )" >> $GITHUB_STEP_SUMMARY
+          echo "::notice::$( just version )"
       -
         name: build test image
         run: just build tester
-      -
-        name: run tests
-        run: just test
+#      -
+#        name: run tests
+#        run: just test
       -
         name: push version updates to repo
+        if: ${{ github.ref_type == "branch" && github.ref_name == "main" }}
         run: |
           git push && \
           git push --tags
       -
         name: push docker image to registry
+        if: ${{ github.ref_type == "branch" && github.ref_name == "main" }}
         run: just push
       -
         name: deploy to dev
+        if: ${{ github.ref_type == "branch" && github.ref_name == "main" }}
         run: just deploy
 
 
