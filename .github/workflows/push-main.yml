@@ -82,7 +82,6 @@ jobs:
           echo "::notice::$( just version )"
       -
         name: bump version (pr merge)
-        #if: ${{ contains(github.event.commits.*.committer.name, 'GitHub') && github.ref_name }}
         if: ${{ env.probablyPr }}
         run: |
           just bump patch && \
@@ -90,7 +89,6 @@ jobs:
           echo "::notice::$( just version )"
       -
         name: bump version (direct commit)
-        #if: ${{ ! contains(github.event.commits.*.committer.name, 'GitHub') }}
         if: ${{ env.probablyNotPr }}
         run: |
           just bump build && \
