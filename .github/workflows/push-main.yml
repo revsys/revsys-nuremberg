@@ -56,6 +56,7 @@ jobs:
     env:
       probablyPr: "${{ contains(github.event.commits.*.committer.name, 'GitHub') && ( github.ref_name == 'main' && github.ref_type == 'branch' ) }}"
       probablyNotPr: "${{ ! contains(github.event.committs.*.committer.name, 'GitHub') && (github.ref_name == 'main' && github.ref_type == 'branch' ) }}"
+      buildSolr: "${{ jobs.solr.outputs.change-detected }}"
 
     steps:
       -
@@ -85,14 +86,14 @@ jobs:
           echo "::notice::$( just version )"
       -
         name: bump version (pr merge)
-        if: ${{ env.probablyPr }}
+        if: ${{ env.probablyPr == true }}
         run: |
           just bump patch && \
           echo "### Version Update: $( just version )" >> $GITHUB_STEP_SUMMARY
           echo "::notice::$( just version )"
       -
         name: bump version (direct commit)
-        if: ${{ env.probablyNotPr }}
+        if: ${{ env.probablyNotPr == true }}
         run: |
           just bump build && \
           echo "### Version Update: $( just version )" >> $GITHUB_STEP_SUMMARY
@@ -100,6 +101,10 @@ jobs:
       -
         name: build test image
         run: just build tester
+      -
+        name: build solr
+        if: ${{ env.buildSolr == 'true' }}
+        run: echo "::notice::this is where the solr build would happen"
 #      -
 #        name: run tests
 #        run: just test
@@ -107,15 +112,18 @@ jobs:
         name: push version updates to repo
         if: ${{ github.ref_type == 'branch' && github.ref_name == 'main' }}
         run: |
-          git push && \
-          git push --tags
+          #git push && \
+          #git push --tags
+          echo "::warning::this should not run in the feature branch"
       -
         name: push docker image to registry
         if: ${{ github.ref_type == 'branch' && github.ref_name == 'main' }}
-        run: just push
+        #run: just push
+        run: echo "::warning::this should not run in the feature branch"
       -
         name: deploy to dev
         if: ${{ github.ref_type == 'branch' && github.ref_name == 'main' }}
-        run: just deploy
+        #run: just deploy
+        run: echo "::warning::this should not run in the feature branch"
 
 
