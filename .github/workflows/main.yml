@@ -25,7 +25,6 @@ jobs:
             GITHUB_CONTEXT: ${{ toJson(github) }}
         run: echo "$GITHUB_CONTEXT"
 
-  solr:
   test:
 
     runs-on: ubuntu-latest
