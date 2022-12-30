@@ -14,7 +14,7 @@ services:
       target: release
     tty: true
     working_dir: /nuremberg
-    entrypoint: /bin/bash
+    command: python manage.py runserver 0.0.0.0:8000
     volumes:
       # BIND MOUNTS
       - ./web:/nuremberg
@@ -25,6 +25,7 @@ services:
       - SECRET_KEY=top-secret-1234
     depends_on:
       - solr
+    stop_signal: SIGKILL
 
 volumes:
   solr_data:
