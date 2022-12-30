@@ -83,7 +83,7 @@ jobs:
         run: |
           just banner version
           echo "### Version: $( just version )" >> $GITHUB_STEP_SUMMARY
-          echo "::notice::$( just version )"
+          echo "::notice::current version: $( just version )"
       -
         name: bump version (pr merge)
         if: ${{ env.probablyPr == true }}
@@ -91,16 +91,18 @@ jobs:
           just bump patch && \
           echo "### Version Update: $( just version )" >> $GITHUB_STEP_SUMMARY
           echo "::notice::$( just version )"
+          echo "::notice::version update: $( just version )"
       -
         name: bump version (direct commit)
         if: ${{ env.probablyNotPr == true }}
         run: |
           just bump build && \
           echo "### Version Update: $( just version )" >> $GITHUB_STEP_SUMMARY
-          echo "::notice::$( just version )"
+          echo "::notice::version update: $( just version )"
       -
         name: build test image
-        run: just build tester
+        run: |
+          echo "::notice::just build tester happens here"
       -
         name: build solr
         if: ${{ env.buildSolr == true }}
