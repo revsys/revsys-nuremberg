@@ -149,3 +149,6 @@ _figlet args='':
 shell:
     docker run --rm web bash
 
+
+update-local-tags:
+    git fetch --tags --force
