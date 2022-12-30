@@ -45,6 +45,8 @@ jobs:
           ) || \
           ( echo "change-detected=true" >> $GITHUB_OUTPUT && echo "rebuild solr" )
 
+          echo "${{ github.sha }} vs. ${lastUpdate}"
+
   run:
     runs-on: ubuntu-latest
     strategy:
