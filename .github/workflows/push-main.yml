@@ -114,7 +114,7 @@ jobs:
           echo "::notice::just build tester happens here"
       -
         name: build solr
-        if: ${{ env.buildSolr == true }}
+        if: ${{ env.buildSolr == 'true' }}
         run: echo "::notice::this is where the solr build would happen"
 #      -
 #        name: run tests
