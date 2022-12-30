@@ -90,8 +90,8 @@ jobs:
           echo "::notice::$( just version )"
       -
         name: bump version (direct commit)
+        #if: ${{ ! contains(github.event.commits.*.committer.name, 'GitHub') }}
         if: ${{ env.probablyNotPr }}
-        if: ${{ ! contains(github.event.commits.*.committer.name, 'GitHub') }}
         run: |
           just bump build && \
           echo "### Version Update: $( just version )" >> $GITHUB_STEP_SUMMARY
