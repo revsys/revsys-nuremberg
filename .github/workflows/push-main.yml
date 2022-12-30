@@ -28,6 +28,11 @@ jobs:
 
     steps:
       -
+        name: Checkout code
+        uses: gladiatr72/checkout-action@v3-no-noise
+        with:
+          ref: ${{ github.ref_name }}
+      -
         name: check for new dump
         id: check-dumps
         run: |
