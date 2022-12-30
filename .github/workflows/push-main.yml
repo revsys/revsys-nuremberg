@@ -97,10 +97,10 @@ jobs:
           echo "::notice::version update: $( just version )"
       -
         name: wut
-        run: echo ${{ toJson(jobs.run.env) }} | jq -C .
+        run: echo "${{ env.probablyNotPr }}"
       -
         name: bump version (direct commit)
-        if: ${{ jobs.run.env.probablyNotPr == true }}
+        if: ${{ env.probablyNotPr == true }}
         run: |
           just bump build && \
           echo "### Version Update: $( just version )" >> $GITHUB_STEP_SUMMARY
@@ -111,7 +111,7 @@ jobs:
           echo "::notice::just build tester happens here"
       -
         name: build solr
-        if: ${{ jobs.run.env.buildSolr == true }}
+        if: ${{ env.buildSolr == true }}
         run: echo "::notice::this is where the solr build would happen"
 #      -
 #        name: run tests
