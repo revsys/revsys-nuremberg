@@ -93,7 +93,7 @@ jobs:
           echo "::notice::$( just version )"
       -
         name: bump version (direct commit)
-        if: ${{ jobs.run.outputs.probablyNotPr == true }}
+        if: ${{ env.probablyNotPr == true }}
         run: |
           just bump build && \
           echo "### Version Update: $( just version )" >> $GITHUB_STEP_SUMMARY
@@ -103,7 +103,7 @@ jobs:
         run: just build tester
       -
         name: build solr
-        if: ${{ jobs.run.outputs.buildSolr == true }}
+        if: ${{ env.buildSolr == true }}
         run: echo "::notice::this is where the solr build would happen"
 #      -
 #        name: run tests
