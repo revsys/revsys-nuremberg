@@ -2,6 +2,8 @@ name: Push to Main
 
 on:
   push:
+    branches:
+
   workflow_dispatch:
 
 
