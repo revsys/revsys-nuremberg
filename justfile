@@ -48,8 +48,8 @@ build step='release' action='--load' verbosity='1':
 
     cache="--cache-from=type=registry,ref={{CACHE_REGISTRY}}:last --cache-from=type=registry,ref={{CACHE_REGISTRY}}:${cendbits}"
     [[ -z "{{NO_CACHE_TO}}" ]] && cache="${cache} --cache-to=type=registry,ref={{CACHE_REGISTRY}}:${cendbits},mode=max"
-    [[ "{{step}}" == "tester" ]] && cache="--cache-from=type=registry,ref={{CACHE_REGISTRY}}:last --cache-from=type=gha"
-    [[ -z "{{NO_CACHE_TO}}" ]] && cache="${cache} --cache-to=type=gha"
+    [[ "{{step}}" == "tester" ]] && cache="--cache-from=type=registry,ref={{CACHE_REGISTRY}}:last"
+    [[ -z "{{NO_CACHE_TO}}" ]] && cache="${cache}"
 
     echo "Building {{IMAGE_REGISTRY}}:${endbits}"
     set -o xtrace
@@ -72,10 +72,8 @@ push step='release':
     @SOLR_NO_RESTORE=1 SOLR_BUILD=1 ./init.sh
     just solr-dc up -d --quiet-pull solr-data-load
     @SOLR_RESTORE_SNAPSHOT= SOLR_DIST_DATA=1 SOLR_BUILD=1 ./init.sh || exit 1
-    just build solr
-    docker tag {{IMAGE_REGISTRY}}:{{VERSION}}-solr {{IMAGE_REGISTRY}}:last-solr
+    just build solr --load ''
     just push solr
-    docker push {{IMAGE_REGISTRY}}:last-solr
 
 retag-solr-image:
     docker manifest inspect {{IMAGE_REGISTRY}}:latest-solr >& /dev/null || just regen-solr-image
