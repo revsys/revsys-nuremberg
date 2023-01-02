@@ -12,17 +12,17 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  contexts:
-    runs-on: ubuntu-latest
-    steps:
-      -
-        name: github
-        env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-        run: echo "$GITHUB_CONTEXT"
+#  contexts:
+#    runs-on: ubuntu-latest
+#    steps:
+#      -
+#        name: github
+#        env:
+#          GITHUB_CONTEXT: ${{ toJson(github) }}
+#        run: echo "$GITHUB_CONTEXT"
 
 
-  solr:
+  solr-check:
     runs-on: ubuntu-latest
 
     outputs:
@@ -96,17 +96,17 @@ jobs:
         run: |
           just banner version
           echo "### Version: $( just version )" >> $GITHUB_STEP_SUMMARY
-          echo "::notice::current version: $( just version )"
+          echo "::notice::version: $( just version )"
       -
         name: bump version (pr merge)
         if: ${{ env.probablyPr == true }}
         run: |
           just bump patch && \
           echo "### Version Update: $( just version )" >> $GITHUB_STEP_SUMMARY
-          echo "::notice::$( just version )"
           echo "::notice::version update: $( just version )"
       -
         name: wut
+        if: ${{ github.ref_name == github.repository.default_branch }}
         run: |
           echo "prly not a pr: ${{ env.probablyNotPr }}"
           echo "prly a pr: ${{ env.probablyPr }}"
@@ -119,24 +119,24 @@ jobs:
           echo "### Version Update: $( just version )" >> $GITHUB_STEP_SUMMARY
           echo "::notice::version update: $( just version )"
       -
-        name: build test image
+        name: build loader (release)
         run: |
-          just build release
+          NO_CACHE_TO=1 just build release --load ''
       -
-        name: build solr image
+        name: build solr image (new data)
         if: ${{ env.buildSolr == 'true' }}
         run: |
           echo "::notice::new data set detected. new solr image available"
           just regen-solr-image
       -
-        name: retag solr image
+        name: retag solr image (no new data)
         if: ${{ env.buildSolr == 'false' }}
         run: |
           echo "::notice::no new data set detected. retagging last solr image"
           just retag-solr-image
       -
         name: run tests
-        run: echo "just test"
+        run: just test
       -
         name: push version updates to repo
         if: ${{ github.ref_type == 'branch' && github.ref_name == github.repository.default_branch }}

@@ -4,6 +4,7 @@ set dotenv-load := false
 IMAGE_REGISTRY := 'registry.revsys.com/nuremberg'
 CACHE_REGISTRY := env_var_or_default('CACHE_REGISTRY', 'registry.revsys.com/cache/nuremberg')
 VERSION := 'v0.4.8-r5'
+NO_CACHE_TO := env_var_or_default('NO_CACHE_TO', '')
 
 set shell := ["/bin/bash", "-c"]
 
@@ -45,8 +46,10 @@ build step='release' action='--load' verbosity='1':
 
     [[ -n "{{verbosity}}" ]] && verbosity="--progress auto" || verbosity="--quiet"
 
-    cache="--cache-from=type=registry,ref={{CACHE_REGISTRY}}:last --cache-from=type=registry,ref={{CACHE_REGISTRY}}:${cendbits} --cache-to=type=registry,ref={{CACHE_REGISTRY}}:${cendbits},mode=max"
-    [[ "{{step}}" == "tester" ]] && cache="--cache-from=type=registry,ref={{CACHE_REGISTRY}}:last --cache-from=type=gha --cache-to=type=gha"
+    cache="--cache-from=type=registry,ref={{CACHE_REGISTRY}}:last --cache-from=type=registry,ref={{CACHE_REGISTRY}}:${cendbits}"
+    [[ -z "{{NO_CACHE_TO}}" ]] && cache="${cache} --cache-to=type=registry,ref={{CACHE_REGISTRY}}:${cendbits},mode=max"
+    [[ "{{step}}" == "tester" ]] && cache="--cache-from=type=registry,ref={{CACHE_REGISTRY}}:last --cache-from=type=gha"
+    [[ -z "{{NO_CACHE_TO}}" ]] && cache="${cache} --cache-to=type=gha"
 
     echo "Building {{IMAGE_REGISTRY}}:${endbits}"
     set -o xtrace
