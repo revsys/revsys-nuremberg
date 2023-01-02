@@ -61,7 +61,7 @@ jobs:
     env:
       probablyPr: "${{ contains(github.event.commits.*.committer.name, 'GitHub') && ( github.ref_name == 'main' && github.ref_type == 'branch' ) }}"
       probablyNotPr: "${{ ! contains(github.event.commits.*.committer.name, 'GitHub') && (github.ref_name == 'main' && github.ref_type == 'branch' ) }}"
-      buildSolr: "${{ needs.solr.outputs.change-detected }}"
+      buildSolr: "${{ needs.solr-check.outputs.change-detected }}"
 
     steps:
       -
