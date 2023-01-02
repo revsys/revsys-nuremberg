@@ -97,12 +97,11 @@ _solr-compose:
 
 # target for running tests IN CI
 test:
-    docker inspect $( just tag )-tester >& /dev/null || just build tester
+    docker inspect $( just tag )-tester >& /dev/null || NO_CACHE_TO=just build tester --load ''
     just ci-dc up -d --quiet-pull
     just ci-dc exec -T -u0  web find /tmp /nuremberg /code -type f -not -user ${UID} -exec chown -Rv $UID {} +  | wc -l
     just ci-dc exec -T -u$UID web pytest --verbose || exit 1
     just ci-dc exec -T -u$UID web pytest --verbose --no-cov nuremberg/documents/browser_tests.py || exit 1
-    just ci-dc down -v
 
 # executes bump2version on local repository (e.g.: just bump patch; just bump build)
 @bump part='build' *args='':
