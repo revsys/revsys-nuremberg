@@ -64,7 +64,7 @@ push step='release':
 # execute new solr image build process
 @regen-solr-image:
     just solr-dc down -v >& /dev/null
-    docker inspect $( just tag ) >& /dev/null || ( just build release && just regen-solr-image )
+    docker inspect $( just tag ) >& /dev/null || just build release --load ''
     just solr-dc up -d --quiet-pull solr-loader || ( just build release && just regen-solr-image )
     @SOLR_NO_RESTORE=1 SOLR_BUILD=1 ./init.sh
     just solr-dc up -d --quiet-pull solr-data-load
