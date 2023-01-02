@@ -2,7 +2,6 @@
 # vim: shiftwidth=4 tabstop=4 filetype=bash noexpandtab list
 
 set -o pipefail
-set -o xtrace
 
 SOLR_CORE="nuremberg_dev"
 SOLR_HOME="/var/solr/data/$SOLR_CORE"
