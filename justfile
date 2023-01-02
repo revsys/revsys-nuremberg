@@ -97,7 +97,7 @@ _solr-compose:
 
 # target for running tests IN CI
 test:
-    docker inspect $( just tag )-tester >& /dev/null || NO_CACHE_TO=just build tester --load ''
+    docker inspect $( just tag )-tester >& /dev/null || NO_CACHE_TO=1 just build tester --load ''
     just ci-dc up -d --quiet-pull
     just ci-dc exec -T -u0  web find /tmp /nuremberg /code -type f -not -user ${UID} -exec chown -Rv $UID {} +  | wc -l
     just ci-dc exec -T -u$UID web pytest --verbose || exit 1
