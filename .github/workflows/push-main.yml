@@ -112,11 +112,13 @@ jobs:
         name: build test image
         run: |
           echo "::notice::just build tester happens here"
+          just build tester
       -
         name: build solr image
         if: ${{ env.buildSolr == 'true' }}
         run: |
           echo "::notice::new data set detected. new solr image available"
+          just build release
           just regen-solr-image
       -
         name: retag solr image
