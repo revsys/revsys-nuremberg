@@ -113,27 +113,33 @@ jobs:
         run: |
           echo "::notice::just build tester happens here"
       -
-        name: build solr
+        name: build solr image
         if: ${{ env.buildSolr == 'true' }}
-        run: echo "::notice::this is where the solr build would happen"
-#      -
-#        name: run tests
-#        run: just test
+        run: |
+          echo "::notice::new data set detected. new solr image available"
+          just regen-solr-image
+      -
+        name: retag solr image
+        if: ${{ env.buildSolr == 'false' }}
+        run: |
+          echo "::notice::no new data set detected. retagging last solr image"
+          just retag-solr-image
+      -
+        name: run tests
+        run: echo "just test"
       -
         name: push version updates to repo
-        if: ${{ github.ref_type == 'branch' && github.ref_name == 'main' }}
+        if: ${{ github.ref_type == 'branch' && github.ref_name == github.repository.default_branch }}
         run: |
-          #git push && \
-          #git push --tags
-          echo "::warning::this should not run in the feature branch"
+          git push && git push --tags
       -
         name: push docker image to registry
-        if: ${{ github.ref_type == 'branch' && github.ref_name == 'main' }}
+        if: ${{ github.ref_type == 'branch' && github.ref_name == github.repository.default_branch }}
         #run: just push
         run: echo "::warning::this should not run in the feature branch"
       -
         name: deploy to dev
-        if: ${{ github.ref_type == 'branch' && github.ref_name == 'main' }}
+        if: ${{ github.ref_type == 'branch' && github.ref_name == github.repository.default_branch }}
         #run: just deploy
         run: echo "::warning::this should not run in the feature branch"
 

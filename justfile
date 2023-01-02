@@ -74,6 +74,11 @@ push step='release':
     just push solr
     docker push {{IMAGE_REGISTRY}}:last-solr
 
+retag-solr-image:
+    docker manifest inspect {{IMAGE_REGISTRY}}:latest-solr >& /dev/null || just regen-solr-image
+    docker pull --quiet {{IMAGE_REGISTRY}}:latest-solr && docker tag {{IMAGE_REGISTRY}}:latest-solr $( just tag )-solr
+    docker push $( just tag )-solr
+
 # fs path to solr-image-build compose file
 @solr-compose: _solr-compose
 _solr-compose:
