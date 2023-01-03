@@ -3,7 +3,9 @@ name: Push to Main
 on:
   push:
     branches:
-      - main
+      - '**'
+    tags-ignore:
+      - '**'
 
   workflow_dispatch:
 
@@ -13,20 +15,56 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  contexts:
+#  contexts:
+#    runs-on: ubuntu-latest
+#    steps:
+#      -
+#        name: github
+#        env:
+#          GITHUB_CONTEXT: ${{ toJson(github) }}
+#        run: echo "$GITHUB_CONTEXT"
+
+
+  solr-check:
     runs-on: ubuntu-latest
+
+    outputs:
+      change-detected: ${{ steps.check-dumps.outputs.change-detected }}
+
     steps:
       -
-        name: github
-        env:
-            GITHUB_CONTEXT: ${{ toJson(github) }}
-        run: echo "$GITHUB_CONTEXT"
+        name: Checkout code
+        uses: gladiatr72/checkout-action@v3-no-noise
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 5
+      -
+        name: check for new dump
+        id: check-dumps
+        run: |
+          lastUpdate=$( git log -1 --format=%H -- dumps/nuremberg_prod_dump_latest.sqlite3.zip )
+          [[ -n "${lastUpdate}" ]] && ( \
+            [[ "${{ github.sha }}" == "${lastUpdate}" ]] && \
+              (echo "change-detected=true" >> $GITHUB_OUTPUT && echo "::notice::new data available" ) || \
+              (echo "change-detected=false" >> $GITHUB_OUTPUT && echo "::notice::no new data" ) \
+          ) || \
+          ( echo "change-detected=true" >> $GITHUB_OUTPUT && echo "rebuild solr" )
+
+          echo "${{ github.sha }} vs. ${lastUpdate}"
 
   run:
     runs-on: ubuntu-latest
     strategy:
-      max-parallel: 3
+      max-parallel: 5
       fail-fast: true
+
+    needs:
+      - solr-check
+
+    env:
+      probablyPr: "${{ contains(github.event.commits.*.committer.name, 'GitHub') && ( github.ref_name == 'main' && github.ref_type == 'branch' ) }}"
+      probablyNotPr: "${{ ! contains(github.event.commits.*.committer.name, 'GitHub') && (github.ref_name == 'main' && github.ref_type == 'branch' ) }}"
+      buildSolr: "${{ needs.solr-check.outputs.change-detected }}"
 
     steps:
       -
@@ -40,6 +78,14 @@ jobs:
         name: Expose GitHub Runtime
         uses: crazy-max/ghaction-github-runtime@v2
       -
+        name: update docker-compose
+        run: |
+          mkdir -pv $HOME/.docker/cli-plugins
+          curl -Ls -o $HOME/.docker/cli-plugins/docker-compose \
+            https://github.com/docker/compose/releases/download/v2.13.0/docker-compose-linux-x86_64
+          chmod 755 $HOME/.docker/cli-plugins/docker-compose
+          ln -sfv $HOME/.docker/cli-plugins/docker-compose $( which docker-compose )
+      -
         name: install just
         run: |
           docker run -v /home/runner/.local/bin:/dist registry.revsys.com/just:0.9.4 || just --version
@@ -49,38 +95,86 @@ jobs:
         with:
           ref: ${{ github.ref_name }}
       -
-        name: initial version
+        name: version
         run: |
-          just banner version
           echo "### Version: $( just version )" >> $GITHUB_STEP_SUMMARY
       -
-        name: bump version (pr merge)
-        if: ${{ contains(github.event.commits.*.committer.name, 'GitHub') }}
+        name: wut
+        if: ${{ github.ref_name == github.repository.default_branch }}
+        run: |
+          cat <<WUT_${{github.run_number}} >> $GITHUB_STEP_SUMMARY
+
+          ----
+
+          * job environment summary"
+            * prly not a pr: ${{ env.probablyNotPr }}
+            * prly a pr: ${{ env.probablyPr }}
+            * buildSolr: ${{ env.buildSolr }}
+          WUT_${{github.run_number}}
+      -
+        name: pull solr
+        if: ${{ env.buildSolr == 'false' }}
+        run: |
+          cat <<SOLRTOP_${{github.run_number}} >> $GITHUB_STEP_SUMMARY
+
+          ----
+
+          SOLRTOP_${{github.run_number}}
+          docker manifest inspect $( just tag )-solr >& /dev/null && \
+          docker pull --quiet $( just tag )-solr && \
+          docker tag $( just tag )-solr solr || ( just regen-solr-image && docker tag $( just tag )-solr solr )
+
+          cat <<SOLR_${{github.run_number}} >> $GITHUB_STEP_SUMMARY
+
+          ----
+
+          retagged: $( just tag )-solr -> solr
+          SOLR_${{github.run_number}}
+      -
+        name: bump version (pr merge to ${{github.repository.default_branch}})
+        if: ${{ env.probablyPr == true }}
         run: |
           just bump patch && \
-          echo "### Version Update: $( just version )" >> $GITHUB_STEP_SUMMARY
+          echo "## Version Update: $( just version )" >> $GITHUB_STEP_SUMMARY
       -
-        name: bump version (direct commit)
-        if: ${{ ! contains(github.event.commits.*.committer.name, 'GitHub') }}
+        name: bump version (direct commit to ${{github.repository.default_branch}})
+        if: ${{ env.probablyNotPr == true }}
         run: |
           just bump build && \
-          echo "### Version Update: $( just version )" >> $GITHUB_STEP_SUMMARY
+          echo "## Version Update: $( just version )" >> $GITHUB_STEP_SUMMARY
       -
-        name: build test image
-        run: just build tester
+        name: build solr loader
+        if: ${{ env.buildSolr == 'true' }}
+        run: |
+          NO_CACHE_TO=1 just build release --load ''
+      -
+        name: build solr image (new data)
+        if: ${{ env.buildSolr == 'true' }}
+        run: |
+          echo "::notice::new data set detected. building $( just tag )-solr..."
+          NO_CACHE_TO=1 just regen-solr-image
+      -
+        name: retag existing solr image
+        if: ${{ env.buildSolr == 'false' }}
+        run: |
+          docker tag solr $( just tag )-solr
+          docker push $( just tag )-solr
+
       -
         name: run tests
-        run: just test
+        run: NO_CACHE_TO= just test
       -
         name: push version updates to repo
+        if: ${{ github.ref_type == 'branch' && github.ref_name == github.repository.default_branch }}
         run: |
-          git push && \
-          git push --tags
+          git push && git push --tags
       -
         name: push docker image to registry
+        if: ${{ github.ref_type == 'branch' && github.ref_name == github.repository.default_branch }}
         run: just push
       -
         name: deploy to dev
+        if: ${{ github.ref_type == 'branch' && github.ref_name == github.repository.default_branch }}
         run: just deploy
 
 
