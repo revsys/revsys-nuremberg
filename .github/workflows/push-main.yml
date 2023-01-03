@@ -23,12 +23,6 @@ jobs:
         env:
           GITHUB_CONTEXT: ${{ toJson(github) }}
         run: echo "$GITHUB_CONTEXT"
-      -
-        name: jobs
-        env:
-          JOBS_CONTEXT: ${{ toJson(jobs) }}
-        run: echo "$JOBS_CONTEXT"
-
 
   solr-check:
     runs-on: ubuntu-latest
