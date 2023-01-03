@@ -112,7 +112,7 @@ jobs:
             * buildSolr: ${{ env.buildSolr }}
           WUT_${{github.run_number}}
       -
-        name: pull solr
+        name: pull/rebuild solr image
         if: ${{ env.buildSolr == 'false' }}
         run: |
           cat <<SOLRTOP_${{github.run_number}} >> $GITHUB_STEP_SUMMARY

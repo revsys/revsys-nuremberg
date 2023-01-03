@@ -73,7 +73,8 @@ push step='release':
     @SOLR_NO_RESTORE=1 SOLR_BUILD=1 ./init.sh
     just solr-dc up -d --quiet-pull solr-data-load
     @SOLR_RESTORE_SNAPSHOT= SOLR_DIST_DATA=1 SOLR_BUILD=1 ./init.sh || exit 1
-    NO_CACHE_TO=1 just push solr
+    NO_CACHE_TO=1 just build solr
+    docker push $( just tag )-solr
 
 # fs path to solr-image-build compose file
 @solr-compose: _solr-compose
