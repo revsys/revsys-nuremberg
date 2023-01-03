@@ -1,9 +1,10 @@
 # vim: filetype=just tabstop=4 shiftwidth=4 expandtab number
-# poke 7
+# poke 8
 set dotenv-load := false
 IMAGE_REGISTRY := 'registry.revsys.com/nuremberg'
 CACHE_REGISTRY := env_var_or_default('CACHE_REGISTRY', 'registry.revsys.com/cache/nuremberg')
 VERSION := 'v0.4.9'
+NO_CACHE_TO := env_var_or_default('NO_CACHE_TO', '')
 
 set shell := ["/bin/bash", "-c"]
 
@@ -20,6 +21,9 @@ version:
 
 tag:
     @echo {{IMAGE_REGISTRY}}:{{VERSION}}
+
+registry:
+    @echo {{IMAGE_REGISTRY}}
 
 # rebuild requirements files
 regen-requirements:
@@ -45,8 +49,8 @@ build step='release' action='--load' verbosity='1':
 
     [[ -n "{{verbosity}}" ]] && verbosity="--progress auto" || verbosity="--quiet"
 
-    cache="--cache-from=type=registry,ref={{CACHE_REGISTRY}}:last --cache-from=type=registry,ref={{CACHE_REGISTRY}}:${cendbits} --cache-to=type=registry,ref={{CACHE_REGISTRY}}:${cendbits},mode=max"
-    [[ "{{step}}" == "tester" ]] && cache="--cache-from=type=registry,ref={{CACHE_REGISTRY}}:last --cache-from=type=gha --cache-to=type=gha"
+    cache="--cache-from=type=registry,ref={{CACHE_REGISTRY}}:last --cache-from=type=registry,ref={{CACHE_REGISTRY}}:${cendbits}"
+    [[ -z "{{NO_CACHE_TO}}" ]] && cache="${cache} --cache-to=type=registry,ref={{CACHE_REGISTRY}}:${cendbits},mode=max"
 
     echo "Building {{IMAGE_REGISTRY}}:${endbits}"
     set -o xtrace
@@ -64,15 +68,12 @@ push step='release':
 # execute new solr image build process
 @regen-solr-image:
     just solr-dc down -v >& /dev/null
-    docker inspect $( just tag ) >& /dev/null || ( just build release && just regen-solr-image )
-    just solr-dc up -d --quiet-pull solr-loader || ( just build release && just regen-solr-image )
+    docker inspect $( just tag ) >& /dev/null || just build release --load ''
+    just solr-dc up -d --quiet-pull solr-loader
     @SOLR_NO_RESTORE=1 SOLR_BUILD=1 ./init.sh
     just solr-dc up -d --quiet-pull solr-data-load
     @SOLR_RESTORE_SNAPSHOT= SOLR_DIST_DATA=1 SOLR_BUILD=1 ./init.sh || exit 1
-    just build solr
-    docker tag {{IMAGE_REGISTRY}}:{{VERSION}}-solr {{IMAGE_REGISTRY}}:last-solr
-    just push solr
-    docker push {{IMAGE_REGISTRY}}:last-solr
+    NO_CACHE_TO=1 just push solr
 
 # fs path to solr-image-build compose file
 @solr-compose: _solr-compose
@@ -89,12 +90,11 @@ _solr-compose:
 
 # target for running tests IN CI
 test:
-    docker inspect $( just tag )-tester >& /dev/null || just build tester
+    docker inspect $( just tag )-tester >& /dev/null || NO_CACHE_TO=1 just build tester --load ''
     just ci-dc up -d --quiet-pull
     just ci-dc exec -T -u0  web find /tmp /nuremberg /code -type f -not -user ${UID} -exec chown -Rv $UID {} +  | wc -l
     just ci-dc exec -T -u$UID web pytest --verbose || exit 1
     just ci-dc exec -T -u$UID web pytest --verbose --no-cov nuremberg/documents/browser_tests.py || exit 1
-    just ci-dc down -v
 
 # executes bump2version on local repository (e.g.: just bump patch; just bump build)
 @bump part='build' *args='':
@@ -147,5 +147,8 @@ _figlet args='':
 
 # Get a bash shell in the web container
 shell:
-    docker compose run --rm web bash
+    docker run --rm web bash
 
+
+update-local-tags:
+    git fetch --tags --force

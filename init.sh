@@ -28,14 +28,15 @@ echo "Setting up sqlite"
 # the compressed database file is already a part of the release and tester images.
 if [[ -z "${SOLR_BUILD}" ]] ;
 then
-	$DOCKER_COMPOSE cp -L dumps/nuremberg_prod_dump_latest.sqlite3.zip ${web}:/tmp/
-	$DOCKER_COMPOSE_EXEC ${web} python -m zipfile -e /tmp/nuremberg_prod_dump_latest.sqlite3.zip /nuremberg/
+	$DOCKER_COMPOSE cp -L dumps/nuremberg_prod_dump_latest.sqlite3.zip ${web}:/tmp/ || exit 1
+	$DOCKER_COMPOSE_EXEC --user 0 ${web} chown ${UID} /tmp/*zip
+	$DOCKER_COMPOSE_EXEC --user $UID ${web} python -m zipfile -e /tmp/nuremberg_prod_dump_latest.sqlite3.zip /nuremberg/
 else
-	$DOCKER_COMPOSE_EXEC ${web} python -m zipfile -e /code/data/nuremberg_prod_dump_latest.sqlite3.zip /nuremberg/
+	$DOCKER_COMPOSE_EXEC --user $UID ${web} python -m zipfile -e /code/data/nuremberg_prod_dump_latest.sqlite3.zip /nuremberg/
 fi
 
-$DOCKER_COMPOSE_EXEC ${web} ./manage.py makemigrations -v1
-$DOCKER_COMPOSE_EXEC ${web} ./manage.py migrate -v1
+$DOCKER_COMPOSE_EXEC --user ${UID} ${web} ./manage.py makemigrations -v1
+$DOCKER_COMPOSE_EXEC --user ${UID} ${web} ./manage.py migrate -v1
 
 
 # the solr image used for deployments & CI already carries its data
@@ -56,29 +57,23 @@ then
 	$DOCKER_COMPOSE_EXEC -u0 ${solr} chown -R solr:solr /var/solr/data solr_conf || exit 1
 
 
-#	core_check=$( $DOCKER_COMPOSE_EXEC ${solr} curl -sS $SOLR_CORE_STATUS | grep $SOLR_CORE )
-
-#	if [[ -n $core_check ]]; then
-#		echo "Solr core already exists"
-#	else
-#		echo "Solr core does not exist, creating it"
 	$DOCKER_COMPOSE_EXEC ${solr} solr create_core -c $SOLR_CORE -d solr_conf || echo 'Solr core already exists'
-#	fi
+
 	if [[ -n ${SOLR_RESTORE_SNAPSHOT} ]]; then
 		echo "Restoring Solr snapshot $SOLR_SNAPSHOT_DIR"
 		cat $SOLR_SNAPSHOT_DIR/* | $DOCKER_COMPOSE_EXEC ${solr} tar -xzv -f - --strip-component=1 -C $SOLR_HOME/data
 		$DOCKER_COMPOSE_EXEC -T ${solr} curl -sS "$SOLR_URL/$SOLR_CORE/replication?command=restore" || exit 1
 	else
 		echo "Rebuilding Solr index (SLOW)"
-		time $DOCKER_COMPOSE_EXEC ${web} python manage.py rebuild_index -k8 -b500 --noinput || exit 1
+		time $DOCKER_COMPOSE_EXEC ${web} python manage.py rebuild_index -b500 -k4 --noinput || exit 1
 	fi
 fi
 
 # this is used by the regen-solr-image just(1) target
 if [[ -n ${SOLR_DIST_DATA} ]];
 then
-	sleep 10
+	sleep 20
+	$DOCKER_COMPOSE_EXEC -u 0 -T ${solr} sync
 	$DOCKER_COMPOSE_EXEC -u 0 -T ${solr} tar --sparse -cz -f /dist/var-solr.tgz /var/solr
-	$DOCKER_COMPOSE_EXEC -u 0 -T ${solr} ln /dist/var-solr.tgz /dist/var-solr-$( date +%D ) | tr '/' '-'
 	$DOCKER_COMPOSE_EXEC -u 0 -T ${solr} chown -Rv $UID /dist
 fi

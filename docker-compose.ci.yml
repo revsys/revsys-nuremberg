@@ -3,7 +3,7 @@ version: '2'
 services:
 
   solr:
-    image: registry.revsys.com/nuremberg:last-solr
+    image: registry.revsys.com/nuremberg:v0.4.9-solr
     volumes: []
 
   web:
