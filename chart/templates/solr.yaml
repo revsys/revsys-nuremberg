@@ -1,0 +1,152 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: solr
+  labels:
+    app.kubernetes.io/name: solr
+    app.kubernetes.io/instance: solr
+    app.kubernetes.io/component: index
+    app: nuremberg
+    component: index
+  namespace: "nuremberg"
+spec:
+  podManagementPolicy: Parallel
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: solr
+      app.kubernetes.io/instance: solr
+      app.kubernetes.io/component: index
+  serviceName: solr-headless
+  updateStrategy:
+    rollingUpdate: {}
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+      labels:
+        app.kubernetes.io/name: solr
+        app.kubernetes.io/instance: solr
+        app.kubernetes.io/component: index
+        app: nuremberg
+        component: index
+    spec:
+      serviceAccountName: default
+
+      imagePullSecrets:
+        - name: revsys-docker-registry
+      affinity:
+        podAffinity:
+
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: solr
+                    app.kubernetes.io/instance: solr
+                    app.kubernetes.io/component: index
+                namespaces:
+                  - "nuremberg"
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+      securityContext:
+        fsGroup: 8983
+      initContainers:
+      containers:
+        - name: solr
+          image: {{.Values.image.repository}}:{{.Chart.AppVersion}}-solr
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 8983
+          ports:
+            - name: http
+              containerPort: 8983
+          resources:
+            limits:
+              memory: 1Gi
+            requests:
+              memory: 1Gi
+          livenessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 40
+            timeoutSeconds: 15
+            periodSeconds: 10
+            successThreshold: 1
+            exec:
+              command:
+              - /bin/bash
+              - -ec
+              - |
+                curl --silent --connect-timeout 15000  http://127.0.0.1:8983/api/node/ | grep --quiet 'status.*:0'
+          readinessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 15
+            exec:
+              command:
+              - /bin/bash
+              - -ec
+              - |
+                curl --silent --connect-timeout 15000  http://127.0.0.1:8983/api/node/ | grep --quiet 'status.*:0'
+
+---
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: solr-headless
+  namespace: nuremberg
+  labels:
+    app.kubernetes.io/name: solr
+    app.kubernetes.io/instance: solr
+    app.kubernetes.io/component: index
+    app: nuremberg
+    component: index
+spec:
+  type: ClusterIP
+  clusterIP: None
+  publishNotReadyAddresses: true
+  ports:
+    - name: tcp-client
+      port: 8983
+      protocol: TCP
+      targetPort: http
+  selector:
+    app.kubernetes.io/name: solr
+    app.kubernetes.io/instance: solr
+    app.kubernetes.io/component: index
+
+
+---
+# Source: solr/templates/svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: solr
+  namespace: nuremberg
+  labels:
+    app.kubernetes.io/name: solr
+    helm.sh/chart: solr-6.2.3
+    app.kubernetes.io/instance: solr
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: solr
+    app: nuremberg
+    component: index
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+    - name: tcp-client
+      port: 8983
+      protocol: TCP
+      targetPort: http
+      nodePort: null
+  selector:
+    app.kubernetes.io/name: solr
+    app.kubernetes.io/instance: solr
+    app.kubernetes.io/component: index
