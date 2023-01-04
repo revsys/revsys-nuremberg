@@ -2,7 +2,7 @@
 
 <div class="advanced-search-help hide">
   <div aria-role="heading">
-    <p><strong>Advanced Search</strong> <a class="hide-advanced-search">Hide</a></p>
+    <p><strong>Advanced Search</strong>
   </div>
 
   {% for message in messages %}
@@ -15,7 +15,7 @@
 
   <form class="advanced-search" role="search" aria-label="advanced search" action="{% url 'search:advanced-search' %}" method="POST">
     {% csrf_token %}
-    <p>{% trans 'Match all the fields below' %}</p>
+    <p>{% trans 'Match all entered search terms below' %}</p>
     {% for field in form %}
       {% if field.name != 'match' and field.name != 'evidence' and field.name != 'exhibit' and field.name != 'book' and '_' not in field.name %}
       <div class="{% if field.errors %}has-error{% endif %}">
@@ -48,7 +48,6 @@
       {% endfor %}
       </div>
 
-    <button class="button search-button" type="submit">Advanced Search</button>
 
   </form>
 
