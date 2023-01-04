@@ -169,7 +169,6 @@ class Search(FacetedSearchView):
 
 
 @csrf_exempt
-@require_http_methods(['POST'])
 def advanced_search(request):
     form = AdvancedDocumentSearchForm(data=request.POST)
     if form.is_valid():
