@@ -128,6 +128,7 @@ jobs:
           ----
 
           retagged: $( just tag )-solr -> solr
+
           SOLR_${{github.run_number}}
       -
         name: bump version (pr merge to ${{github.event.repository.default_branch}})
@@ -158,6 +159,13 @@ jobs:
         run: |
           docker tag solr $( just tag )-solr
           docker push $( just tag )-solr
+          cat <<RETAG_${{github.run_number}} >> $GITHUB_STEP_SUMMARY
+
+          ----
+
+          retagged: solr -> $( just tag )-solr
+
+          RETAG_${{github.run_number}}
 
       -
         name: run tests
@@ -166,7 +174,7 @@ jobs:
         name: push version updates to repo
         if: ${{ github.ref_type == 'branch' && github.ref_name == github.event.repository.default_branch }}
         run: |
-          git push && git push --tags
+          git pull && git push && git push --tags
       -
         name: push docker image to registry
         if: ${{ github.ref_type == 'branch' && github.ref_name == github.event.repository.default_branch }}
