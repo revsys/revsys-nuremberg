@@ -24,22 +24,24 @@
     <form class="landing-search" action='{% url 'search:search' %}' method='GET'>
       {% include 'search/search-bar.html' %}
 
-      <fieldset class="include-materials">
-        <legend>Include these materials:</legend>
-        <label>
-          <input type="checkbox" name="m" value="documents" checked />
-          Documents
-        </label>
-        <label>
-          <input type="checkbox" name="m" value="transcripts" checked />
-          Transcripts
-        </label>
-        <label>
-          <input type="checkbox" name="m" value="photographs" checked />
-          Photographs
-        </label>
-      </fieldset>
-      <a href="/search/?q=*&m=documents&m=transcripts&m=photographs#advanced" target="_blank" class="advanced-search-link">Advanced Search</a>
+      <div class="search-box-bottom">
+        <fieldset class="include-materials">
+          <legend>Include these materials:</legend>
+          <label>
+            <input type="checkbox" name="m" value="documents" checked />
+            Documents
+          </label>
+          <label>
+            <input type="checkbox" name="m" value="transcripts" checked />
+            Transcripts
+          </label>
+          <label>
+            <input type="checkbox" name="m" value="photographs" checked />
+            Photographs
+          </label>
+        </fieldset>
+        <a href="/search/?q=*&m=documents&m=transcripts&m=photographs#advanced" target="_blank" class="advanced-search-link">Advanced Search</a>
+      </div>
     </form>
   </div>
 </section>
