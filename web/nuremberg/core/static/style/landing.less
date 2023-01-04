@@ -155,6 +155,24 @@ section {
       padding: 7px 13px;
     }
 
+    .search-box-bottom {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    a.advanced-search-link {
+      color: @blue;
+      text-decoration: underline;
+
+      &:hover {
+        color: @light-blue;
+      }
+
+      margin-right: 25px;
+    }
+
     .include-materials {
       .sans-serif(normal, 14px, 20px);
 
@@ -370,15 +388,4 @@ section {
   float: left;
   width: 33.33333333%;
   height: 300px;
-}
-
-a.advanced-search-link {
-  float: right;
-  margin-right: 10px;
-  margin-bottom: 10px;
-  color: @blue;
-
-  &:hover {
-    color: @light-blue;
-  }
 }
