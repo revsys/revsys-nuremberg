@@ -457,7 +457,7 @@ def test_advanced_search_post_no_errors():
     response = client.post(url, data=data, follow=False)
 
     assert response.status_code == 302
-    qs = parse.urlencode({'q': 'keywords:"foo bar"'}) + '#advanced'
+    qs = parse.urlencode({'q': 'keywords:foo keywords:bar'}) + '#advanced'
     assert response['Location'] == reverse('search:search') + '?' + qs
 
 
