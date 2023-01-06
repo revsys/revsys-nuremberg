@@ -477,20 +477,6 @@ class AdvancedDocumentSearchForm(forms.Form):
         ),
     )
 
-    free_form_terms = (
-        'keywords',
-        'title',
-        'notes',
-    )
-    exact_matches = (
-        'author',
-        'defendant',
-        'issue',
-        'trial',
-        'language',
-        'source',
-    )
-
     def clean(self):
         cleaned_data = super().clean()
 
@@ -545,12 +531,23 @@ class AdvancedDocumentSearchForm(forms.Form):
 
         terms = []
         # free-form entries, need to properly handle empty spaces within field
-        for term in self.free_form_terms:
+        for term in (
+            'keywords',
+            'title',
+            'notes',
+        ):
             values = data.get(term, '').split(' ')
             terms.extend(f'{term}:{value}' for value in values if value)
 
         # choice field entries
-        for term in self.exact_matches:
+        for term in (
+            'author',
+            'defendant',
+            'issue',
+            'trial',
+            'language',
+            'source',
+        ):
             value = data.get(term)
             if value:
                 terms.append(f'{term}:"{value}"')
@@ -567,14 +564,11 @@ class AdvancedDocumentSearchForm(forms.Form):
 
     @classmethod
     def from_search_qs(cls, qs, errors=None):
-        # This assumes AND operation between search fields.
-        expr = re.compile(r'([a-z0-9_]+):("[^"]+"|\([^\(^\)]+\)|[^"\s]+)\s*')
+        # This assumes AND operation between search fields
+        expr = re.compile(r'([a-z0-9_]+):("[^"]+"|[^"\s]+)\s*')
         initial = {}
         for k, v in expr.findall(qs):
-            if k in cls.free_form_terms:
-                v = v.strip("(").strip(")")
-            else:
-                v = v.strip('"')
+            v = v.strip('"')
             if k in initial:
                 # support advanced search syntax using multiple occurrences of
                 # the same field name, for example:
