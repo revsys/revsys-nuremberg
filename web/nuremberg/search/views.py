@@ -6,7 +6,6 @@ from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
 from haystack.generic_views import (
     FacetedSearchView,
     FacetedSearchMixin,
