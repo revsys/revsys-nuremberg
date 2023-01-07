@@ -530,15 +530,22 @@ class AdvancedDocumentSearchForm(forms.Form):
             data = self.cleaned_data
 
         terms = []
+        # free-form entries, need to properly handle empty spaces within field
         for term in (
             'keywords',
             'title',
+            'notes',
+        ):
+            values = data.get(term, '').split(' ')
+            terms.extend(f'{term}:{value}' for value in values if value)
+
+        # choice field entries
+        for term in (
             'author',
             'defendant',
             'issue',
             'trial',
             'language',
-            'notes',
             'source',
         ):
             value = data.get(term)
@@ -559,7 +566,17 @@ class AdvancedDocumentSearchForm(forms.Form):
     def from_search_qs(cls, qs, errors=None):
         # This assumes AND operation between search fields
         expr = re.compile(r'([a-z0-9_]+):("[^"]+"|[^"\s]+)\s*')
-        initial = {k: v.strip('"') for k, v in expr.findall(qs)}
+        initial = {}
+        for k, v in expr.findall(qs):
+            v = v.strip('"')
+            if k in initial:
+                # support advanced search syntax using multiple occurrences of
+                # the same field name, for example:
+                # q=keywords:euthanasia keywords:disabled
+                # should result in initial['keywords'] = 'euthanasia disabled'
+                initial[k] += ' ' + v
+            else:
+                initial[k] = v
 
         # handle evidence code
         evidence = initial.get('evidence')

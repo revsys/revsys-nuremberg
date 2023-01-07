@@ -40,36 +40,37 @@ def test_advanced_search_form_as_search_qs_simple():
         'issue': 'A Trial Issue',
         'trial': 'IMT',
         'language': 'Croatian',
-        'notes': 'A description',
+        'notes': 'something',
         'source': 'Photostat',
     }
     form = AdvancedDocumentSearchForm()
     expected = (
-        'keywords:"foo bar|baz" title:"Some Title" author:"Adolf Hitler" '
-        'defendant:"Rose" issue:"A Trial Issue" trial:"IMT" '
-        'language:"Croatian" notes:"A description" source:"Photostat"'
+        'keywords:foo keywords:bar|baz title:Some title:Title notes:something '
+        'author:"Adolf Hitler" defendant:"Rose" '
+        'issue:"A Trial Issue" trial:"IMT" '
+        'language:"Croatian" source:"Photostat"'
     )
     assert form.as_search_qs(data) == expected
 
 
 def test_advanced_search_form_as_search_qs_cleaned_data():
     data = {
-        'keywords': 'foo bar|baz',
+        'keywords': 'bar|baz',
         'title': 'Some Title',
         'author': 'Adolf Hitler',
         'defendant': 'Rose',
         'trial': 'IMT',
         'language': 'english',
-        'notes': 'A description',
+        'notes': 'description',
         'source': 'Photostat',
     }
     form = AdvancedDocumentSearchForm(data)
 
     assert form.is_valid(), form.errors
     expected = (
-        'keywords:"foo bar|baz" title:"Some Title" author:"Adolf Hitler" '
-        'defendant:"Rose" trial:"IMT" language:"english" '
-        'notes:"A description" source:"Photostat"'
+        'keywords:bar|baz title:Some title:Title notes:description '
+        'author:"Adolf Hitler" defendant:"Rose" '
+        'trial:"IMT" language:"english" source:"Photostat"'
     )
     assert form.as_search_qs() == expected
 
