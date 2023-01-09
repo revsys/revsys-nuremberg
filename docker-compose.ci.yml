@@ -10,12 +10,14 @@ services:
     image: registry.revsys.com/nuremberg:v0.4.11-tester
     entrypoint: /bin/bash
     command: ""
+    environment:
     volumes:
       - ./media:/code/media
+      - ${GITHUB_STEP_SUMMARY}:/code/media/github-step-summary
 
     environment:
       - SOLR_URL=http://solr:8983/solr/nuremberg_dev
-
+      - GITHUB_STEP_SUMMARY=/code/media/github-step-summary
 
 volumes: {}
 
