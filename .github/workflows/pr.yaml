@@ -86,8 +86,8 @@ jobs:
         name: Checkout code
         uses: gladiatr72/checkout-action@v3-no-noise
         env:
-          GITHUB_TRACE: x
-          GIT_CURL_VERBOSE: x
+          GITHUB_TRACE: 1
+          GIT_CURL_VERBOSE: 1
       -
         name: version
         run: |
