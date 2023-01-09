@@ -44,9 +44,7 @@ class Command(BaseCommand):
     @transaction.atomic
     def backfill(self, qs, dry_run=False, force=False):
         # First update existing entries if requested with force=True
-        update_qs = qs.none()
-        if force:
-            update_qs = qs.filter(extra__isnull=False)
+        update_qs = qs.filter(extra__isnull=False).order_by('id')
         self.stdout.write(
             f'Updating {len(update_qs)} DocumentAuthorExtra instance(s).'
         )
@@ -55,7 +53,7 @@ class Command(BaseCommand):
         )
 
         # Then, create missing DocumentAuthorExtra entries
-        create_qs = qs.filter(extra__isnull=True)
+        create_qs = qs.filter(extra__isnull=True).order_by('id')
         self.stdout.write(
             f'Creating {len(create_qs)} DocumentAuthorExtra instance(s).'
         )

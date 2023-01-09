@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 def do_request(url, method='GET', **kwargs):
     kwargs.setdefault('headers', {'User-Agent': 'Ubuntu; Linux x86_64'})
     kwargs.setdefault('allow_redirects', True)
-    response = getattr(requests, method.lower())(url, **kwargs)
+    response = getattr(requests, method.lower())(url, **kwargs, timeout=5)
     if not response.ok:
         logger.error(
             f'Response for {method=} {url=} is not OK, got '
@@ -23,12 +23,19 @@ def do_request(url, method='GET', **kwargs):
 def download_and_store_image(
     image_url, image_path, media_storage, force=False
 ):
+    bucket_name = getattr(media_storage, 'bucket_name', None)
+
+    if media_storage.exists(image_path) and not force:
+        logger.info(
+            f'Will not download nor save {image_path=} in {bucket_name=} '
+            f'because the path already exists (and {force=})'
+        )
+        return
+
     logger.info(f'Downloading {image_url=} to {image_path=} ({force=})')
     response = do_request(image_url)
     if not response.ok:
         return
-
-    bucket_name = getattr(media_storage, 'bucket_name', None)
 
     if force and media_storage.exists(image_path):
         logger.warning(
@@ -40,11 +47,6 @@ def download_and_store_image(
     if not media_storage.exists(image_path):
         media_storage.save(image_path, BytesIO(response.content))
         logger.info(f'Saved {image_path=} in {bucket_name=}')
-    else:
-        logger.error(
-            f'Can not save {image_path=} in {bucket_name=} because the '
-            f'path already exists (and {force=})'
-        )
 
 
 def build_image_path(image_url, image_name):
@@ -53,7 +55,7 @@ def build_image_path(image_url, image_name):
     logger.debug(f'HEAD response for {image_url=} returned {image_headers=}')
     if not content_type.startswith('image/'):
         logger.error(
-            f'Response for {image_url=} is not an image, got {image_headers=}'
+            f'Response for {image_url=} is not an image, got {content_type=}'
         )
         return None
 

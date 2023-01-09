@@ -790,6 +790,9 @@ class DocumentAuthorExtra(models.Model):
         image_name = f'{metadata["author"]["id"]}-{metadata["author"]["slug"]}'
         image_path = build_image_path(image_url, image_name)
 
+        if image_path is None:
+            return None, ''
+
         if dry_run:
             logger.info(
                 f'Would download {image_url=} to {image_path=}, but dry-run '
@@ -804,6 +807,7 @@ class DocumentAuthorExtra(models.Model):
 
     @classmethod
     def from_metadata(cls, metadata, dry_run=False, force=False, save=True):
+        logger.info(f'Creating DocumentAuthorExtra instance for {metadata=}')
         image_path, image_alt = cls.process_image(metadata, dry_run, force)
         result = cls(
             author_id=metadata['author']['id'],
@@ -819,6 +823,7 @@ class DocumentAuthorExtra(models.Model):
     def update_from_metadata(
         self, metadata, dry_run=False, force=False, save=True
     ):
+        logger.info(f'Updating DocumentAuthorExtra instance for {metadata=}')
         image_path, image_alt = self.process_image(metadata, dry_run, force)
         self.description = metadata['author']['description']
         self.image = image_path
