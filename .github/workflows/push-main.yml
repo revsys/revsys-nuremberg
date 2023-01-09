@@ -15,14 +15,14 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  contexts:
-    runs-on: ubuntu-latest
-    steps:
-      -
-        name: github
-        env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-        run: echo "$GITHUB_CONTEXT"
+#  contexts:
+#    runs-on: ubuntu-latest
+#    steps:
+#      -
+#        name: github
+#        env:
+#          GITHUB_CONTEXT: ${{ toJson(github) }}
+#        run: echo "$GITHUB_CONTEXT"
 
   solr-check:
     runs-on: ubuntu-latest
@@ -119,17 +119,17 @@ jobs:
           ----
 
           SOLRTOP_${{github.run_number}}
+
           docker manifest inspect $( just tag )-solr >& /dev/null && \
           docker pull --quiet $( just tag )-solr && \
           docker tag $( just tag )-solr solr || ( just regen-solr-image && docker tag $( just tag )-solr solr )
 
-          cat <<SOLR_${{github.run_number}} >> $GITHUB_STEP_SUMMARY
-
-          ----
+          cat <<SOLRBOTTOM_${{github.run_number}} >> $GITHUB_STEP_SUMMARY
 
           retagged: $( just tag )-solr -> solr
 
-          SOLR_${{github.run_number}}
+          ----
+          SOLRBOTTOM_${{github.run_number}}
       -
         name: bump version (pr merge to ${{github.event.repository.default_branch}})
         if: ${{ env.probablyPr == 'true' }}
