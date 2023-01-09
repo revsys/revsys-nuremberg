@@ -3,7 +3,7 @@ name: Push to Main
 on:
   push:
     branches:
-      - '**'
+      - ci--solr-build-in-pr
     tags-ignore:
       - '**'
 
@@ -15,14 +15,14 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-#  contexts:
-#    runs-on: ubuntu-latest
-#    steps:
-#      -
-#        name: github
-#        env:
-#          GITHUB_CONTEXT: ${{ toJson(github) }}
-#        run: echo "$GITHUB_CONTEXT"
+  contexts:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: github
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
 
   solr-check:
     runs-on: ubuntu-latest
