@@ -84,7 +84,7 @@ jobs:
           docker run -v /home/runner/.local/bin:/dist registry.revsys.com/just:0.9.4 || just --version
       -
         name: Checkout code
-        uses: gladiatr72/checkout-action@v3-no-noise
+          #uses: gladiatr72/checkout-action@v3-no-noise
         uses: actions/checkout-action@v3
       -
         name: version
