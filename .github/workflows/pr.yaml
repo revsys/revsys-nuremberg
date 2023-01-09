@@ -33,7 +33,8 @@ jobs:
       change-detected: ${{ steps.check-dumps.outputs.change-detected }}
 
     env:
-     THIS: ${{ format('refs/heads/{0}', github.event.pull_request.head.ref) }}
+      THIS: ${{ format('refs/heads/{0}', github.event.pull_request.head.ref) }}
+      buildSolr: "${{ needs.solr-check.outputs.change-detected }}"
 
     steps:
       -
