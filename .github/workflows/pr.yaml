@@ -85,6 +85,8 @@ jobs:
       -
         name: Checkout code
         uses: gladiatr72/checkout-action@v3-no-noise
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
       -
         name: version
         run: |
