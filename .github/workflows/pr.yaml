@@ -46,11 +46,9 @@ jobs:
         run: |
           lastUpdate=$( git log -1 --format=%H -- dumps/nuremberg_prod_dump_latest.sqlite3.zip )
 
-          [[ -n "${lastUpdate}" ]] && (
-            [[ "${{ github.sha }}" == "${lastUpdate}" ]] &&
-                echo "change-detected=true" >> $GITHUB_OUTPUT ||
-                echo "change-detected=false" >> $GITHUB_OUTPUT
-          )
+          [[ -n "${lastUpdate}" ]] && \
+            [[ "${{ github.sha }}" == "${lastUpdate}" ]] && echo "change-detected=true" >> $GITHUB_OUTPUT || \
+            echo "change-detected=false" >> $GITHUB_OUTPUT
 
           echo "${{ github.sha }} vs. ${lastUpdate}"
 
