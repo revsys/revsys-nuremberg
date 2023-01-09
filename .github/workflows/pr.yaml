@@ -32,6 +32,9 @@ jobs:
     outputs:
       change-detected: ${{ steps.check-dumps.outputs.change-detected }}
 
+    env:
+     THIS: ${{ format('refs/heads/{0}', github.event.pull_request.head.ref) }}
+
     steps:
       -
         name: Checkout code
@@ -62,9 +65,6 @@ jobs:
     needs:
       - solr-check
 
-    env:
-     THIS: ${{ format('refs/heads/{0}', github.event.pull_request.head.ref) }}
-
     steps:
       -
         name: Login to REVSYS Container Registry
@@ -90,6 +90,7 @@ jobs:
         uses: gladiatr72/checkout-action@v3-no-noise
         with:
           ref: ${{ env.THIS }}
+          depth: 0
         env:
           GITHUB_TRACE: 1
           GIT_CURL_VERBOSE: 1
