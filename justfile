@@ -153,3 +153,16 @@ shell:
 
 update-local-tags:
     git fetch --tags --force
+
+
+# update the latest SQLite DB dump with the provided MySQL's dump
+update-db-dump mysqldump:
+    # Convert the MySQL dump to SQLite format
+    mysql2sqlite/mysql2sqlite {{mysqldump}} | sqlite3 web/nuremberg_dev.db
+    # Confirm no local users were created in the local DB
+    [[ `sqlite3 web/nuremberg_dev.db 'SELECT COUNT(*) FROM auth_user;'` -eq 0 ]] || exit 1
+    # Zip the DB and update the symlink to the latest dump
+    zip -j -FS dumps/nuremberg_prod_dump_`date -I`.sqlite3.zip web/nuremberg_dev.db
+    ln -fs nuremberg_prod_dump_`date -I`.sqlite3.zip dumps/nuremberg_prod_dump_latest.sqlite3.zip
+    # ToDo: run commands such as update of author metadata or document images
+    git add dumps/nuremberg_prod_dump_`date -I`.sqlite3.zip
