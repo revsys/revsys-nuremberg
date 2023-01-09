@@ -80,7 +80,7 @@ def test_build_image_path_no_content_type_image(requests_mock, caplog):
     ]
     expected = (
         f"Response for image_url={url!r} is not an image, got "
-        "image_headers={'content-type': 'no-image/png'}"
+        "content_type='no-image/png'"
     )
     assert messages == [('ERROR', expected)]
 
@@ -110,22 +110,17 @@ def test_download_and_store_image_already_exists(requests_mock, caplog):
     storage = DummyMemDictStorage()
     original = os.urandom(100)
     storage.save(path, BytesIO(original))
-    data = os.urandom(100)
-    requests_mock.get(url, content=data)
 
     download_and_store_image(url, path, storage)
 
     assert storage.exists(path)
     assert storage.open(path).read() == original
     messages = [(x.levelname, x.message) for x in caplog.records]
-    info = (
-        f'Downloading image_url={url!r} to image_path={path!r} (force=False)'
-    )
     error = (
-        f"Can not save image_path={path!r} in bucket_name=None "
+        f"Will not download nor save image_path={path!r} in bucket_name=None "
         "because the path already exists (and force=False)"
     )
-    assert messages == [('INFO', info), ('ERROR', error)]
+    assert messages == [('INFO', error)]
 
 
 def test_download_and_store_image_already_exists_force(requests_mock, caplog):
