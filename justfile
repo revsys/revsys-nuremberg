@@ -66,7 +66,7 @@ push step='release':
     just build {{step}} --push
 
 # execute new solr image build process
-@regen-solr-image:
+@regen-solr-image nopush='':
     just solr-dc down -v >& /dev/null
     docker inspect $( just tag ) >& /dev/null || just build release --load ''
     just solr-dc up -d --quiet-pull solr-loader
@@ -74,7 +74,7 @@ push step='release':
     just solr-dc up -d --quiet-pull solr-data-load
     @SOLR_RESTORE_SNAPSHOT= SOLR_DIST_DATA=1 SOLR_BUILD=1 ./init.sh || exit 1
     NO_CACHE_TO=1 just build solr
-    docker push $( just tag )-solr
+    [[ -n "{{nopush}}" ]] && docker push $( just tag )-solr
 
 # fs path to solr-image-build compose file
 @solr-compose: _solr-compose
