@@ -39,9 +39,6 @@ jobs:
       -
         name: Checkout code
         uses: gladiatr72/checkout-action@v3-no-noise
-        with:
-          ref: ${{ github.ref_name }}
-          fetch-depth: 5
       -
         name: check for new dump
         id: check-dumps
@@ -90,7 +87,6 @@ jobs:
         uses: gladiatr72/checkout-action@v3-no-noise
         with:
           ref: ${{ env.THIS }}
-          depth: 0
         env:
           GITHUB_TRACE: 1
           GIT_CURL_VERBOSE: 1
