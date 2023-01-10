@@ -47,8 +47,6 @@ jobs:
         name: check for new dump
         id: check-dumps
         run: |
-          set -o xtrace
-          set -o verbose
           lastUpdate=$( git log -1 --format=%H -- dumps/nuremberg_prod_dump_latest.sqlite3.zip )
           head=$( git rev-parse HEAD )
 
@@ -58,7 +56,9 @@ jobs:
 
           echo "${head} (head) vs. ${lastUpdate} (lastUpdate)"
 
-  run:
+          [[ "${head}" == "${lastUpdate}" ]] && /usr/bin/echo -en "## solr-check found new data" >> $GITHUB_OUTPUT
+
+  run
     runs-on: ubuntu-latest
     strategy:
       max-parallel: 5
