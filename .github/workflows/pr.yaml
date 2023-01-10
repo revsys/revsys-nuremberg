@@ -34,7 +34,7 @@ jobs:
 
     env:
       THIS: ${{ format('refs/heads/{0}', github.event.pull_request.head.ref) }}
-      THIS2: ${{ github.event.pull_request.head.ref ) }}
+      THIS2: ${{ github.event.pull_request.head.ref }}
 
     steps:
       -
