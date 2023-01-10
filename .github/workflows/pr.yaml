@@ -128,9 +128,11 @@ jobs:
 
           SOLRTOP_${{github.run_number}}
 
-          export PRSOLRVTAG="$( just tag )-$${{ github.event.pull_request.number }}-solr"
+          export PRSOLRVTAG="$( just tag )-$${{ env.prNum }}-solr"
           echo "for PR: ${{ github.event.pull_request.number }}"
           echo "(or) for PR: ${{ env.prNum }}"
+          echo "PRSOLRVTAG=${PRSOLRVTAG}"
+          echo "PRSOLRVTAG should be: $( just tag )-${{ env.prNum }}-solr"
 
           echo "### pull/rebuild solr" >> $GITHUB_STEP_SUMMARY   # built on previous commit to PR branch
           (
