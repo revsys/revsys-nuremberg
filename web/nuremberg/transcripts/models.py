@@ -121,9 +121,6 @@ class TranscriptPage(models.Model):
         null=True, blank=True, storage=TranscriptStorage()
     )
 
-    # DEPRECATED in favor of `image`
-    _url = models.TextField(blank=True, null=True, db_column='image_url')
-
     class Meta:
         unique_together = (
             ('transcript', 'seq_number'),
@@ -141,16 +138,9 @@ class TranscriptPage(models.Model):
             self.transcript.id, self.page_number, self.volume.volume_number
         )
 
-    @property
+    @cached_property
     def image_url(self):
-        try:
-            result = self.image.url
-        except ValueError:
-            result = self._url
-            logger.exception(
-                'No transcript page for "%s" (fallback %s)', self, result
-            )
-        return result
+        return self.image.url if self.image else None
 
     def xml_tree(self):
         return etree.fromstring(self.xml.encode('utf8'))
