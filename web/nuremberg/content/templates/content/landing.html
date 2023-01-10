@@ -91,6 +91,29 @@
   </footer>
 </section>
 
+<section class="theme-beige the-trials">
+  <h2>TBD: The Trials</h2>
+  <p>Each trial includes a summary, chronology overview, persons involved, indictments, detailed chronology.</p>
+  <footer>
+    <a class="teaser" href="{% url 'content:trials' %}">Read about the trials</a>
+  </footer>
+</section>
+
+<section class="theme-beige project-news">
+  <h2>TBD: Nuremberg Project News</h2>
+  <ul>
+    <li><a href="https://www.youtube.com/watch?v=finv6A3qRKg&feature=youtu.be">Treasures of the Harvard Law School Library</a></li>
+    <li><a href="https://hls.harvard.edu/today/notes-nuremberg-documentarian/">Notes of a Nuremberg Documentarian</a></li>
+    <li><a href="https://news.harvard.edu/gazette/story/2016/10/devils-in-the-details/">Devil's in the Details</a></li>
+  </ul>
+
+  <h2>TBD: Document Analyst's Report</h2>
+  {% for report in reports %}
+  <p><strong>{{ report.date }}</strong> {{ report.report|truncatewords:50 }}</p>
+  {% endfor %}
+
+</section>
+
 <section class="theme-beige approaches">
   <h2> Approaches </h2>
   <div class="three-column-layout approaches-categories">

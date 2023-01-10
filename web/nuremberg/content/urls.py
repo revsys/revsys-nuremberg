@@ -1,13 +1,11 @@
 from django.urls import re_path
-from .views import ContentView
+from .views import ContentView, LandingView
 
 app_name = 'content'
 urlpatterns = [
     re_path(
         r'^$',
-        ContentView.as_view(
-            template_name='content/landing.html', context={'query': ''}
-        ),
+        LandingView.as_view(),
         name="landing",
     ),
     re_path(
