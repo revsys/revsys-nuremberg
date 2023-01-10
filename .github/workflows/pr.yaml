@@ -145,8 +145,8 @@ jobs:
           echo "### pull/rebuild solr" >> $GITHUB_STEP_SUMMARY   # built on previous commit to PR branch
           (
             docker manifest inspect ${PRSOLRVTAG}  &&
-            docker pull --quiet ${PRSOLVRTAG}  &&
-            docker tag ${PRSOLVRTAG} $( just tag )-solr  &&
+            docker pull --quiet ${PRSOLRVTAG}  &&
+            docker tag ${PRSOLRVTAG} $( just tag )-solr  &&
             echo " * using ${PRSOLRVTAG}" >> $GITHUB_STEP_SUMMARY
           ) || \
           (
