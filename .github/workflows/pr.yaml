@@ -118,6 +118,8 @@ jobs:
       -
         name: pull/rebuild solr image
         if: ${{ env.buildSolr == 'false' }}
+        env:
+          prNum: ${{ github.event.pull_request.number }}
         run: |
           #!/bin/bash
           cat <<SOLRTOP_${{github.run_number}} >> $GITHUB_STEP_SUMMARY
@@ -127,7 +129,8 @@ jobs:
           SOLRTOP_${{github.run_number}}
 
           export PRSOLRVTAG="$( just tag )-$${{ github.event.pull_request.number }}-solr"
-          echo $PRSOLRVTAG
+          echo "for PR: ${{ github.event.pull_request.number }}"
+          echo "(or) for PR: ${{ env.prNum }}"
 
           echo "### pull/rebuild solr" >> $GITHUB_STEP_SUMMARY   # built on previous commit to PR branch
           (
