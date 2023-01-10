@@ -32,12 +32,15 @@ jobs:
     outputs:
       change-detected: ${{ steps.check-dumps.outputs.change-detected }}
 
+    env:
+      THIS: ${{ format('refs/heads/{0}', github.event.pull_request.head.ref) }}
+
     steps:
       -
         name: Checkout code
         uses: gladiatr72/checkout-action@v3-no-noise
         with:
-          ref: ${{ github.head_ref }}
+          ref: ${{ env.THIS }}
           fetch-depth: 5
       -
         name: check for new dump
@@ -137,8 +140,8 @@ jobs:
           echo "### pull/rebuild solr" >> $GITHUB_STEP_SUMMARY   # built on previous commit to PR branch
           (
             docker manifest inspect ${PRSOLRVTAG} >& /dev/null &&
-            docker pull --quiet ${PRSOLVRTAG} &&
-            docker tag ${PRSOLVRTAG} $( just tag )-solr &&
+            docker pull --quiet ${PRSOLVRTAG} >& /dev/null &&
+            docker tag ${PRSOLVRTAG} $( just tag )-solr >& /dev/null &&
             echo " * using ${PRSOLRVTAG}" >> $GITHUB_STEP_SUMMARY
           ) || \
           (
