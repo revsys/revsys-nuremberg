@@ -34,13 +34,14 @@ jobs:
 
     env:
       THIS: ${{ format('refs/heads/{0}', github.event.pull_request.head.ref) }}
+      THIS2: ${{ github.event.pull_request.head.ref ) }}
 
     steps:
       -
         name: Checkout code
         uses: gladiatr72/checkout-action@v3-no-noise
         with:
-          ref: ${{ env.THIS }}
+          ref: ${{ env.THIS2 }}
           fetch-depth: 0
       -
         name: check for new dump
