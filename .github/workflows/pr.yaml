@@ -36,6 +36,7 @@ jobs:
       -
         name: Checkout code
         uses: gladiatr72/checkout-action@v3-no-noise
+        with:
           ref: ${{ github.ref_name }}
           fetch-depth: 5
       -
