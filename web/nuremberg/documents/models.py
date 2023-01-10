@@ -192,14 +192,6 @@ class DocumentImage(models.Model):
     page_number = models.IntegerField()
     physical_page_number = models.IntegerField(blank=True, null=True)
 
-    # BEGIN DEPRECATED in favor of `image`
-    _url = models.CharField(
-        max_length=255, blank=True, null=True, db_column='url'
-    )
-    width = models.IntegerField(blank=True, null=True)
-    height = models.IntegerField(blank=True, null=True)
-    # END DEPRECATED in favor of `image`
-
     scale = models.CharField(max_length=1, choices=IMAGE_SCALES)
     image_type = models.ForeignKey(
         'DocumentImageType', on_delete=models.PROTECT
@@ -210,24 +202,30 @@ class DocumentImage(models.Model):
         ordering = ['page_number']
 
     def __str__(self):
-        return "#{} Page {} {} {}x{}".format(
+        return "#{} Page {} scale {!r}".format(
             self.document.id,
             self.page_number,
-            self.scale,
-            self.width,
-            self.height,
+            dict(self.IMAGE_SCALES).get(self.scale),
         )
 
-    @property
-    def url(self):
+    def _image_attr(self, attr):
         try:
-            result = self.image.url
-        except ValueError:
-            result = self._url
-            logger.exception(
-                'No document image for "%s" (fallback %s)', self, result
-            )
+            result = getattr(self.image, attr)
+        except (ValueError, FileNotFoundError):
+            result = None
         return result
+
+    @cached_property
+    def width(self):
+        return self._image_attr('width')
+
+    @cached_property
+    def height(self):
+        return self._image_attr('height')
+
+    @cached_property
+    def url(self):
+        return self._image_attr('url')
 
     def find_url(self, scale):
         if self.scale == scale:
