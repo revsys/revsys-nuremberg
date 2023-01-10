@@ -32,27 +32,33 @@ jobs:
     outputs:
       change-detected: ${{ steps.check-dumps.outputs.change-detected }}
 
+    env:
+      THIS: ${{ format('refs/heads/{0}', github.event.pull_request.head.ref) }}
+      THIS2: ${{ github.event.pull_request.head.ref }}
+
     steps:
       -
         name: Checkout code
         uses: gladiatr72/checkout-action@v3-no-noise
         with:
-          ref: ${{ github.ref_name }}
+          ref: ${{ env.THIS2 }}
           fetch-depth: 5
       -
         name: check for new dump
         id: check-dumps
         run: |
           lastUpdate=$( git log -1 --format=%H -- dumps/nuremberg_prod_dump_latest.sqlite3.zip )
+          head=$( git rev-parse HEAD )
 
-          [[ -n "${lastUpdate}" ]] && ( \
-            [[ "${{ github.sha }}" == "${lastUpdate}" ]] &&
-              (echo "change-detected=true" >> $GITHUB_OUTPUT
-              (echo "change-detected=false" >> $GITHUB_OUTPUT
-          ) || echo "change-detected=true"
+          [[ -n "${lastUpdate}" ]] && \
+            [[ "${head}" == "${lastUpdate}" ]] && echo "change-detected=true" >> $GITHUB_OUTPUT || \
+            echo "change-detected=false" >> $GITHUB_OUTPUT
 
-          echo "${{ github.sha }} vs. ${lastUpdate}"
+          echo "${head} (head) vs. ${lastUpdate} (lastUpdate)"
 
+          echo "## solr-check"
+          [[ "${head}" == "${lastUpdate}" ]] && echo " * found new data" >> $GITHUB_STEP_SUMMARY || \
+            echo " * found no new data" >> $GITHUB_STEP_SUMMARY
   run:
     runs-on: ubuntu-latest
     strategy:
@@ -63,9 +69,15 @@ jobs:
       - solr-check
 
     env:
-     THIS: ${{ format('refs/heads/{0}', github.event.pull_request.head.ref) }}
+      THIS: ${{ format('refs/heads/{0}', github.event.pull_request.head.ref) }}
+      buildSolr: ${{ needs.solr-check.outputs.change-detected }}
 
     steps:
+      - name: wut-solr
+        run: |
+          echo ${{ env.THIS }}
+          echo ${{ env.buildSolr }}
+
       -
         name: Login to REVSYS Container Registry
         uses: docker/login-action@v2
@@ -90,9 +102,9 @@ jobs:
         uses: gladiatr72/checkout-action@v3-no-noise
         with:
           ref: ${{ env.THIS }}
-        env:
-          GITHUB_TRACE: 1
-          GIT_CURL_VERBOSE: 1
+#        env:
+#          GITHUB_TRACE: 1
+#          GIT_CURL_VERBOSE: 1
       -
         name: version
         run: |
@@ -114,20 +126,27 @@ jobs:
       -
         name: pull/rebuild solr image
         if: ${{ env.buildSolr == 'false' }}
+        env:
+          prNum: ${{ github.event.pull_request.number }}
         run: |
+          #!/bin/bash
           cat <<SOLRTOP_${{github.run_number}} >> $GITHUB_STEP_SUMMARY
 
           ----
 
           SOLRTOP_${{github.run_number}}
 
-          PRSOLRVTAG=$( just tag )-$${{ github.event.number }}-solr
+          export PRSOLRVTAG="$( just tag )-${{ env.prNum }}-solr"
+          echo "for PR: ${{ github.event.pull_request.number }}"
+          echo "(or) for PR: ${{ env.prNum }}"
+          echo "PRSOLRVTAG=${PRSOLRVTAG}"
+          echo "PRSOLRVTAG should be: $( just tag )-${{ env.prNum }}-solr"
 
           echo "### pull/rebuild solr" >> $GITHUB_STEP_SUMMARY   # built on previous commit to PR branch
           (
-            docker manifest inspect ${PRSOLRVTAG} >& /dev/null &&
-            docker pull --quiet ${PRSOLVRTAG} &&
-            docker tag ${PRSOLVRTAG} $( just tag )-solr &&
+            docker manifest inspect ${PRSOLRVTAG}  &&
+            docker pull --quiet ${PRSOLRVTAG}  &&
+            docker tag ${PRSOLRVTAG} $( just tag )-solr  &&
             echo " * using ${PRSOLRVTAG}" >> $GITHUB_STEP_SUMMARY
           ) || \
           (
@@ -146,19 +165,17 @@ jobs:
         if: ${{ env.buildSolr == 'true' }}
         run: |
           NO_CACHE_TO=1 just build release --load ''
-          echo "### new data set detected"
-          echo "  * building solr loader" >> $GITHUB_STEP_SUMMARY   # built on previous commit to PR branch
+          echo "### new data set detected" >> $GITHUB_STEP_SUMMARY
       -
         name: build solr image (new data)
         if: ${{ env.buildSolr == 'true' }}
         run: |
+          export PRSOLRVTAG="$( just tag )-${{ github.event.pull_request.number }}-solr"
 
-          PRSOLRVTAG=$( just tag )-$${{ github.event.number }}-solr
-          NO_CACHE_TO=1 just regen-solr-image nopush &&
-          docker tag $( just tag )-solr ${PRSOLRVTAG} &&
-          docker push $(PRSOLRVTAG}
-
-          echo " * build/push ${PRSOLRVTAG}" >> $GITHUB_STEP_SUMMARY   # built on previous commit to PR branch
+          NO_CACHE_TO=1 just regen-solr-image nopush && \
+          docker tag $( just tag )-solr ${PRSOLRVTAG} && \
+          docker push ${PRSOLRVTAG} && \
+          echo " * PR SOLR image tag: ${PRSOLRVTAG}" >> $GITHUB_STEP_SUMMARY
       -
         name: run tests
         run: NO_CACHE_TO= just test
