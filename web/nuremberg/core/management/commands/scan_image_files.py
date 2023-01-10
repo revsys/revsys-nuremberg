@@ -53,7 +53,7 @@ def populate_metadata(document, page_number):
     image = DocumentImage(document=document, page_number=page_number)
 
     filename = "{:05d}{:03d}".format(document.id, page_number)
-    old_image = document.old_images.filter(filename=filename).first()
+    old_image = document.old_images.filter(base_filename=filename).first()
 
     if old_image:
         if old_image.physical_page_number:
