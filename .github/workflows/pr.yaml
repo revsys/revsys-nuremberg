@@ -126,7 +126,7 @@ jobs:
 
           SOLRTOP_${{github.run_number}}
 
-          export PRSOLRVTAG="$( just tag )-$${{ github.event.number }}-solr"
+          export PRSOLRVTAG="$( just tag )-$${{ github.event.pull_request.number }}-solr"
           echo $PRSOLRVTAG
 
           echo "### pull/rebuild solr" >> $GITHUB_STEP_SUMMARY   # built on previous commit to PR branch
@@ -157,7 +157,8 @@ jobs:
         name: build solr image (new data)
         if: ${{ env.buildSolr == 'true' }}
         run: |
-          export PRSOLRVTAG=$( just tag )-$${{ github.event.number }}-solr && \
+          export PRSOLRVTAG="$( just tag )-$${{ github.event.pull_request.number }}-solr"
+
           NO_CACHE_TO=1 just regen-solr-image nopush && \
           docker tag $( just tag )-solr ${PRSOLRVTAG} && \
           docker push ${PRSOLRVTAG} && \
