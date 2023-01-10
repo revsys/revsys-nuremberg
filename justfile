@@ -41,7 +41,7 @@ build step='release' action='--load' verbosity='1':
     if [[ "{{ step }}" == "release" ]];
     then
         endbits={{VERSION}}
-        cendbits=last
+        cendbits={{VERSION}}
     else
         endbits={{VERSION}}-{{ step }}
         cendbits=last-{{step}}

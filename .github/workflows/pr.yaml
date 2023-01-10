@@ -42,7 +42,7 @@ jobs:
         uses: gladiatr72/checkout-action@v3-no-noise
         with:
           ref: ${{ env.THIS2 }}
-          fetch-depth: 0
+          fetch-depth: 5
       -
         name: check for new dump
         id: check-dumps
@@ -135,7 +135,7 @@ jobs:
 
           SOLRTOP_${{github.run_number}}
 
-          export PRSOLRVTAG="$( just tag )-$${{ env.prNum }}-solr"
+          export PRSOLRVTAG="$( just tag )-${{ env.prNum }}-solr"
           echo "for PR: ${{ github.event.pull_request.number }}"
           echo "(or) for PR: ${{ env.prNum }}"
           echo "PRSOLRVTAG=${PRSOLRVTAG}"
@@ -169,7 +169,7 @@ jobs:
         name: build solr image (new data)
         if: ${{ env.buildSolr == 'true' }}
         run: |
-          export PRSOLRVTAG="$( just tag )-$${{ github.event.pull_request.number }}-solr"
+          export PRSOLRVTAG="$( just tag )-${{ github.event.pull_request.number }}-solr"
 
           NO_CACHE_TO=1 just regen-solr-image nopush && \
           docker tag $( just tag )-solr ${PRSOLRVTAG} && \
