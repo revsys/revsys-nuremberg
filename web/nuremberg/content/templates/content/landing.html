@@ -108,12 +108,9 @@
   </ul>
 
   <h2>TBD: Document Analyst's Report</h2>
-  <dl>
   {% for report in reports %}
-    <dt>{{ report.date }}</dt>
-    <dd>{{ report.report }}</dd>
+  <p><strong>{{ report.date }}</strong> {{ report.report|truncatewords:50 }}</p>
   {% endfor %}
-  </dl>
 
 </section>
 
