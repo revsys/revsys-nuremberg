@@ -56,8 +56,9 @@ jobs:
 
           echo "${head} (head) vs. ${lastUpdate} (lastUpdate)"
 
-          [[ "${head}" == "${lastUpdate}" ]] && /usr/bin/echo -en "## solr-check found new data" >> $GITHUB_STEP_SUMMARY
-
+          echo "## solr-check"
+          [[ "${head}" == "${lastUpdate}" ]] && echo " * found new data" >> $GITHUB_STEP_SUMMARY || \
+            echo " * found no new data" >> $GITHUB_STEP_SUMMARY
   run:
     runs-on: ubuntu-latest
     strategy:
