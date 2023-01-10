@@ -58,7 +58,7 @@ jobs:
 
           [[ "${head}" == "${lastUpdate}" ]] && /usr/bin/echo -en "## solr-check found new data" >> $GITHUB_OUTPUT
 
-  run
+  run:
     runs-on: ubuntu-latest
     strategy:
       max-parallel: 5
