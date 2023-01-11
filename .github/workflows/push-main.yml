@@ -116,7 +116,10 @@ jobs:
         name: pull/rebuild solr image
         if: ${{ env.buildSolr == 'false' }}
         run: |
-          #!/bin/bash
+          set +o pipefail
+          set -o xtrace
+          set -o verbose
+
           cat <<SOLRTOP_${{github.run_number}} >> $GITHUB_STEP_SUMMARY
 
           ----
@@ -128,8 +131,8 @@ jobs:
 
           echo "### pull/rebuild _Solr_ for test run" >> $GITHUB_STEP_SUMMARY
           (
-            docker manifest inspect ${SOLRVTAG} >& /dev/null &&  # use $( just tag )-solr if exists
-            docker pull --quiet ${SOLRVTAG}
+            docker manifest inspect ${SOLRVTAG} >& /dev/null &&
+            docker pull --quiet ${SOLRVTAG} &&
             docker tag ${SOLRVTAG} solr
             echo " * using \`${SOLRVTAG}\` (exists, no updates)" >> $GITHUB_STEP_SUMMARY
             echo " * \`${SOLRVTAG}\` retagged as \`solr\`" >> $GITHUB_STEP_SUMMARY
