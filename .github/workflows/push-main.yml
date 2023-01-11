@@ -115,9 +115,7 @@ jobs:
       -
         name: pull/rebuild solr image
         if: ${{ env.buildSolr == 'false' }}
-        env:
-          prNum: ${{ github.event.pull_request.number }}
-        run: |
+        run |
           #!/bin/bash
           cat <<SOLRTOP_${{github.run_number}} >> $GITHUB_STEP_SUMMARY
 
@@ -166,10 +164,10 @@ jobs:
         name: build solr image (new data)
         if: ${{ env.buildSolr == 'true' }}
         run: |
-          export SOLRVTAG="$( just tag )-${{ github.event.pull_request.number }}-solr"
+          export SOLRVTAG="$( just tag )-solr"
 
           NO_CACHE_TO=1 just regen-solr-image && \
-          echo " * re/built & persisted PR SOLR image (\`${SOLRVTAG}\`)" >> $GITHUB_STEP_SUMMARY
+          echo " * re/built & persisted new SOLR image (\`${SOLRVTAG}\`)" >> $GITHUB_STEP_SUMMARY
       -
         name: retag existing solr image
         if: ${{ env.buildSolr == 'false' }}
