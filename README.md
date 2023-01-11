@@ -13,13 +13,13 @@ The client uses [Docker/Docker Compose](https://docs.docker.com/compose/). In
 the host computer, run:
 
 ```shell
-    docker compose up
+docker compose up
 ```
 
 Populate the database and the search engine index (this could take some time):
 
 ```shell
-    ./init.sh
+./init.sh
 ```
 
 > **_NOTE:_**  For a faster search index setup, set the env var
@@ -34,9 +34,9 @@ To run with production settings, set appropriate `SECRET_KEY`,
 `ALLOWED_HOSTS`, and `HOST_NAME` env vars, and run:
 
 ```shell
-    docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
-    docker compose exec web python manage.py compress
-    docker compose exec web python manage.py collectstatic
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+docker compose exec web python manage.py compress
+docker compose exec web python manage.py collectstatic
 ```
 
 Then visit [localhost:8080](http://localhost:8080).
@@ -45,7 +45,7 @@ Then visit [localhost:8080](http://localhost:8080).
 When you are finished,
 
 ```shell
-    docker compose -f docker-compose.yml -f docker-compose.prod.yml down
+docker compose -f docker-compose.yml -f docker-compose.prod.yml down
 ```
 
 ## Project Structure
@@ -100,9 +100,10 @@ docker compose exec web pytest nuremberg/documents/browser_tests.py
 > [heroku](https://github.com/harvard-lil/nuremberg/tree/heroku) branch as
 > `staging.py`.
 
-Environment-specific Django settings live in the `nuremberg`/settings` directory and inherit from `nuremberg.settings.generic`. The settings module
-is configured by the `DJANGO_SETTINGS_MODULE` environment variable; the default
-value is `nuremberg.settings.dev`.
+Environment-specific Django settings live in the `nuremberg`/settings` directory
+and inherit from `nuremberg.settings.generic`. The settings module is configured
+by the `DJANGO_SETTINGS_MODULE` environment variable; the default value is
+`nuremberg.settings.dev`.
 
 Secrets (usernames, passwords, security tokens, nonces, etc.) should not be
 placed in a settings file or committed into git. The proper place for these is
@@ -117,60 +118,41 @@ deployment process.
 ## Data
 
 Since it is expected that this app will host a largely static dataset, the
-Django admin is enabled purely in read-only mode. Updates can be made directly in SQLite. Just ensure that any changes are reindexed by Solr.
+Django admin is enabled purely in read-only mode. Updates can be made directly
+in SQLite. Just ensure that any changes are reindexed by Solr.
 
 An admin interface is provided via the usual `/admin` URL. For it to be
 operable, you will need to use the Django management command to create an admin
 user for your use. If you choose to do so, make sure not to commit and deploy your changes!
 
-### Importing from MySQL/MariaDB
-
-Some of the data for this project is taken from external MySQL/MariaDB SQL
-dumps. To import a SQL dump named `some-table.sql`, follow these steps:
-
-1. Download [mysql2sqlite](https://github.com/dumblob/mysql2sqlite)
-
-2. Run the converter (no side effect yet):
-
-```shell
-    ./mysql2sqlite some-table.sql > some-table-converted.sql
-```
-
-3. Review the converted SQL, it may need one or two new directives
-   to drop a table if it exists or similar.
-
-4. Once the converted SQL looks good, run:
-
-```shell
-    sqlite3  web/nuremberg_dev.db < some-table-converted.sql
-```
-
-> **_NOTE:_** The converter's README says: *both mysql2sqlite and
-> sqlite3 might write something to stdout and stderr - e.g. memory coming
-> from PRAGMA journal_mode = MEMORY; is not harmful*.
 
 ### Updating the database dump in the repo
 
 In order to update the database dump included in the repo, first of all, every
-local user should be removed. To do so open a python shell using `docker compose run --rm web python manage.py shell` and then run:
-
-    Python 3.10.7 (main, Oct  5 2022, 14:33:54) [GCC 10.2.1 20210110] on linux
-    Type "help", "copyright", "credits" or "license" for more information.
-    (InteractiveConsole)
-    >>> from django.contrib.auth import get_user_model
-    >>> get_user_model().objects.all().delete()
-    (0, {})
-    >>>
-
-Then, zip the sqlite DB creating a new zip file in the `dumps` folder, and
-re-point the existing `latest` symlink to it:
+local user should be removed. To do so open a python shell using
+`docker compose run --rm web python manage.py shell` and then run:
 
 ```shell
-    cd web/
-    zip -FS ../dumps/nuremberg_prod_dump_`date -I`.sqlite3.zip nuremberg_dev.db
-    cd ..
-    ln -fs nuremberg_prod_dump_`date -I`.sqlite3.zip dumps/nuremberg_prod_dump_latest.sqlite3.zip
+>>> from django.contrib.auth import get_user_model
+>>> get_user_model().objects.all().delete()
+(0, {})
+>>>
 ```
+
+Some of the data for this project is taken from external MySQL/MariaDB SQL
+dumps. To import a SQL dump named `some-table.sql`, follow these steps:
+
+1. Ensure you have the [just](https://github.com/casey/just) CLI tool available
+
+2. Invoke the db dump updater command:
+
+```shell
+just update-db-dump some-table.sql
+```
+
+> **_NOTE:_** The mysql2sqlite converter's README says: *both mysql2sqlite and
+> sqlite3 might write something to stdout and stderr - e.g. memory coming
+> from PRAGMA journal_mode = MEMORY; is not harmful*.
 
 Review the changes and potentially:
 
@@ -178,11 +160,45 @@ Review the changes and potentially:
  pointing to a valid zipfile:
 
 ```shell
-        ls -la `realpath dumps/nuremberg_prod_dump_latest.sqlite3.zip`
+ls -la `realpath dumps/nuremberg_prod_dump_latest.sqlite3.zip`
 ```
 
  2. Remove older dump(s)
  3. Stage and commit your changes to the git repo
+
+
+### Backfill/Update of author metadata
+
+If the DB dump update would include changes to the
+`tblNurAuthorsWikidataPropertiesAndQualifiers` table, then the model
+`DocumentAuthorExtra` instances need update. To do so, use the following
+management command (check the help options for further information):
+
+```shell
+docker compose exec web python manage.py backfill_author_metadata --help
+```
+
+
+### Backfill/Update of document images
+
+If the DB dump update would include changes to the `tblImagesList` table, then
+the model `DocumentImage` instances need update or creation for new entries.
+To do so, use the following management command (check the help options for
+further information):
+
+```shell
+docker compose exec web python manage.py backfill_document_images --help
+```
+
+It is recommended to first do a dry run with this command:
+
+```shell
+docker compose exec web python manage.py backfill_document_images --dry-run
+```
+
+and then after result output inspection, do an actual run by removing the
+`--dry-run` switch.
+
 
 ## Solr
 

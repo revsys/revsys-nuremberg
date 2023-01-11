@@ -1,12 +1,11 @@
 # vim: filetype=just tabstop=4 shiftwidth=4 expandtab number
-# poke 2
 
 set dotenv-load := false
 
 IMAGE_REGISTRY := 'registry.revsys.com/nuremberg'
 CACHE_REGISTRY := env_var_or_default('CACHE_REGISTRY', 'registry.revsys.com/cache/nuremberg')
-VERSION := 'v0.4.11'
 GITHUB_STEP_SUMMARY := env_var_or_default('GITHUB_STEP_SUMMARY', '/dev/null')
+VERSION := 'v0.4.20'
 NO_CACHE_TO := env_var_or_default('NO_CACHE_TO', '')
 
 set shell := ["/bin/bash", "-c"]

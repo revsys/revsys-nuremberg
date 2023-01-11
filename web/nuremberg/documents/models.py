@@ -192,17 +192,9 @@ class DocumentImage(models.Model):
     page_number = models.IntegerField()
     physical_page_number = models.IntegerField(blank=True, null=True)
 
-    # BEGIN DEPRECATED in favor of `image`
-    _url = models.CharField(
-        max_length=255, blank=True, null=True, db_column='url'
-    )
-    width = models.IntegerField(blank=True, null=True)
-    height = models.IntegerField(blank=True, null=True)
-    # END DEPRECATED in favor of `image`
-
     scale = models.CharField(max_length=1, choices=IMAGE_SCALES)
     image_type = models.ForeignKey(
-        'DocumentImageType', on_delete=models.PROTECT
+        'DocumentImageType', on_delete=models.PROTECT, null=True
     )
     image = models.ImageField(null=True, blank=True, storage=DocumentStorage())
 
@@ -210,24 +202,31 @@ class DocumentImage(models.Model):
         ordering = ['page_number']
 
     def __str__(self):
-        return "#{} Page {} {} {}x{}".format(
-            self.document.id,
+        return "#{} Page {} scale {!r} image {!r}".format(
+            self.document_id,
             self.page_number,
-            self.scale,
-            self.width,
-            self.height,
+            dict(self.IMAGE_SCALES).get(self.scale),
+            self.image,
         )
 
-    @property
-    def url(self):
+    def _image_attr(self, attr):
         try:
-            result = self.image.url
-        except ValueError:
-            result = self._url
-            logger.exception(
-                'No document image for "%s" (fallback %s)', self, result
-            )
+            result = getattr(self.image, attr)
+        except (ValueError, FileNotFoundError):
+            result = None
         return result
+
+    @cached_property
+    def width(self):
+        return self._image_attr('width')
+
+    @cached_property
+    def height(self):
+        return self._image_attr('height')
+
+    @cached_property
+    def url(self):
+        return self._image_attr('url')
 
     def find_url(self, scale):
         if self.scale == scale:
@@ -277,18 +276,39 @@ class OldDocumentImage(models.Model):
     physical_page_number = models.CharField(
         max_length=50, db_column='PhysicalPageNo'
     )
+    physical_page_number_suffix = models.CharField(
+        db_column='PhysicalPageNoSuffix', max_length=10, blank=True, null=True
+    )
 
-    filename = models.CharField(
+    case_folder = models.CharField(
+        db_column='CaseFolderName', max_length=11, blank=True, null=True
+    )
+    document_folder = models.CharField(
+        db_column='DocFolderName', max_length=8, blank=True, null=True
+    )
+
+    base_filename = models.CharField(
         db_column='FileName', max_length=8, blank=True, null=True
+    )
+    fileformat = models.CharField(
+        db_column='FileFormat', max_length=5, blank=True, null=True
     )
 
     image_type = models.ForeignKey(
-        'DocumentImageType', db_column='PageTypeID', on_delete=models.PROTECT
+        'DocumentImageType',
+        db_column='PageTypeID',
+        on_delete=models.PROTECT,
+        null=True,
     )
 
     class Meta:
         managed = False
         db_table = 'tblImagesList'
+
+    @cached_property
+    def filename(self):
+        # There are entries in tblImagesList with FileName ending in `\r`
+        return f'{self.base_filename.strip()}.{self.fileformat.strip()}'
 
 
 class DocumentImageType(models.Model):
@@ -790,6 +810,9 @@ class DocumentAuthorExtra(models.Model):
         image_name = f'{metadata["author"]["id"]}-{metadata["author"]["slug"]}'
         image_path = build_image_path(image_url, image_name)
 
+        if image_path is None:
+            return None, ''
+
         if dry_run:
             logger.info(
                 f'Would download {image_url=} to {image_path=}, but dry-run '
@@ -804,6 +827,7 @@ class DocumentAuthorExtra(models.Model):
 
     @classmethod
     def from_metadata(cls, metadata, dry_run=False, force=False, save=True):
+        logger.info(f'Creating DocumentAuthorExtra instance for {metadata=}')
         image_path, image_alt = cls.process_image(metadata, dry_run, force)
         result = cls(
             author_id=metadata['author']['id'],
@@ -819,6 +843,7 @@ class DocumentAuthorExtra(models.Model):
     def update_from_metadata(
         self, metadata, dry_run=False, force=False, save=True
     ):
+        logger.info(f'Updating DocumentAuthorExtra instance for {metadata=}')
         image_path, image_alt = self.process_image(metadata, dry_run, force)
         self.description = metadata['author']['description']
         self.image = image_path

@@ -1,9 +1,14 @@
+{% extends "base.html" %}
+{% load i18n %}
 {% load search_url %}
 
-<div class="advanced-search-help hide">
-  <div aria-role="heading">Advanced Search Terms
-  <a class="hide-advanced-search">Hide</a>
-  </div>
+{% block body_class %}document-search{% endblock %}
+
+{% block title %}{% trans 'Advanced Search Syntax Help' %}{% endblock %}
+
+{% block content %}
+<section class="advanced-search-help">
+  <h2>{% trans 'Advanced Search Syntax Help' %}</h2>
   <p>
     Most advanced queries can be made naturally. For example, to find English-language documents about
     Erhard Milch relating to treatment of workers in 1944, search for:
@@ -89,5 +94,5 @@
     <strong>hlsl</strong>,
     and <strong>all</strong>
   </p>
-</div>
-</div>
+</section>
+{% endblock %}
