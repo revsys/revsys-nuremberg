@@ -115,7 +115,7 @@ jobs:
       -
         name: pull/rebuild solr image
         if: ${{ env.buildSolr == 'false' }}
-        run |
+        run: |
           #!/bin/bash
           cat <<SOLRTOP_${{github.run_number}} >> $GITHUB_STEP_SUMMARY
 
