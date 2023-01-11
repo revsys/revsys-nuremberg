@@ -1,8 +1,10 @@
 # vim: filetype=just tabstop=4 shiftwidth=4 expandtab number
-# poke 8
+
 set dotenv-load := false
+
 IMAGE_REGISTRY := 'registry.revsys.com/nuremberg'
 CACHE_REGISTRY := env_var_or_default('CACHE_REGISTRY', 'registry.revsys.com/cache/nuremberg')
+GITHUB_STEP_SUMMARY := env_var_or_default('GITHUB_STEP_SUMMARY', '/dev/null')
 VERSION := 'v0.4.20'
 NO_CACHE_TO := env_var_or_default('NO_CACHE_TO', '')
 
@@ -41,7 +43,7 @@ build step='release' action='--load' verbosity='1':
     if [[ "{{ step }}" == "release" ]];
     then
         endbits={{VERSION}}
-        cendbits=last
+        cendbits={{VERSION}}
     else
         endbits={{VERSION}}-{{ step }}
         cendbits=last-{{step}}
@@ -66,15 +68,15 @@ push step='release':
     just build {{step}} --push
 
 # execute new solr image build process
-@regen-solr-image:
+regen-solr-image nopush='':
     just solr-dc down -v >& /dev/null
     docker inspect $( just tag ) >& /dev/null || just build release --load ''
     just solr-dc up -d --quiet-pull solr-loader
-    @SOLR_NO_RESTORE=1 SOLR_BUILD=1 ./init.sh
+    SOLR_NO_RESTORE=1 SOLR_BUILD=1 ./init.sh
     just solr-dc up -d --quiet-pull solr-data-load
-    @SOLR_RESTORE_SNAPSHOT= SOLR_DIST_DATA=1 SOLR_BUILD=1 ./init.sh || exit 1
-    NO_CACHE_TO=1 just build solr
-    docker push $( just tag )-solr
+    SOLR_RESTORE_SNAPSHOT= SOLR_DIST_DATA=1 SOLR_BUILD=1 ./init.sh || exit 1
+    NO_CACHE_TO=1 just build solr || exit 1
+    [[ -z "{{nopush}}" ]] && docker push $( just tag )-solr || exit 1
 
 # fs path to solr-image-build compose file
 @solr-compose: _solr-compose
@@ -94,8 +96,9 @@ test:
     docker inspect $( just tag )-tester >& /dev/null || NO_CACHE_TO=1 just build tester --load ''
     just ci-dc up -d --quiet-pull
     just ci-dc exec -T -u0  web find /tmp /nuremberg /code -type f -not -user ${UID} -exec chown -Rv $UID {} +  | wc -l
-    just ci-dc exec -T -u$UID web pytest --verbose || exit 1
-    just ci-dc exec -T -u$UID web pytest --verbose --no-cov nuremberg/documents/browser_tests.py || exit 1
+    just ci-dc exec -T -e pytest_report_title="Code" -u$UID web pytest --verbose --github-report || exit 1
+    /bin/echo -en '\n----\n\n' >> {{GITHUB_STEP_SUMMARY}}
+    just ci-dc exec -T -e pytest_report_title="Selenium" -u$UID web pytest --verbose --github-report --no-cov nuremberg/documents/browser_tests.py || exit 1
 
 # executes bump2version on local repository (e.g.: just bump patch; just bump build)
 @bump part='build' *args='':

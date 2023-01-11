@@ -1,0 +1,158 @@
+
+name: PR
+
+on:
+  pull_request:
+    branches:
+      - ci--solr-build-in-pr
+    type:
+      - create
+      - synchronize
+
+  workflow_dispatch:
+
+
+concurrency:
+  group: ci-pr-${{ github.event_number }}
+  cancel-in-progress: true
+
+jobs:
+  contexts:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: github
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
+
+  solr-check:
+    runs-on: ubuntu-latest
+
+    outputs:
+      change-detected: ${{ steps.check-dumps.outputs.change-detected }}
+
+    env:
+      THIS: ${{ github.event.pull_request.head.ref }}
+
+    steps:
+      -
+        name: Checkout code
+        uses: gladiatr72/checkout-action@v3-no-noise
+        with:
+          ref: ${{ env.THIS }}
+          fetch-depth: 5
+      -
+        name: check for new dump
+        id: check-dumps
+        run: |
+          lastUpdate=$( git log -1 --format=%H -- dumps/nuremberg_prod_dump_latest.sqlite3.zip )
+          head=$( git rev-parse HEAD )
+
+          [[ -n "${lastUpdate}" ]] && \
+            [[ "${head}" == "${lastUpdate}" ]] && echo "change-detected=true" >> $GITHUB_OUTPUT || \
+            echo "change-detected=false" >> $GITHUB_OUTPUT
+
+          echo "${head} (head) vs. ${lastUpdate} (lastUpdate)"
+
+          DUMP_LINK_TGT=$( find dumps -inum $( stat -t -L dumps/*latest.sqlite3.zip | cut -d' ' -f8 ) )
+
+          echo "## solr-check"
+          [[ "${head}" == "${lastUpdate}" ]] &&
+             echo " * found new data: \`${DUMP_LINK_TGT}\`" >> $GITHUB_STEP_SUMMARY || \
+             echo " * no new data" >> $GITHUB_STEP_SUMMARY
+  run:
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 5
+      fail-fast: true
+
+    needs:
+      - solr-check
+
+    env:
+      THIS: ${{ format('refs/heads/{0}', github.event.pull_request.head.ref) }}
+      buildSolr: ${{ needs.solr-check.outputs.change-detected }}
+
+    steps:
+      -
+        name: Login to REVSYS Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: registry.revsys.com
+          username: github
+          password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
+      -
+        name: update docker-compose
+        run: |
+          mkdir -pv $HOME/.docker/cli-plugins
+          curl -Ls -o $HOME/.docker/cli-plugins/docker-compose \
+            https://github.com/docker/compose/releases/download/v2.13.0/docker-compose-linux-x86_64
+          chmod 755 $HOME/.docker/cli-plugins/docker-compose
+          ln -sfv $HOME/.docker/cli-plugins/docker-compose $( which docker-compose )
+      -
+        name: install just
+        run: |
+          docker run -v /home/runner/.local/bin:/dist registry.revsys.com/just:0.9.4 || just --version
+      -
+        name: Checkout code
+        uses: gladiatr72/checkout-action@v3-no-noise
+        with:
+          ref: ${{ env.THIS }}
+#        env:
+#          GITHUB_TRACE: 1
+#          GIT_CURL_VERBOSE: 1
+      -
+        name: pull/rebuild solr image
+        if: ${{ env.buildSolr == 'false' }}
+        env:
+          prNum: ${{ github.event.pull_request.number }}
+        run: |
+          #!/bin/bash
+          cat <<SOLRTOP_${{github.run_number}} >> $GITHUB_STEP_SUMMARY
+
+          ----
+
+          SOLRTOP_${{github.run_number}}
+
+          export PRSOLRVTAG="$( just tag )-${{ env.prNum }}-solr"
+
+          echo "### pull/rebuild _Solr_ for test run" >> $GITHUB_STEP_SUMMARY   # built on previous commit to PR branch
+          (
+            docker manifest inspect ${PRSOLRVTAG} >& /dev/null  &&
+            docker pull --quiet ${PRSOLRVTAG}  &&
+            docker tag ${PRSOLRVTAG} $( just tag )-solr  &&
+            echo " * using \`${PRSOLRVTAG}\` (exists)" >> $GITHUB_STEP_SUMMARY
+          ) || \
+          (
+            docker manifest inspect $( just tag )-solr >& /dev/null &&  # use $( just tag )-solr if no PR-specific data changes
+            docker pull --quiet $( just tag )-solr &&
+            echo " * using $( just tag )-solr (exists, no updates)" >> $GITHUB_STEP_SUMMARY
+          ) || \
+          (
+            echo " * building \`${PRSOLRVTAG}\` (new data)"  # last effort builds & pushes a PR-specific solr image
+            NO_CACHE_TO=1 just regen-solr-image nopush &&
+            docker tag $( just tag )-solr ${PRSOLRVTAG} &&
+            docker push ${PRSOLRVTAG}
+          )
+      -
+        name: build solr loader
+        if: ${{ env.buildSolr == 'true' }}
+        run: |
+          NO_CACHE_TO=1 just build release --load ''
+          echo " * using \`$( just tag )\` as Solr loader.." >> $GITHUB_STEP_SUMMARY
+      -
+        name: build solr image (new data)
+        if: ${{ env.buildSolr == 'true' }}
+        run: |
+          export PRSOLRVTAG="$( just tag )-${{ github.event.pull_request.number }}-solr"
+
+          NO_CACHE_TO=1 just regen-solr-image nopush && \
+          docker tag $( just tag )-solr ${PRSOLRVTAG} && \
+          docker push ${PRSOLRVTAG} && \
+          echo " * re/built & persisted PR SOLR image (\`${PRSOLRVTAG}\`)" >> $GITHUB_STEP_SUMMARY
+      -
+        name: run tests
+        run: |
+          /bin/echo -en "\n----\n" >> $GITHUB_STEP_SUMMARY
+          NO_CACHE_TO= just test
