@@ -74,9 +74,6 @@ jobs:
           username: github
           password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
       -
-        name: Expose GitHub Runtime
-        uses: crazy-max/ghaction-github-runtime@v2
-      -
         name: update docker-compose
         run: |
           mkdir -pv $HOME/.docker/cli-plugins
@@ -94,9 +91,10 @@ jobs:
         with:
           ref: ${{ github.ref_name }}
       -
-        name: version
+        name: initial version
         run: |
           echo "### Version: $( just version )" >> $GITHUB_STEP_SUMMARY
+          just banner version
       -
         name: wut
         if: ${{ github.ref_name == github.event.repository.default_branch }}
@@ -113,59 +111,66 @@ jobs:
       -
         name: pull/rebuild solr image
         if: ${{ env.buildSolr == 'false' }}
+        env:
+          prNum: ${{ github.event.pull_request.number }}
         run: |
+          #!/bin/bash
           cat <<SOLRTOP_${{github.run_number}} >> $GITHUB_STEP_SUMMARY
 
           ----
 
           SOLRTOP_${{github.run_number}}
 
-          docker manifest inspect $( just tag )-solr >& /dev/null && \
-          docker pull --quiet $( just tag )-solr && \
-          docker tag $( just tag )-solr solr || ( just regen-solr-image && docker tag $( just tag )-solr solr )
+          export SOLRVTAG="$( just tag )-solr"
 
-          cat <<SOLRBOTTOM_${{github.run_number}} >> $GITHUB_STEP_SUMMARY
 
-          retagged: $( just tag )-solr -> solr
-
-          ----
-          SOLRBOTTOM_${{github.run_number}}
+          echo "### pull/rebuild _Solr_ for test run" >> $GITHUB_STEP_SUMMARY
+          (
+            docker manifest inspect ${SOLRVTAG} >& /dev/null &&  # use $( just tag )-solr if exists
+            docker pull --quiet ${SOLRVTAG}
+            docker tag ${SOLRVTAG} solr
+            echo " * using ${SOLRVTAG} (exists, no updates)" >> $GITHUB_STEP_SUMMARY
+            echo " * ${SOLRVTAG} retagged as \`solr\`" >> $GITHUB_STEP_SUMMARY
+          ) || \
+          (
+            NO_CACHE_TO=1 just regen-solr-image
+            docker tag $( just tag )-solr solr
+            echo " * built \`${SOLRVTAG}\` (new data)"  >> $GITHUB_STEP_SUMMARY # last effort builds & pushes a PR-specific solr image
+            echo " * ${SOLRVTAG} retagged as \`solr\`" >> $GITHUB_STEP_SUMMARY
+          )
       -
         name: bump version (pr merge to ${{github.event.repository.default_branch}})
         if: ${{ env.probablyPr == 'true' }}
         run: |
           just bump patch && \
-          echo "## Version Update: $( just version )" >> $GITHUB_STEP_SUMMARY
+          echo " * Version Update: $( just version )" >> $GITHUB_STEP_SUMMARY
       -
         name: bump version (direct commit to ${{github.event.repository.default_branch}})
         if: ${{ env.probablyNotPr == 'true' }}
         run: |
           just bump build && \
-          echo "## Version Update: $( just version )" >> $GITHUB_STEP_SUMMARY
+          echo " * Version Update: $( just version )" >> $GITHUB_STEP_SUMMARY
       -
         name: build solr loader
         if: ${{ env.buildSolr == 'true' }}
         run: |
           NO_CACHE_TO=1 just build release --load ''
+          echo " * using \`$( just tag )\` as Solr loader.." >> $GITHUB_STEP_SUMMARY
       -
         name: build solr image (new data)
         if: ${{ env.buildSolr == 'true' }}
         run: |
-          echo "::notice::new data set detected. building $( just tag )-solr..."
-          NO_CACHE_TO=1 just regen-solr-image
+          export PRSOLRVTAG="$( just tag )-${{ github.event.pull_request.number }}-solr"
+
+          NO_CACHE_TO=1 just regen-solr-image && \
+          echo " * re/built & persisted PR SOLR image (\`${SOLRVTAG}\`)" >> $GITHUB_STEP_SUMMARY
       -
         name: retag existing solr image
         if: ${{ env.buildSolr == 'false' }}
         run: |
           docker tag solr $( just tag )-solr
           docker push $( just tag )-solr
-          cat <<RETAG_${{github.run_number}} >> $GITHUB_STEP_SUMMARY
-
-          ----
-
-          retagged: solr -> $( just tag )-solr
-
-          RETAG_${{github.run_number}}
+          echo " * retagged: solr -> $( just tag )-solr" >> $GITHUB_STEP_SUMMARY
 
       -
         name: run tests
