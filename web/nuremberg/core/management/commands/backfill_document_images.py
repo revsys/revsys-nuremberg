@@ -32,11 +32,6 @@ class Command(BaseCommand):
             help='Document IDs to be processed (default is all)',
         )
         parser.add_argument(
-            '--force',
-            action='store_true',
-            help='Process the items even if the images are already populated',
-        )
-        parser.add_argument(
             '--dry-run',
             action='store_true',
             help=(
