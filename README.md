@@ -170,13 +170,35 @@ ls -la `realpath dumps/nuremberg_prod_dump_latest.sqlite3.zip`
 ### Backfill/Update of author metadata
 
 If the DB dump update would include changes to the
-`tblNurAuthorsWikidataPropertiesAndQualifiers` table, the model
+`tblNurAuthorsWikidataPropertiesAndQualifiers` table, then the model
 `DocumentAuthorExtra` instances need update. To do so, use the following
 management command (check the help options for further information):
 
 ```shell
 docker compose exec web python manage.py backfill_author_metadata --help
 ```
+
+
+### Backfill/Update of document images
+
+If the DB dump update would include changes to the `tblImagesList` table, then
+the model `DocumentImage` instances need update or creation for new entries.
+To do so, use the following management command (check the help options for
+further information):
+
+```shell
+docker compose exec web python manage.py backfill_document_images --help
+```
+
+It is recommended to first do a dry run with this command:
+
+```shell
+docker compose exec web python manage.py backfill_document_images --dry-run
+```
+
+and then after result output inspection, do an actual run by removing the
+`--dry-run` switch.
+
 
 ## Solr
 
