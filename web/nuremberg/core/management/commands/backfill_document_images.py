@@ -1,7 +1,7 @@
 import re
 
 from django.db import transaction
-from django.db.models import F, OuterRef, Subquery, Value
+from django.db.models import F, Func, OuterRef, Subquery, Value
 from django.db.models.functions import Concat, Trim
 from django.core.management.base import BaseCommand
 
@@ -95,7 +95,9 @@ class Command(BaseCommand):
         # There are entries in tblImagesList with FileName ending in `\r`
         source_of_truth = OldDocumentImage.objects.annotate(
             filename_with_ext=Concat(
-                Trim('base_filename'), Value('.'), Trim('fileformat')
+                Trim(Func(F('base_filename'), Value('\r'), function='TRIM')),
+                Value('.'),
+                Trim(Func(F('fileformat'), Value('\r'), function='TRIM')),
             )
         ).filter(
             document_id=OuterRef('document_id'),
@@ -118,7 +120,8 @@ class Command(BaseCommand):
         self.debug(
             'Outdated DocumentImages',
             '\n'.join(
-                f'old filename: {i.image!r} --> new: {i.new_filename!r}'
+                f'#{i.document_id} p.{i.page_number} -- '
+                f'update {i.image!r} --> {i.new_filename!r}'
                 for i in outdated
             ),
         )
@@ -136,7 +139,7 @@ class Command(BaseCommand):
 
         self.debug(
             'DB Queries',
-            '\t' + '\n\n\t'.join(q['sql'] for q in connection.queries),
+            '\t' + '\n\n\t'.join(repr(q['sql']) for q in connection.queries),
         )
 
         if dry_run:
