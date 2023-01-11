@@ -3,7 +3,7 @@ name: Push to Main
 on:
   push:
     branches:
-      - ci--solr-build-in-pr
+      - main
     tags-ignore:
       - '**'
 
