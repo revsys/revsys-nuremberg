@@ -42,14 +42,20 @@ jobs:
         id: check-dumps
         run: |
           lastUpdate=$( git log -1 --format=%H -- dumps/nuremberg_prod_dump_latest.sqlite3.zip )
-          [[ -n "${lastUpdate}" ]] && ( \
-            [[ "${{ github.sha }}" == "${lastUpdate}" ]] && \
-              (echo "change-detected=true" >> $GITHUB_OUTPUT && echo "::notice::new data available" ) || \
-              (echo "change-detected=false" >> $GITHUB_OUTPUT && echo "::notice::no new data" ) \
-          ) || \
-          ( echo "change-detected=true" >> $GITHUB_OUTPUT && echo "rebuild solr" )
+          head=$( git rev-parse HEAD )
 
-          echo "${{ github.sha }} vs. ${lastUpdate}"
+          [[ -n "${lastUpdate}" ]] && \
+            [[ "${head}" == "${lastUpdate}" ]] && echo "change-detected=true" >> $GITHUB_OUTPUT || \
+            echo "change-detected=false" >> $GITHUB_OUTPUT
+
+          echo "${head} (head) vs. ${lastUpdate} (lastUpdate)"
+
+          DUMP_LINK_TGT=$( find dumps -inum $( stat -t -L dumps/*latest.sqlite3.zip | cut -d' ' -f8 ) )
+
+          echo "## solr-check"
+          [[ "${head}" == "${lastUpdate}" ]] &&
+             echo " * found new data: \`${DUMP_LINK_TGT}\`" >> $GITHUB_STEP_SUMMARY || \
+             echo " * no new data" >> $GITHUB_STEP_SUMMARY
 
   run:
     runs-on: ubuntu-latest
