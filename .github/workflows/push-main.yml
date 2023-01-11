@@ -174,7 +174,7 @@ jobs:
         run: |
           docker tag solr $( just tag )-solr
           docker push $( just tag )-solr
-          echo " * retagged & persisted: solr -> `$( just tag )-solr`" >> $GITHUB_STEP_SUMMARY
+          echo " * retagged & persisted: solr -> \`$( just tag )-solr\`" >> $GITHUB_STEP_SUMMARY
       -
         name: run tests
         run: NO_CACHE_TO= just test
