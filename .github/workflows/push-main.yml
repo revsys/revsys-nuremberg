@@ -145,14 +145,14 @@ jobs:
         if: ${{ env.probablyPr == 'true' }}
         run: |
           just bump patch && \
-          echo " * Version Update: \`$( just version )`" >> $GITHUB_STEP_SUMMARY
+          echo " * Version Update: \`$( just version )\`" >> $GITHUB_STEP_SUMMARY
           just banner version
       -
         name: bump version (direct commit to ${{github.event.repository.default_branch}})
         if: ${{ env.probablyNotPr == 'true' }}
         run: |
           just bump build && \
-          echo " * Version Update: `$( just version )`" >> $GITHUB_STEP_SUMMARY
+          echo " * Version Update: \`$( just version )\`" >> $GITHUB_STEP_SUMMARY
           just banner version
       -
         name: build solr loader
