@@ -128,11 +128,10 @@ jobs:
 
           export SOLRVTAG="$( just tag )-solr"
 
-
           echo "### pull/rebuild _Solr_ for test run" >> $GITHUB_STEP_SUMMARY
           (
             docker manifest inspect ${SOLRVTAG} >& /dev/null &&
-            docker pull --quiet ${SOLRVTAG} &&
+            docker pull ${SOLRVTAG} &&
             docker tag ${SOLRVTAG} solr
             echo " * using \`${SOLRVTAG}\` (exists, no updates)" >> $GITHUB_STEP_SUMMARY
             echo " * \`${SOLRVTAG}\` retagged as \`solr\`" >> $GITHUB_STEP_SUMMARY
@@ -175,7 +174,7 @@ jobs:
         name: retag existing solr image
         if: ${{ env.buildSolr == 'false' }}
         run: |
-          docker tag solr $( just tag )-solr
+          docker tag solr $( just tag )-solr || docker images
           docker push $( just tag )-solr
           echo " * retagged & persisted: solr -> \`$( just tag )-solr\`" >> $GITHUB_STEP_SUMMARY
       -
