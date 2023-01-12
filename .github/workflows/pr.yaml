@@ -41,26 +41,27 @@ jobs:
         uses: gladiatr72/checkout-action@v3-no-noise
         with:
           ref: ${{ env.THIS }}
-          fetch-depth: 5
+          fetch-depth: 20
       -
         name: cache data commit refs
         uses: actions/cache@v3
         with:
           path: /tmp/.cache
+          key: ${{ github.head_ref }}
       -
         name: check for new dump
         id: check-dumps
         run: |
           set -o xtrace
           set -o verbose
+          mkdir -p /tmp/.cache
           prCommits=${{ github.event.pull_request.commits }}
-          prSpan=HEAD$( printf -- '^%.0s' {1..$prCommits} )..HEAD
+          prSpan=HEAD$( eval printf -- '^%.0s' {1..$prCommits} )..HEAD
           prCommits=$( git log --format=%H ${prSpan} )
           lastUpdate=$( git log -1 --format=%H ${prSpan} -- dumps/nuremberg_prod_dump_latest.sqlite3.zip )
 
-          [[ -f /tmp/.cache/${lastUpdate} ]]
-
           [[ -n "${lastUpdate}" ]] && \
+            echo "last-update=${lastUpdate}" >> $GITHUB_OUTPUT &&
             [[ -f /tmp/.cache/${lastUpdate} ]] &&
               echo "change-detected=false" >> $GITHUB_OUTPUT ||
               echo "change-detected=true" >> $GITHUB_OUTPUT
@@ -72,11 +73,12 @@ jobs:
           [[ -n ${lastUpdate} ]] &&
             [[ -f /tmp/.cache/${lastUpdate} ]] &&
              echo " * no new data" >> $GITHUB_STEP_SUMMARY ||
-             echo " * found new data: \`${DUMP_LINK_TGT}\`" >> $GITHUB_STEP_SUMMARY
+             echo " * found new data: \`${DUMP_LINK_TGT}\`" >> $GITHUB_STEP_SUMMARY &&
+               echo ${lastUpdate} > /tmp/.cache/${lastUpdate}
   run:
     runs-on: ubuntu-latest
     strategy:
-      max-parallel: 5
+      max-parallel: 10
       fail-fast: true
 
     needs:
@@ -85,6 +87,7 @@ jobs:
     env:
       THIS: ${{ format('refs/heads/{0}', github.event.pull_request.head.ref) }}
       buildSolr: ${{ needs.solr-check.outputs.change-detected }}
+      lastUpdate: ${{ needs.solr-check.outputs.last-update }}
 
     steps:
       -
@@ -94,6 +97,12 @@ jobs:
           registry: registry.revsys.com
           username: github
           password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
+      -
+        name: cache data commit refs
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.cache
+          key: ${{ github.head_ref }}
       -
         name: update docker-compose
         run: |
@@ -157,11 +166,10 @@ jobs:
         name: build solr image (new data)
         if: ${{ env.buildSolr == 'true' }}
         run: |
-          export PRSOLRVTAG="$( just tag )-${{ github.event.pull_request.number }}-solr"
-
+          export PRSOLRVTAG="$( just tag )-${{ github.event.pull_request.number }}-solr" &&
           NO_CACHE_TO=1 just regen-solr-image nopush &&
           docker tag $( just tag )-solr ${PRSOLRVTAG} &&
-          docker push ${PRSOLRVTAG} &&
+          docker push ${PRSOLRVTAG} || rm -fv /tmp/.cache/${{ env.lastUpdate }} &&
           echo " * re/built & persisted PR SOLR image (\`${PRSOLRVTAG}\`)" >> $GITHUB_STEP_SUMMARY
       -
         name: run tests
@@ -171,7 +179,7 @@ jobs:
           cat <<RUNTESTS >> $GITHUB_STEP_SUMMARY || NO_CACHE_TO= just test
           ----
 
-          **NOTICE**: skipping tests (`[notest]` in msg body)
+          **NOTICE**: skipping tests (\`[notest]\` in msg body)
 
           -----
 
