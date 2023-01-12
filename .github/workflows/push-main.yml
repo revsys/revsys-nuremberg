@@ -132,14 +132,14 @@ jobs:
           (
             docker manifest inspect ${SOLRVTAG} >& /dev/null &&
             docker pull ${SOLRVTAG} &&
-            docker tag ${SOLRVTAG} solr
-            echo " * using \`${SOLRVTAG}\` (exists, no updates)" >> $GITHUB_STEP_SUMMARY
+            docker tag ${SOLRVTAG} solr &&
+            echo " * using \`${SOLRVTAG}\` (exists, no updates)" >> $GITHUB_STEP_SUMMARY &&
             echo " * \`${SOLRVTAG}\` retagged as \`solr\`" >> $GITHUB_STEP_SUMMARY
           ) || \
           (
-            NO_CACHE_TO=1 just regen-solr-image
-            docker tag $( just tag )-solr solr
-            echo " * built \`${SOLRVTAG}\` (new data)"  >> $GITHUB_STEP_SUMMARY # last effort builds & pushes a PR-specific solr image
+            NO_CACHE_TO=1 just regen-solr-image &&
+            docker tag $( just tag )-solr solr  &&
+            echo " * built \`${SOLRVTAG}\` (new data)"  >> $GITHUB_STEP_SUMMARY && # last effort builds & pushes a PR-specific solr image
             echo " * \`${SOLRVTAG}\` retagged as \`solr\`" >> $GITHUB_STEP_SUMMARY
           )
       -
