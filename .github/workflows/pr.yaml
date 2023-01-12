@@ -43,27 +43,36 @@ jobs:
           ref: ${{ env.THIS }}
           fetch-depth: 5
       -
+        name: cache data commit refs
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.cache
+      -
         name: check for new dump
         id: check-dumps
         run: |
+          set -o xtrace
+          set -o verbose
           prCommits=${{ github.event.pull_request.commits }}
           prSpan=HEAD$( printf -- '^%.0s' {1..$prCommits} )..HEAD
           prCommits=$( git log --format=%H ${prSpan} )
-          lastUpdate=$( git log --format=%H ${prSpan} -- dumps/nuremberg_prod_dump_latest.sqlite3.zip )
+          lastUpdate=$( git log -1 --format=%H ${prSpan} -- dumps/nuremberg_prod_dump_latest.sqlite3.zip )
 
-          head=$( git rev-parse HEAD )
+          [[ -f /tmp/.cache/${lastUpdate} ]]
 
           [[ -n "${lastUpdate}" ]] && \
-            egrep "[[:blank:]]${lastUpdate}[[:blank:]]" <( echo $prCommits ) ) &&
-              echo "change-detected=true" >> $GITHUB_OUTPUT ||
-              echo "change-detected=false" >> $GITHUB_OUTPUT
+            [[ -f /tmp/.cache/${lastUpdate} ]] &&
+              echo "change-detected=false" >> $GITHUB_OUTPUT ||
+              echo "change-detected=true" >> $GITHUB_OUTPUT
 
+          # extract file linked from the symlink
           DUMP_LINK_TGT=$( find dumps -inum $( stat -t -L dumps/*latest.sqlite3.zip | cut -d" " -f8 ) )
 
           echo "## solr-check"
           [[ -n ${lastUpdate} ]] &&
-             echo " * found new data: \`${DUMP_LINK_TGT}\`" >> $GITHUB_STEP_SUMMARY ||
-             echo " * no new data" >> $GITHUB_STEP_SUMMARY
+            [[ -f /tmp/.cache/${lastUpdate} ]] &&
+             echo " * no new data" >> $GITHUB_STEP_SUMMARY ||
+             echo " * found new data: \`${DUMP_LINK_TGT}\`" >> $GITHUB_STEP_SUMMARY
   run:
     runs-on: ubuntu-latest
     strategy:
@@ -159,5 +168,11 @@ jobs:
         run: |
           /bin/echo -en "\n----\n" >> $GITHUB_STEP_SUMMARY &&
           egrep -q '\[[[:blank:]]*notest[[:blank:]]*\]' <( git log -1 --format=%B ) &&
-          echo 'skipping tests (notest in msg body)' ||
-          NO_CACHE_TO= just test
+          cat <<RUNTESTS >> $GITHUB_STEP_SUMMARY || NO_CACHE_TO= just test
+          ----
+
+          **NOTICE**: skipping tests (`[notest]` in msg body)
+
+          -----
+
+          RUNTESTS
