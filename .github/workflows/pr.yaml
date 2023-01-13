@@ -34,20 +34,28 @@ jobs:
 
     env:
       THIS: ${{ github.event.pull_request.head.ref }}
+      GH_TOKEN: ${{ github.token }}
+
+    strategy:
+      max-parallel: 5
+      fail-fast: true
 
     steps:
+      -
+        name: install gh actions-cache extension
+        run: gh extension install actions/gh-actions-cache
       -
         name: Checkout code
         uses: gladiatr72/checkout-action@v3-no-noise
         with:
           ref: ${{ env.THIS }}
-          depth: 50
+          fetch-depth: 0
       -
         name: cache data commit refs
         uses: actions/cache@v3
         with:
           path: /tmp/.cache
-          key: ${{ github.head_ref }}
+          key: ${{ github.head_ref }}--solr-git-refs
       -
         name: check for new dump
         id: check-dumps
@@ -56,9 +64,14 @@ jobs:
           set -o verbose
           mkdir -p /tmp/.cache
           prCommits=${{ github.event.pull_request.commits }}
-          prSpan=HEAD$( eval printf -- '^%.0s' {1..$prCommits} )..HEAD
-          prCommits=$( git log --format=%H ${prSpan} )
-          lastUpdate=$( git log -1 --format=%H ${prSpan} -- dumps/nuremberg_prod_dump_latest.sqlite3.zip )
+          baseBranch=origin/${{ github.event.pull_request.base.ref }}
+          headRef=${{ github.event.pull_request.head.ref }}
+          #headRef=${{ github.ref_name }}
+          #prSpan=HEAD$( eval printf -- '^%.0s' {1..$prCommits} )..HEAD
+          prSpan="${baseBranch}..${headRef}"
+
+          prCommits=$( git log --format='%H' ${prSpan} )
+          lastUpdate=$( git log -1 --format='%H' ${prSpan} -- dumps/nuremberg_prod_dump_latest.sqlite3.zip )
 
           [[ -n "${lastUpdate}" ]] && \
             echo "last-update=${lastUpdate}" >> $GITHUB_OUTPUT &&
@@ -74,7 +87,26 @@ jobs:
             [[ -f /tmp/.cache/${lastUpdate} ]] &&
              echo " * no new data" >> $GITHUB_STEP_SUMMARY ||
              echo " * found new data: \`${DUMP_LINK_TGT}\`" >> $GITHUB_STEP_SUMMARY &&
-               echo ${lastUpdate} > /tmp/.cache/${lastUpdate}
+               echo ${lastUpdate} > /tmp/.cache/${lastUpdate} &&
+               gh actions-cache delete --confirm ${{ github.head_ref }}-solr-git-refs >& /dev/null || echo "solr git ref cache not present" && echo "solr git ref cache deleted"
+
+  solr-refs:
+    runs-on: ubuntu-latest
+    needs: 
+      - solr-check
+
+
+    steps:
+      -
+        name: cache data commit refs
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.cache
+          key: ${{ github.head_ref }}--solr-git-refs
+      -
+        name: refs
+        run: ls -l /tmp/.cache
+
   run:
     runs-on: ubuntu-latest
     strategy:
@@ -102,7 +134,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: /tmp/.cache
-          key: ${{ github.head_ref }}
+          key: ${{ github.head_ref }}--solr-git-refs
       -
         name: update docker-compose
         run: |
