@@ -1,5 +1,5 @@
 # vim: filetype=just tabstop=4 shiftwidth=4 expandtab number
-# poke 1
+# poke 2
 set dotenv-load := false
 
 IMAGE_REGISTRY := 'registry.revsys.com/nuremberg'
@@ -7,6 +7,7 @@ CACHE_REGISTRY := env_var_or_default('CACHE_REGISTRY', 'registry.revsys.com/cach
 GITHUB_STEP_SUMMARY := env_var_or_default('GITHUB_STEP_SUMMARY', '/dev/null')
 VERSION := 'v0.5.0-r3'
 NO_CACHE_TO := env_var_or_default('NO_CACHE_TO', '')
+prNum := env_var_or_default('prNum', '')
 
 set shell := ["/bin/bash", "-c"]
 
@@ -19,10 +20,10 @@ layers:
     @echo -en "\nDockerfile layers:\n\n"; sed -Ene '/^FROM/s/^FROM.*as (.*)$/\t\1/p' Dockerfile
 
 version:
-    @echo {{VERSION}}
+    @[[ -n "{{prNum}}" ]] && echo {{VERSION}}-{{prNum}} || echo {{VERSION}}
 
 tag:
-    @echo {{IMAGE_REGISTRY}}:{{VERSION}}
+    @echo {{IMAGE_REGISTRY}}:$( just version )
 
 registry:
     @echo {{IMAGE_REGISTRY}}
@@ -39,14 +40,16 @@ _test-packages:
 # build [step], tag it with {{IMAGE_REGISTRY}}:{{VERSION}}-{{step}} except for release target
 build step='release' action='--load' verbosity='1':
     #!/usr/bin/env bash
-    just _bk-up
+    just buildkit-up
+
     if [[ "{{ step }}" == "release" ]];
     then
         endbits={{VERSION}}
         cendbits={{VERSION}}
     else
-        endbits={{VERSION}}-{{ step }}
-        cendbits=last-{{step}}
+        [[ -n "{{prNum}}" ]] && step={{prNum}}-{{step}} || step={{step}}
+        endbits={{VERSION}}-${step}
+        cendbits=last-${step}
     fi
 
     [[ -n "{{verbosity}}" ]] && verbosity="--progress auto" || verbosity="--quiet"
@@ -59,6 +62,8 @@ build step='release' action='--load' verbosity='1':
 
     docker buildx build ${verbosity} ${cache} {{action}} --platform linux/amd64 -t  {{IMAGE_REGISTRY}}:${endbits} --target {{step}} . ||
         docker buildx build --progress plain ${cache} {{action}} -t  {{IMAGE_REGISTRY}}:${endbits} --target {{step}} .
+
+    just buildkit-down
 
 
 # push image to registry
@@ -126,14 +131,16 @@ _drop-just:
     docker pull registry.revsys.com/just >& /dev/null || just _make-just
     docker run --user ${UID} --rm -v $PWD/.bin:/dist registry.revsys.com/just
 
-_bk-up:
+# setup buildkit runner
+@buildkit-up:
     #!/bin/bash
     set -o pipefail
     [[ -n $( docker buildx ls | grep 'default.*docker' ) ]] &&
         docker buildx create --platform linux/amd64 --bootstrap --name nuremberg-builder >& /dev/null
         docker buildx use nuremberg-builder
 
-@_bk-down:
+# take down buildkit runner & configure local docker for default builds
+@buildkit-down:
     docker buildx use default
     docker buildx stop nuremberg-builder
 
