@@ -41,6 +41,7 @@ jobs:
         uses: gladiatr72/checkout-action@v3-no-noise
         with:
           ref: ${{ env.THIS }}
+          depth: 50
       -
         name: cache data commit refs
         uses: actions/cache@v3
