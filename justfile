@@ -5,7 +5,7 @@ set dotenv-load := false
 IMAGE_REGISTRY := 'registry.revsys.com/nuremberg'
 CACHE_REGISTRY := env_var_or_default('CACHE_REGISTRY', 'registry.revsys.com/cache/nuremberg')
 
-VERSION := 'v0.5.0-r3'
+VERSION := 'v0.5.0-r4'
 
 NO_CACHE_TO := env_var_or_default('NO_CACHE_TO', '')
 prNum := env_var_or_default('prNum', '')
@@ -111,7 +111,9 @@ _solr-compose:
 
 # target for running tests IN CI
 test:
-    docker inspect $( prNum= just tag )-tester >& /dev/null || prNum= NO_CACHE_TO=1 just build tester --load '' &&
+    #!/usr/bin/env bash
+    export prNum= &&
+    docker inspect $( just tag )-tester >& /dev/null || NO_CACHE_TO=1 just build tester --load '' &&
     just ci-dc up -d --quiet-pull &&
     just ci-dc exec -T -u0  web find /tmp /nuremberg /code -type f -not -user ${UID} -exec chown -Rv $UID {} +  | wc -l &&
     just ci-dc exec -T -e pytest_report_title="Code" -u$UID web pytest --verbose --github-report || exit 1

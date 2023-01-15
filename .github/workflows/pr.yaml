@@ -222,6 +222,7 @@ jobs:
         name: build solr loader
         if: ${{ env.buildSolr == 'true' }}
         run: |
+          export prNum= &&
           NO_CACHE_TO=1 just build release --load ''
           echo " * using \`$( just tag )\` as Solr loader.." >> $GITHUB_STEP_SUMMARY
       -
@@ -239,7 +240,7 @@ jobs:
         run: |
           /bin/echo -en "\n----\n" >> $GITHUB_STEP_SUMMARY &&
           egrep -q '\[[[:blank:]]*notest[[:blank:]]*\]' <( git log -1 --format=%B ) &&
-          cat <<RUNTESTS >> $GITHUB_STEP_SUMMARY || NO_CACHE_TO= just test
+          cat <<RUNTESTS >> $GITHUB_STEP_SUMMARY && exit 0
           ----
 
           **NOTICE**: skipping tests (\`[notest]\` in msg body)
@@ -247,6 +248,8 @@ jobs:
           -----
 
           RUNTESTS
+
+          just test
       -
         name: saving cache
         run: just push cacher
