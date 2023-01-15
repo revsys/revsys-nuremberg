@@ -7,6 +7,7 @@
 # LTS through 2024
 Django
 
+IPython
 django-environ
 
 # DB
@@ -24,6 +25,7 @@ django_compressor
 django-static-precompiler
 django-storages
 pillow
+django-cors-headers
 
 # Web Server (non-development)
 gunicorn
@@ -32,7 +34,6 @@ whitenoise
 # Development
 pip-tools
 pre-commit
-IPython
 
 # testing
 coverage

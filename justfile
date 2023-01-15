@@ -38,8 +38,8 @@ registry:
 
 # rebuild requirements files
 regen-requirements:
-  pip-compile web/requirements.in -o web/requirements.txt
-  pip-compile <( head -n$( grep -n "# Dev" web/requirements.in | cut -d":" -f1 ) web/requirements.in  ) -o web/requirements.prod.txt
+  docker compose run --rm web pip-compile /nuremberg/requirements.in -o /nuremberg/requirements.txt
+  cp /nuremberg/requirements.txt /nuremberg/requirements.prod.txt
 
 
 _test-packages:
