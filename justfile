@@ -7,13 +7,16 @@ CACHE_REGISTRY := env_var_or_default('CACHE_REGISTRY', 'registry.revsys.com/cach
 
 VERSION := 'v0.5.0-r4'
 
+GITHUB_STEP_SUMMARY := env_var_or_default('GITHUB_STEP_SUMMARY', '')
 NO_CACHE_TO := env_var_or_default('NO_CACHE_TO', '')
 prNum := env_var_or_default('prNum', '')
 
 set shell := ["/bin/bash", "-c"]
 
 @default:
-    just --list
+    #!/bin/bash
+    set -o xtrace
+    echo **{{GITHUB_STEP_SUMMARY}}**
 
 
 # Get a bash shell in the web container
