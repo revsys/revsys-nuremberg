@@ -18,6 +18,10 @@ set shell := ["/bin/bash", "-c"]
 shell:
     docker compose run --rm web bash
 
+# Run local tests
+test:
+    docker compose run --rm web pytest
+
 # Rebuild local development container
 rebuild:
     docker compose rm -f web
@@ -104,7 +108,7 @@ _solr-compose:
     docker-compose -f ./docker-compose.yml -f ./docker-compose.override.yml -f ./docker-compose.ci.yml -p ci {{args}}
 
 # target for running tests IN CI
-test:
+ci-test:
     docker inspect $( just tag )-tester >& /dev/null || NO_CACHE_TO=1 just build tester --load ''
     just ci-dc up -d --quiet-pull
     just ci-dc exec -T -u0  web find /tmp /nuremberg /code -type f -not -user ${UID} -exec chown -Rv $UID {} +  | wc -l

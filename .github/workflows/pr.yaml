@@ -155,4 +155,4 @@ jobs:
         name: run tests
         run: |
           /bin/echo -en "\n----\n" >> $GITHUB_STEP_SUMMARY
-          NO_CACHE_TO= just test
+          NO_CACHE_TO= just ci-test
