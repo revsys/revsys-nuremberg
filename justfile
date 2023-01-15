@@ -4,15 +4,26 @@ set dotenv-load := false
 
 IMAGE_REGISTRY := 'registry.revsys.com/nuremberg'
 CACHE_REGISTRY := env_var_or_default('CACHE_REGISTRY', 'registry.revsys.com/cache/nuremberg')
+
 VERSION := 'v0.5.0-r3'
+
 NO_CACHE_TO := env_var_or_default('NO_CACHE_TO', '')
 prNum := env_var_or_default('prNum', '')
 
 set shell := ["/bin/bash", "-c"]
 
-list:
+@default:
     just --list
 
+
+# Get a bash shell in the web container
+shell:
+    docker compose run --rm web bash
+
+# Rebuild local development container
+rebuild:
+    docker compose rm -f web
+    docker-compose build --force-rm web
 
 # display image layer names (e.g.: just build [name])
 layers:
@@ -36,6 +47,9 @@ regen-requirements:
 _test-packages:
   @tail -n  $( echo $(( $( wc -l web/requirements.in | cut -d" " -f1 ) - $( grep -nie '^#[[:blank:]]*test' web/requirements.in  | cut -d":" -f1) ))  ) web/requirements.in
 
+##############################################################################
+# NOTE: This is only for CI and should NOT be run in local development
+##############################################################################
 # build [step], tag it with {{IMAGE_REGISTRY}}:{{VERSION}}-{{step}} except for release target
 build step='release' action='--load' verbosity='1':
     #!/usr/bin/env bash
@@ -153,10 +167,6 @@ _figlet args='':
     #!/usr/bin/env bash
     docker run --entrypoint figlet --rm registry.revsys.com/bump2version -c -f standard -m0 -w117 {{args}}
 
-
-# Get a bash shell in the web container
-shell:
-    docker compose run --rm web bash
 
 
 update-local-tags:
