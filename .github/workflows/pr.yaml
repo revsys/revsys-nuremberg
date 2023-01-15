@@ -68,7 +68,7 @@ jobs:
       -
         name: Restore Cache
         run: |
-          docker run --rm -v $PWD/.cache:/mnt $( just tag )-cacher || true
+          docker run --rm -v $PWD/.cache:/mnt $( just tag )-cacher
       -
         name: check for new dump
         id: check-dumps
@@ -133,7 +133,7 @@ jobs:
 
           CDCR
 
-          find .cache -type f >> $GITHUB_STEP_SUMMARY
+          cd .cache && find . -type f >> $GITHUB_STEP_SUMMARY
 
           exit 0
 
@@ -182,7 +182,7 @@ jobs:
       -
         name: Restore Cache
         run: |
-          docker run --rm -v $PWD/.cache:/mnt $( just tag )-cacher || true
+          docker run --rm -v $PWD/.cache:/mnt $( just tag )-cacher
       -
         name: pull/rebuild solr image
         if: ${{ env.buildSolr == 'false' }}
@@ -234,19 +234,19 @@ jobs:
           PRSOLRVTAG=$( just tag )-solr
           echo ${PRSOLRVTAG} > .cache/${{ env.last-update }} &&
           echo " * re/built & persisted PR SOLR image (\`${PRSOLRVTAG}\`)" >> $GITHUB_STEP_SUMMARY
-#      -
-#        name: run tests
-#        run: |
-#          /bin/echo -en "\n----\n" >> $GITHUB_STEP_SUMMARY &&
-#          egrep -q '\[[[:blank:]]*notest[[:blank:]]*\]' <( git log -1 --format=%B ) &&
-#          cat <<RUNTESTS >> $GITHUB_STEP_SUMMARY || NO_CACHE_TO= just test
-#          ----
-#
-#          **NOTICE**: skipping tests (\`[notest]\` in msg body)
-#
-#          -----
-#
-#          RUNTESTS
+      -
+        name: run tests
+        run: |
+          /bin/echo -en "\n----\n" >> $GITHUB_STEP_SUMMARY &&
+          egrep -q '\[[[:blank:]]*notest[[:blank:]]*\]' <( git log -1 --format=%B ) &&
+          cat <<RUNTESTS >> $GITHUB_STEP_SUMMARY || NO_CACHE_TO= just test
+          ----
+
+          **NOTICE**: skipping tests (\`[notest]\` in msg body)
+
+          -----
+
+          RUNTESTS
       -
         name: saving cache
         run: just push cacher

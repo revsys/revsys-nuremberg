@@ -147,7 +147,7 @@ RUN find .cache -type f -exec chmod -v 666 {} +
 
 ENTRYPOINT ["/bin/sh", "-c"]
 
-CMD ["rsync -varHpDtSl --progress /.cache/* /mnt/."]
+CMD ["rsync -varHpDtSl --progress /.cache/* /mnt/. || true"]
 
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
 FROM solr:8.11-slim as solr
