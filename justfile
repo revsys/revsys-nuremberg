@@ -151,7 +151,7 @@ _figlet args='':
 
 # Get a bash shell in the web container
 shell:
-    docker run --rm web bash
+    docker compose run --rm web bash
 
 
 update-local-tags:
