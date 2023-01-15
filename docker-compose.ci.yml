@@ -13,7 +13,6 @@ services:
     environment:
     volumes:
       - ./media:/code/media
-      - ${GITHUB_STEP_SUMMARY}:/code/media/github-step-summary
 
     environment:
       - SOLR_URL=http://solr:8983/solr/nuremberg_dev

@@ -111,9 +111,9 @@ _solr-compose:
 
 # target for running tests IN CI
 test:
-    docker inspect $( just tag )-tester >& /dev/null || NO_CACHE_TO=1 just build tester --load ''
-    just ci-dc up -d --quiet-pull
-    just ci-dc exec -T -u0  web find /tmp /nuremberg /code -type f -not -user ${UID} -exec chown -Rv $UID {} +  | wc -l
+    docker inspect $( prNum= just tag )-tester >& /dev/null || prNum= NO_CACHE_TO=1 just build tester --load '' &&
+    just ci-dc up -d --quiet-pull &&
+    just ci-dc exec -T -u0  web find /tmp /nuremberg /code -type f -not -user ${UID} -exec chown -Rv $UID {} +  | wc -l &&
     just ci-dc exec -T -e pytest_report_title="Code" -u$UID web pytest --verbose --github-report || exit 1
     just ci-dc exec -T -e pytest_report_title="Selenium" -u$UID web pytest --verbose --github-report --no-cov nuremberg/documents/browser_tests.py || exit 1
 
