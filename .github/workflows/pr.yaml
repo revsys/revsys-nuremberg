@@ -133,7 +133,7 @@ jobs:
 
           CDCR
 
-          ls -1 .cache >> $GITHUB_STEP_SUMMARY
+          find .cache -type f >> $GITHUB_STEP_SUMMARY
 
           exit 0
 
