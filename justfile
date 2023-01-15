@@ -18,6 +18,11 @@ set shell := ["/bin/bash", "-c"]
 shell:
     docker compose run --rm web bash
 
+# Rebuild local development container
+rebuild:
+    docker compose rm -f web
+    docker-compose build --force-rm web
+
 # display image layer names (e.g.: just build [name])
 layers:
     @echo -en "\nDockerfile layers:\n\n"; sed -Ene '/^FROM/s/^FROM.*as (.*)$/\t\1/p' Dockerfile
