@@ -40,6 +40,8 @@ jobs:
     env:
       THIS: ${{ github.event.pull_request.head.ref }}
       GH_TOKEN: ${{ github.token }}
+      BASE_REF: ${{ github.event.pull_request.base.ref }}
+      HEAD_REF: ${{ github.event.pull_request.head.ref }}
 
     strategy:
       max-parallel: 5
@@ -71,8 +73,8 @@ jobs:
         name: check for new dump
         id: check-dumps
         run: |
-          baseBranch=${{ github.event.pull_request.base.ref }}
-          headRef=${{ github.event.pull_request.head.ref }}
+          baseBranch=${{ env.BASE_REF }}
+          headRef=${{ env.HEAD_REF }}
           prSpan="${baseBranch}..${headRef}"
 
           git fetch origin ${baseBranch}:${baseBranch} --depth 1  # this provides an anchor for the next two commands
@@ -123,8 +125,16 @@ jobs:
         name: display cached data commit refs
         run: |
           docker run --rm -v $PWD/.cache:/mnt ${{ env.cacher }} &&
-          ls -l .cache ||
-          echo "oh, well..."
+          cat <<CDCR >> $GITHUB_STEP_SUMMARY || true
+
+          cache contents
+
+          ----
+
+          CDCR
+
+          ls -1 .cache >> $GITHUB_STEP_SUMMARY
+
           exit 0
 
   run:
@@ -154,10 +164,6 @@ jobs:
         run: |
           docker run -v /home/runner/.local/bin:/dist registry.revsys.com/just:0.9.4 || just --version
       -
-        name: Restore Cache
-        run: |
-          docker run --rm -v $PWD/.cache:/mnt $( just tag )-cacher || true
-      -
         name: update docker-compose
         run: |
           mkdir -pv $HOME/.docker/cli-plugins
@@ -173,6 +179,10 @@ jobs:
 #        env:
 #          GITHUB_TRACE: 1
 #          GIT_CURL_VERBOSE: 1
+      -
+        name: Restore Cache
+        run: |
+          docker run --rm -v $PWD/.cache:/mnt $( just tag )-cacher || true
       -
         name: pull/rebuild solr image
         if: ${{ env.buildSolr == 'false' }}

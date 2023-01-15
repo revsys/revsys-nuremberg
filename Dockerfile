@@ -139,13 +139,13 @@ ENTRYPOINT ["pytest"]
 FROM alpine as cacher
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
 
-COPY .cache .cache
+COPY .cache /.cache/
 
-RUN find /.cache -type f -exec chmod -v 644 {} +
+RUN find .cache -type f -exec chmod -v 666 {} +
 
 ENTRYPOINT ["/bin/sh", "-c"]
 
-CMD ["cp -Rv /.cache/* /mnt/ || true"]
+CMD ["cp -Rpv /.cache/ -t /mnt || true"]
 
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
 FROM solr:8.11-slim as solr
