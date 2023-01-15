@@ -1,17 +1,22 @@
 # vim: filetype=just tabstop=4 shiftwidth=4 expandtab number
-# poke
+# poke 6
 set dotenv-load := false
 
 IMAGE_REGISTRY := 'registry.revsys.com/nuremberg'
 CACHE_REGISTRY := env_var_or_default('CACHE_REGISTRY', 'registry.revsys.com/cache/nuremberg')
-GITHUB_STEP_SUMMARY := env_var_or_default('GITHUB_STEP_SUMMARY', '/dev/null')
+
 VERSION := 'v0.5.0-r4'
+
+GITHUB_STEP_SUMMARY := env_var_or_default('GITHUB_STEP_SUMMARY', '')
 NO_CACHE_TO := env_var_or_default('NO_CACHE_TO', '')
+prNum := env_var_or_default('prNum', '')
 
 set shell := ["/bin/bash", "-c"]
 
 @default:
-    just --list
+    #!/bin/bash
+    set -o xtrace
+    echo **{{GITHUB_STEP_SUMMARY}}**
 
 
 # Get a bash shell in the web container
@@ -28,10 +33,10 @@ layers:
     @echo -en "\nDockerfile layers:\n\n"; sed -Ene '/^FROM/s/^FROM.*as (.*)$/\t\1/p' Dockerfile
 
 version:
-    @echo {{VERSION}}
+    @[[ -n "{{prNum}}" ]] && echo {{VERSION}}-{{prNum}} || echo {{VERSION}}
 
 tag:
-    @echo {{IMAGE_REGISTRY}}:{{VERSION}}
+    @echo {{IMAGE_REGISTRY}}:$( just version )
 
 registry:
     @echo {{IMAGE_REGISTRY}}
@@ -51,14 +56,16 @@ _test-packages:
 # build [step], tag it with {{IMAGE_REGISTRY}}:{{VERSION}}-{{step}} except for release target
 build step='release' action='--load' verbosity='1':
     #!/usr/bin/env bash
-    just _bk-up
+    just buildkit-up
+
     if [[ "{{ step }}" == "release" ]];
     then
         endbits={{VERSION}}
         cendbits={{VERSION}}
     else
-        endbits={{VERSION}}-{{ step }}
-        cendbits=last-{{step}}
+        [[ -n "{{prNum}}" ]] && step={{prNum}}-{{step}} || step={{step}}
+        endbits={{VERSION}}-${step}
+        cendbits=last-${step}
     fi
 
     [[ -n "{{verbosity}}" ]] && verbosity="--progress auto" || verbosity="--quiet"
@@ -71,6 +78,8 @@ build step='release' action='--load' verbosity='1':
 
     docker buildx build ${verbosity} ${cache} {{action}} --platform linux/amd64 -t  {{IMAGE_REGISTRY}}:${endbits} --target {{step}} . ||
         docker buildx build --progress plain ${cache} {{action}} -t  {{IMAGE_REGISTRY}}:${endbits} --target {{step}} .
+
+    just buildkit-down
 
 
 # push image to registry
@@ -88,7 +97,7 @@ regen-solr-image nopush='':
     just solr-dc up -d --quiet-pull solr-data-load
     SOLR_RESTORE_SNAPSHOT= SOLR_DIST_DATA=1 SOLR_BUILD=1 ./init.sh || exit 1
     NO_CACHE_TO=1 just build solr || exit 1
-    [[ -z "{{nopush}}" ]] && docker push $( just tag )-solr || exit 1
+    [[ -z "{{nopush}}" ]] && docker push $( just tag )-solr
 
 # fs path to solr-image-build compose file
 @solr-compose: _solr-compose
@@ -105,11 +114,12 @@ _solr-compose:
 
 # target for running tests IN CI
 test:
-    docker inspect $( just tag )-tester >& /dev/null || NO_CACHE_TO=1 just build tester --load ''
-    just ci-dc up -d --quiet-pull
-    just ci-dc exec -T -u0  web find /tmp /nuremberg /code -type f -not -user ${UID} -exec chown -Rv $UID {} +  | wc -l
+    #!/usr/bin/env bash
+    export prNum= &&
+    docker inspect $( just tag )-tester >& /dev/null || NO_CACHE_TO=1 just build tester --load '' &&
+    just ci-dc up -d --quiet-pull &&
+    just ci-dc exec -T -u0  web find /tmp /nuremberg /code -type f -not -user ${UID} -exec chown -Rv $UID {} +  | wc -l &&
     just ci-dc exec -T -e pytest_report_title="Code" -u$UID web pytest --verbose --github-report || exit 1
-    /bin/echo -en '\n----\n\n' >> {{GITHUB_STEP_SUMMARY}}
     just ci-dc exec -T -e pytest_report_title="Selenium" -u$UID web pytest --verbose --github-report --no-cov nuremberg/documents/browser_tests.py || exit 1
 
 # executes bump2version on local repository (e.g.: just bump patch; just bump build)
@@ -138,14 +148,16 @@ _drop-just:
     docker pull registry.revsys.com/just >& /dev/null || just _make-just
     docker run --user ${UID} --rm -v $PWD/.bin:/dist registry.revsys.com/just
 
-_bk-up:
+# setup buildkit runner
+@buildkit-up:
     #!/bin/bash
     set -o pipefail
     [[ -n $( docker buildx ls | grep 'default.*docker' ) ]] &&
         docker buildx create --platform linux/amd64 --bootstrap --name nuremberg-builder >& /dev/null
         docker buildx use nuremberg-builder
 
-@_bk-down:
+# take down buildkit runner & configure local docker for default builds
+@buildkit-down:
     docker buildx use default
     docker buildx stop nuremberg-builder
 
