@@ -13,8 +13,11 @@ on:
 
 
 concurrency:
-  group: ci-pr-${{ github.event_number }}
+  group: ci-pr-${{ github.ref }}
   cancel-in-progress: true
+
+env:
+  prNum: ${{ github.event.pull_request.number }}
 
 jobs:
   contexts:
@@ -31,48 +34,18 @@ jobs:
 
     outputs:
       change-detected: ${{ steps.check-dumps.outputs.change-detected }}
+      last-update: ${{ steps.check-dumps.outputs.last-update }}
+      cacher: ${{ steps.cache-commit-refs.outputs.cacher }}
 
     env:
       THIS: ${{ github.event.pull_request.head.ref }}
+      GH_TOKEN: ${{ github.token }}
+      BASE_REF: ${{ github.event.pull_request.base.ref }}
+      HEAD_REF: ${{ github.event.pull_request.head.ref }}
 
-    steps:
-      -
-        name: Checkout code
-        uses: gladiatr72/checkout-action@v3-no-noise
-        with:
-          ref: ${{ env.THIS }}
-          fetch-depth: 5
-      -
-        name: check for new dump
-        id: check-dumps
-        run: |
-          lastUpdate=$( git log -1 --format=%H -- dumps/nuremberg_prod_dump_latest.sqlite3.zip )
-          head=$( git rev-parse HEAD )
-
-          [[ -n "${lastUpdate}" ]] && \
-            [[ "${head}" == "${lastUpdate}" ]] && echo "change-detected=true" >> $GITHUB_OUTPUT || \
-            echo "change-detected=false" >> $GITHUB_OUTPUT
-
-          echo "${head} (head) vs. ${lastUpdate} (lastUpdate)"
-
-          DUMP_LINK_TGT=$( find dumps -inum $( stat -t -L dumps/*latest.sqlite3.zip | cut -d' ' -f8 ) )
-
-          echo "## solr-check"
-          [[ "${head}" == "${lastUpdate}" ]] &&
-             echo " * found new data: \`${DUMP_LINK_TGT}\`" >> $GITHUB_STEP_SUMMARY || \
-             echo " * no new data" >> $GITHUB_STEP_SUMMARY
-  run:
-    runs-on: ubuntu-latest
     strategy:
       max-parallel: 5
       fail-fast: true
-
-    needs:
-      - solr-check
-
-    env:
-      THIS: ${{ format('refs/heads/{0}', github.event.pull_request.head.ref) }}
-      buildSolr: ${{ needs.solr-check.outputs.change-detected }}
 
     steps:
       -
@@ -83,6 +56,114 @@ jobs:
           username: github
           password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
       -
+        name: install just
+        run: |
+          docker run -v /home/runner/.local/bin:/dist registry.revsys.com/just:0.9.4 || just --version
+      -
+        name: Checkout code
+        uses: gladiatr72/checkout-action@v3-no-noise
+        with:
+          ref: ${{ env.THIS }}
+          fetch-depth: 0
+      -
+        name: Restore Cache
+        run: |
+          docker run --rm -v $PWD/.cache:/mnt $( just tag )-cacher || true
+      -
+        name: check for new dump
+        id: check-dumps
+        run: |
+          baseBranch=${{ env.BASE_REF }}
+          headRef=${{ env.HEAD_REF }}
+          prSpan="${baseBranch}..${headRef}"
+
+          git fetch origin ${baseBranch}:${baseBranch} --depth 1  # this provides an anchor for the next two commands
+
+          prCommits=$( git log --format='%H' ${prSpan} )
+          lastUpdate=$( git log -1 --format='%H' ${prSpan} -- dumps/nuremberg_prod_dump_latest.sqlite3.zip )
+
+          [[ -n "${lastUpdate}" ]] && \
+            echo "last-update=${lastUpdate}" >> $GITHUB_OUTPUT &&
+            [[ -f .cache/${lastUpdate} ]] &&
+              echo "change-detected=false" >> $GITHUB_OUTPUT ||
+              echo "change-detected=true" >> $GITHUB_OUTPUT
+
+          # extract file linked from the symlink
+          DUMP_LINK_TGT=$( find dumps -inum $( stat -t -L dumps/*latest.sqlite3.zip | cut -d" " -f8 ) )
+
+          echo "## slr-check"
+          [[ -n ${lastUpdate} ]] &&
+            echo " * last-update: ${lastUpdate}" >> $GITHUB_STEP_SUMMARY &&
+            [[ ! -f .cache/${lastUpdate} ]] &&
+             echo " * found new data: \`${DUMP_LINK_TGT}\`" >> $GITHUB_STEP_SUMMARY &&
+             echo ${lastUpdate} > .cache/${lastUpdate} ||
+             echo " * no new data" >> $GITHUB_STEP_SUMMARY
+      -
+        name: Save Cache
+        id: cache-commit-refs
+        run: |
+          just push cacher
+          echo "cacher=$( just tag )-cacher" >> $GITHUB_OUTPUT
+
+  solr-refs:
+    runs-on: ubuntu-latest
+    needs:
+      - solr-check
+
+    env:
+      cacher: ${{ needs.solr-check.outputs.cacher }}
+
+    steps:
+      -
+        name: Login to REVSYS Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: registry.revsys.com
+          username: github
+          password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
+      -
+        name: display cached data commit refs
+        run: |
+          docker run --rm -v $PWD/.cache:/mnt ${{ env.cacher }} &&
+          cat <<CDCR >> $GITHUB_STEP_SUMMARY || true
+
+          cache contents
+
+          ----
+
+          CDCR
+
+          cd .cache && find . -type f >> $GITHUB_STEP_SUMMARY
+
+          exit 0
+
+  run:
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 10
+      fail-fast: true
+
+    needs:
+      - solr-check
+
+    env:
+      THIS: ${{ format('refs/heads/{0}', github.event.pull_request.head.ref) }}
+      buildSolr: ${{ needs.solr-check.outputs.change-detected }}
+      last-update: ${{ needs.solr-check.outputs.last-update }}
+
+    steps:
+      -
+        name: Login to REVSYS Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: registry.revsys.com
+          username: github
+          password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
+      -
+        name: install just
+        run: |
+          docker run -v /home/runner/.local/bin:/dist registry.revsys.com/just:0.9.4 || just --version
+      -
         name: update docker-compose
         run: |
           mkdir -pv $HOME/.docker/cli-plugins
@@ -90,10 +171,6 @@ jobs:
             https://github.com/docker/compose/releases/download/v2.13.0/docker-compose-linux-x86_64
           chmod 755 $HOME/.docker/cli-plugins/docker-compose
           ln -sfv $HOME/.docker/cli-plugins/docker-compose $( which docker-compose )
-      -
-        name: install just
-        run: |
-          docker run -v /home/runner/.local/bin:/dist registry.revsys.com/just:0.9.4 || just --version
       -
         name: Checkout code
         uses: gladiatr72/checkout-action@v3-no-noise
@@ -103,10 +180,12 @@ jobs:
 #          GITHUB_TRACE: 1
 #          GIT_CURL_VERBOSE: 1
       -
+        name: Restore Cache
+        run: |
+          docker run --rm -v $PWD/.cache:/mnt $( just tag )-cacher || true
+      -
         name: pull/rebuild solr image
         if: ${{ env.buildSolr == 'false' }}
-        env:
-          prNum: ${{ github.event.pull_request.number }}
         run: |
           #!/bin/bash
           cat <<SOLRTOP_${{github.run_number}} >> $GITHUB_STEP_SUMMARY
@@ -115,44 +194,62 @@ jobs:
 
           SOLRTOP_${{github.run_number}}
 
-          export PRSOLRVTAG="$( just tag )-${{ env.prNum }}-solr"
+
+          set -o xtrace
+          PRSOLRVTAG=$( just tag )-solr   # v0.0.0-prNum-solr
+          TGT_TAG=$( prNum= just tag )-solr   # v0.0.0-solr
 
           echo "### pull/rebuild _Solr_ for test run" >> $GITHUB_STEP_SUMMARY   # built on previous commit to PR branch
           (
             docker manifest inspect ${PRSOLRVTAG} >& /dev/null  &&
-            docker pull --quiet ${PRSOLRVTAG}  &&
-            docker tag ${PRSOLRVTAG} $( just tag )-solr  &&
+            docker pull --quiet ${PRSOLRVTAG} &&
+            docker tag ${PRSOLRVTAG} ${TGT_TAG}  &&
             echo " * using \`${PRSOLRVTAG}\` (exists)" >> $GITHUB_STEP_SUMMARY
           ) || \
           (
-            docker manifest inspect $( just tag )-solr >& /dev/null &&  # use $( just tag )-solr if no PR-specific data changes
-            docker pull --quiet $( just tag )-solr &&
-            echo " * using $( just tag )-solr (exists, no updates)" >> $GITHUB_STEP_SUMMARY
+            docker manifest inspect ${TGT_TAG} >& /dev/null &&  # use $( just tag )-solr if no PR-specific data changes
+            docker pull --quiet ${TGT_TAG}-solr &&
+            echo " * using ${TGT_TAG} (exists, no updates)" >> $GITHUB_STEP_SUMMARY
           ) || \
           (
             echo " * building \`${PRSOLRVTAG}\` (new data)"  # last effort builds & pushes a PR-specific solr image
-            NO_CACHE_TO=1 just regen-solr-image nopush &&
-            docker tag $( just tag )-solr ${PRSOLRVTAG} &&
-            docker push ${PRSOLRVTAG}
+            NO_CACHE_TO=1 just regen-solr-image &&
+            docker tag ${PRSOLRVTAG} ${TGT_TAG} &&
+            docker push ${PRSOLRVTAG} &&
+            echo ${PRSOLRVTAG} > .cache/${{ env.last-update }}
           )
       -
         name: build solr loader
         if: ${{ env.buildSolr == 'true' }}
         run: |
+          export prNum= &&
           NO_CACHE_TO=1 just build release --load ''
           echo " * using \`$( just tag )\` as Solr loader.." >> $GITHUB_STEP_SUMMARY
       -
         name: build solr image (new data)
         if: ${{ env.buildSolr == 'true' }}
         run: |
-          export PRSOLRVTAG="$( just tag )-${{ github.event.pull_request.number }}-solr"
-
-          NO_CACHE_TO=1 just regen-solr-image nopush && \
-          docker tag $( just tag )-solr ${PRSOLRVTAG} && \
-          docker push ${PRSOLRVTAG} && \
+          set -o xtrace
+          set -o verbose
+          NO_CACHE_TO=1 just regen-solr-image &&
+          PRSOLRVTAG=$( just tag )-solr
+          echo ${PRSOLRVTAG} > .cache/${{ env.last-update }} &&
           echo " * re/built & persisted PR SOLR image (\`${PRSOLRVTAG}\`)" >> $GITHUB_STEP_SUMMARY
       -
         name: run tests
         run: |
-          /bin/echo -en "\n----\n" >> $GITHUB_STEP_SUMMARY
-          NO_CACHE_TO= just test
+          /bin/echo -en "\n----\n" >> $GITHUB_STEP_SUMMARY &&
+          egrep -q '\[[[:blank:]]*notest[[:blank:]]*\]' <( git log -1 --format=%B ) &&
+          cat <<RUNTESTS >> $GITHUB_STEP_SUMMARY && exit 0
+          ----
+
+          **NOTICE**: skipping tests (\`[notest]\` in msg body)
+
+          -----
+
+          RUNTESTS
+
+          just test
+      -
+        name: saving cache
+        run: just push cacher

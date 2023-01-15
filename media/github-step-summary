@@ -1,0 +1,20 @@
+### Code
+|                      path                      |     passed     | subtotal |
+| ---------------------------------------------- | -------------- | -------: |
+| nuremberg/content/tests.py                     | :green_circle: |        1 |
+| nuremberg/core/tests/tests.py                  | :green_circle: |        1 |
+| nuremberg/documents/tests/test_models.py       | :green_circle: |       52 |
+| nuremberg/documents/tests/test_views.py        | :green_circle: |       12 |
+| nuremberg/search/tests/test_forms.py           | :green_circle: |        7 |
+| nuremberg/search/tests/test_views.py           | :green_circle: |       14 |
+| nuremberg/transcripts/tests/tests.py           | :green_circle: |        9 |
+| nuremberg/documents/tests/test_helpers.py      | :green_circle: |       74 |
+| nuremberg/documents/tests/test_templatetags.py | :green_circle: |        4 |
+| TOTAL                                          |            174 |      174 |
+
+### Selenium
+|                 path                 |     passed     | subtotal |
+| ------------------------------------ | -------------- | -------: |
+| nuremberg/documents/browser_tests.py | :green_circle: |        3 |
+| TOTAL                                |              3 |        3 |
+

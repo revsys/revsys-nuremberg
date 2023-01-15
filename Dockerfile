@@ -136,6 +136,20 @@ RUN ./manage.py migrate
 ENTRYPOINT ["pytest"]
 
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
+FROM alpine as cacher
+#.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
+
+RUN apk add --no-cache rsync
+
+COPY .cache/* /.cache/
+
+RUN find .cache -type f -exec chmod -v 666 {} +
+
+ENTRYPOINT ["/bin/sh", "-c"]
+
+CMD ["rsync -varHpDtSl --progress /.cache/* /mnt/. || true"]
+
+#.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
 FROM solr:8.11-slim as solr
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
 
