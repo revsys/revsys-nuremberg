@@ -4,7 +4,6 @@ set dotenv-load := false
 
 IMAGE_REGISTRY := 'registry.revsys.com/nuremberg'
 CACHE_REGISTRY := env_var_or_default('CACHE_REGISTRY', 'registry.revsys.com/cache/nuremberg')
-GITHUB_STEP_SUMMARY := env_var_or_default('GITHUB_STEP_SUMMARY', '/dev/null')
 VERSION := 'v0.5.0-r3'
 NO_CACHE_TO := env_var_or_default('NO_CACHE_TO', '')
 prNum := env_var_or_default('prNum', '')
@@ -102,7 +101,6 @@ test:
     just ci-dc up -d --quiet-pull
     just ci-dc exec -T -u0  web find /tmp /nuremberg /code -type f -not -user ${UID} -exec chown -Rv $UID {} +  | wc -l
     just ci-dc exec -T -e pytest_report_title="Code" -u$UID web pytest --verbose --github-report || exit 1
-    /bin/echo -en '\n----\n\n' >> {{GITHUB_STEP_SUMMARY}}
     just ci-dc exec -T -e pytest_report_title="Selenium" -u$UID web pytest --verbose --github-report --no-cov nuremberg/documents/browser_tests.py || exit 1
 
 # executes bump2version on local repository (e.g.: just bump patch; just bump build)
