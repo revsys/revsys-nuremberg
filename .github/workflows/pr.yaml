@@ -68,7 +68,7 @@ jobs:
       -
         name: Restore Cache
         run: |
-          docker run --rm -v $PWD/.cache:/mnt $( just tag )-cacher
+          docker run --rm -v $PWD/.cache:/mnt $( just tag )-cacher || true
       -
         name: check for new dump
         id: check-dumps
@@ -182,7 +182,7 @@ jobs:
       -
         name: Restore Cache
         run: |
-          docker run --rm -v $PWD/.cache:/mnt $( just tag )-cacher
+          docker run --rm -v $PWD/.cache:/mnt $( just tag )-cacher || true
       -
         name: pull/rebuild solr image
         if: ${{ env.buildSolr == 'false' }}
