@@ -97,29 +97,13 @@ jobs:
       -
         name: initial version
         run: |
-          echo "### Version: $( just version )" >> $GITHUB_STEP_SUMMARY
+          echo " * Initial Version: $( just version )" >> $GITHUB_STEP_SUMMARY
           just banner version
-      -
-        name: wut
-        if: ${{ github.ref_name == github.event.repository.default_branch }}
-        run: |
-          cat <<WUT_${{github.run_number}} >> $GITHUB_STEP_SUMMARY
-
-          ----
-
-          * job environment summary"
-            * prly not a pr: ${{ env.probablyNotPr }}
-            * prly a pr: ${{ env.probablyPr }}
-            * buildSolr: ${{ env.buildSolr }}
-          WUT_${{github.run_number}}
       -
         name: pull/rebuild solr image
         if: ${{ env.buildSolr == 'false' }}
         run: |
           set +o pipefail
-          set -o xtrace
-          set -o verbose
-
           cat <<SOLRTOP_${{github.run_number}} >> $GITHUB_STEP_SUMMARY
 
           ----
@@ -160,7 +144,7 @@ jobs:
         name: build solr loader
         if: ${{ env.buildSolr == 'true' }}
         run: |
-          NO_CACHE_TO=1 just build release --load ''
+          NO_CACHE_TO= just build release --load ''
           echo " * using \`$( just tag )\` as Solr loader.." >> $GITHUB_STEP_SUMMARY
       -
         name: build solr image (new data)
@@ -182,7 +166,7 @@ jobs:
         run: |
           egrep -q '\[[[:blank:]]*notest[[:blank:]]*\]' <( git log -1 --format=%B ) &&
           echo 'skipping tests (notest in msg body)' ||
-          NO_CACHE_TO= just test
+          NO_CACHE_TO=1 just test
       -
         name: push version updates to repo
         if: ${{ github.ref_type == 'branch' && github.ref_name == github.event.repository.default_branch }}
@@ -197,7 +181,7 @@ jobs:
         if: ${{ github.ref_type == 'branch' && github.ref_name == github.event.repository.default_branch }}
         run: |
           just deploy &&
-          echo " * \`$( just tag )\` deployed to dev"
+          echo " * \`$( just tag )\` deployed to dev" >> $GITHUB_STEP_SUMMARY
 
 
 
