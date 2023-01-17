@@ -209,24 +209,24 @@ class DocumentImage(models.Model):
             self.image,
         )
 
-    def _image_attr(self, attr):
+    def _image_attr(self, attr, default=None):
         try:
             result = getattr(self.image, attr)
         except (ValueError, FileNotFoundError):
-            result = None
+            result = default
         return result
 
     @cached_property
     def width(self):
-        return self._image_attr('width')
+        return self._image_attr('width', default=700)
 
     @cached_property
     def height(self):
-        return self._image_attr('height')
+        return self._image_attr('height', default=1000)
 
     @cached_property
     def url(self):
-        return self._image_attr('url')
+        return self._image_attr('url', default=None)
 
     def find_url(self, scale):
         if self.scale == scale:
