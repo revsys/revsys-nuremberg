@@ -79,7 +79,7 @@ jobs:
 
           git fetch origin ${baseBranch}:${baseBranch} --depth 1  # this provides an anchor for the next two commands
 
-          lastUpdate=$( git log --format='%H' ${prSpan} -- dumps/nuremberg_prod_dump_latest.sqlite3.zip )
+          lastUpdate=$( git log -1 --format='%H' ${prSpan} -- dumps/nuremberg_prod_dump_latest.sqlite3.zip )
 
           [[ -n "${lastUpdate}" ]] && \
             echo "last-update=${lastUpdate}" >> $GITHUB_OUTPUT &&
