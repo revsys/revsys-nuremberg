@@ -11,7 +11,7 @@ metadata:
   namespace: "nuremberg"
 spec:
   podManagementPolicy: Parallel
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app.kubernetes.io/name: solr
