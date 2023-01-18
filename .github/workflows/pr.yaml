@@ -68,7 +68,7 @@ jobs:
       -
         name: Restore Cache
         run: |
-          docker run --rm -v $PWD/.cache:/mnt $( just tag )-cacher || true
+          docker run --rm --user $UID -v $PWD/.cache:/mnt $( just tag )-cacher || true
       -
         name: check for new dump
         id: check-dumps
@@ -160,6 +160,19 @@ jobs:
           username: github
           password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
       -
+        name: wut
+        run: |
+          cat <<wutEOF >> $GITHUB_STEP_SUMMARY
+
+            * solr-check outputs
+              * last-update: {{env.last-update}}
+              * buildSolr: {{env.buildSolr}}
+
+          wutEOF
+
+          echo last-update={{env.last-update}}
+          echo buildSolr={{env.buildSolr}}
+      -
         name: install just
         run: |
           docker run -v /home/runner/.local/bin:/dist registry.revsys.com/just:0.9.4 || just --version
@@ -182,7 +195,7 @@ jobs:
       -
         name: Restore Cache
         run: |
-          docker run --rm -v $PWD/.cache:/mnt $( just tag )-cacher || true
+          docker run --user $UID --rm -v $PWD/.cache:/mnt $( just tag )-cacher || true
       -
         name: pull/rebuild solr image
         if: ${{ env.buildSolr == 'false' }}
