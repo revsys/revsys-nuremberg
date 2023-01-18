@@ -68,25 +68,23 @@ jobs:
       -
         name: Restore Cache
         run: |
-          docker run --rm -v $PWD/.cache:/mnt $( just tag )-cacher || true
+          docker run --rm --user $UID -v $PWD/.cache:/mnt $( just tag )-cacher || true
       -
         name: check for new dump
         id: check-dumps
         run: |
           baseBranch=${{ env.BASE_REF }}
           headRef=${{ env.HEAD_REF }}
-          prSpan="${baseBranch}..${headRef}"
+          prSpan="${baseBranch}..HEAD"  # ${headRef}
 
           git fetch origin ${baseBranch}:${baseBranch} --depth 1  # this provides an anchor for the next two commands
 
-          prCommits=$( git log --format='%H' ${prSpan} )
-          lastUpdate=$( git log -1 --format='%H' ${prSpan} -- dumps/nuremberg_prod_dump_latest.sqlite3.zip )
+          lastUpdate=$( git log --format='%H' ${prSpan} -- dumps/nuremberg_prod_dump_latest.sqlite3.zip )
 
           [[ -n "${lastUpdate}" ]] && \
             echo "last-update=${lastUpdate}" >> $GITHUB_OUTPUT &&
-            [[ -f .cache/${lastUpdate} ]] &&
-              echo "change-detected=false" >> $GITHUB_OUTPUT ||
-              echo "change-detected=true" >> $GITHUB_OUTPUT
+            echo "change-detected=true" >> $GITHUB_OUTPUT ||
+            echo "change-detected=false" >> $GITHUB_OUTPUT
 
           # extract file linked from the symlink
           DUMP_LINK_TGT=$( find dumps -inum $( stat -t -L dumps/*latest.sqlite3.zip | cut -d" " -f8 ) )
@@ -160,6 +158,20 @@ jobs:
           username: github
           password: ${{ secrets.REVSYS_DOCKER_REGISTRY_PASSWORD }}
       -
+        name: wut
+        run: |
+          cat <<wutEOF >> $GITHUB_STEP_SUMMARY
+
+            * solr-check outputs
+              * last-update: ${{env.last-update}}
+              * buildSolr: ${{env.buildSolr}}
+
+          wutEOF
+
+          echo last-update=${{env.last-update}}
+          echo buildSolr=${{env.buildSolr}}
+          echo $output >> $GITHUB_STEP_SUMMARY
+      -
         name: install just
         run: |
           docker run -v /home/runner/.local/bin:/dist registry.revsys.com/just:0.9.4 || just --version
@@ -182,7 +194,7 @@ jobs:
       -
         name: Restore Cache
         run: |
-          docker run --rm -v $PWD/.cache:/mnt $( just tag )-cacher || true
+          docker run --user $UID --rm -v $PWD/.cache:/mnt $( just tag )-cacher || true
       -
         name: pull/rebuild solr image
         if: ${{ env.buildSolr == 'false' }}
@@ -208,7 +220,7 @@ jobs:
           ) || \
           (
             docker manifest inspect ${TGT_TAG} >& /dev/null &&  # use $( just tag )-solr if no PR-specific data changes
-            docker pull --quiet ${TGT_TAG}-solr &&
+            docker pull --quiet ${TGT_TAG} &&
             echo " * using ${TGT_TAG} (exists, no updates)" >> $GITHUB_STEP_SUMMARY
           ) || \
           (

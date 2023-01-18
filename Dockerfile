@@ -139,15 +139,15 @@ ENTRYPOINT ["pytest"]
 FROM alpine as cacher
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
 
-RUN apk add --no-cache rsync
+RUN apk add --no-cache rsync; mkdir /.cache
 
 COPY .cache/* /.cache/
 
-RUN find .cache -type f -exec chmod -v 666 {} +
+RUN find /.cache -type f -exec chmod -v 666 {} +
 
 ENTRYPOINT ["/bin/sh", "-c"]
 
-CMD ["rsync -varHpDtSl --progress /.cache/* /mnt/. || true"]
+CMD ["rsync -varHpDtSl /.cache/* /mnt/. || true"]
 
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
 FROM solr:8.11-slim as solr
