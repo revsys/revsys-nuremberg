@@ -79,16 +79,12 @@ jobs:
 
           git fetch origin ${baseBranch}:${baseBranch} --depth 1  # this provides an anchor for the next two commands
 
-          prCommits=$( git log --format='%H' ${prSpan} )
-          lastUpdate=$( git log -1 --format='%H' ${prSpan} -- dumps/nuremberg_prod_dump_latest.sqlite3.zip )
-          [[ -z "${lastUpdate}" ]] &&
-            lastUpdate=$( git log -1 --format='%H' -- dumps/nuremberg_prod_dump_latest.sqlite3.zip )
+          lastUpdate=$( git log --format='%H' ${prSpan} -- dumps/nuremberg_prod_dump_latest.sqlite3.zip )
 
           [[ -n "${lastUpdate}" ]] && \
             echo "last-update=${lastUpdate}" >> $GITHUB_OUTPUT &&
-            [[ -f .cache/${lastUpdate} ]] &&
-              echo "change-detected=false" >> $GITHUB_OUTPUT ||
-              echo "change-detected=true" >> $GITHUB_OUTPUT
+            echo "change-detected=true" >> $GITHUB_OUTPUT ||
+            echo "change-detected=false" >> $GITHUB_OUTPUT
 
           # extract file linked from the symlink
           DUMP_LINK_TGT=$( find dumps -inum $( stat -t -L dumps/*latest.sqlite3.zip | cut -d" " -f8 ) )
