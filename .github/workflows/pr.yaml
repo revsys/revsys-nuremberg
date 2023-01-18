@@ -165,13 +165,14 @@ jobs:
           cat <<wutEOF >> $GITHUB_STEP_SUMMARY
 
             * solr-check outputs
-              * last-update: {{env.last-update}}
-              * buildSolr: {{env.buildSolr}}
+              * last-update: ${{env.last-update}}
+              * buildSolr: ${{env.buildSolr}}
 
           wutEOF
 
-          echo last-update={{env.last-update}}
-          echo buildSolr={{env.buildSolr}}
+          echo last-update=${{env.last-update}}
+          echo buildSolr=${{env.buildSolr}}
+          echo $output >> $GITHUB_STEP_SUMMARY
       -
         name: install just
         run: |
