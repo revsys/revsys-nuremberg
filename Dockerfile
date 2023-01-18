@@ -147,7 +147,7 @@ RUN find /.cache -type f -exec chmod -v 666 {} +
 
 ENTRYPOINT ["/bin/sh", "-c"]
 
-CMD ["rsync -varHpDtSl /.cache/* /mnt/. || true"]
+CMD ["rsync -varHpDtSl --exclude=/.cache/keep /.cache/* /mnt/. || true"]
 
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
 FROM solr:8.11-slim as solr
