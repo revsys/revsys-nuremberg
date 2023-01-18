@@ -139,7 +139,7 @@ ENTRYPOINT ["pytest"]
 FROM alpine as cacher
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
 
-RUN apk add --no-cache rsync
+RUN apk add --no-cache rsync; mkdir /.cache
 
 COPY .cache/* /.cache/
 
