@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}Document Analyst's Report{% endblock %}
+
+{% block body_class %}analyst-report{% endblock %}
+
+{% block content %}
+<section class="theme-light report">
+<h2>Document Analyst's Report</h2>
+
+<div class="three-column-layout nav-date">
+  <div class="column previous-report">
+    {% if previous %}
+    <a href="{% url 'content:report-detail' previous.pk %}">Previous: {{ previous.date_display }}</a>
+    {% endif %}
+  </div>
+  <div class="column"><h3>{{ object.date_display }}</h3></div>
+  <div class="column next-report">
+    {% if next %}
+    <a href="{% url 'content:report-detail' next.pk %}">Next: {{ next.date_display }}</a>
+    {% endif %}
+  </div>
+</div>
+
+<p>{{ object.content }}</p>
+
+</section>
+{% endblock %}

@@ -114,6 +114,19 @@ hr {
   }
 }
 
+.two-column-layout {
+  &:extend(.row);
+
+  .column {
+    .make-md-column(6);
+  }
+
+  &.serif p {
+    .serif-text(normal, 16px, 25px);
+  }
+
+}
+
 .three-column-layout {
   &:extend(.row);
 
