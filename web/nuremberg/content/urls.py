@@ -1,5 +1,5 @@
-from django.urls import re_path
-from .views import ContentView, LandingView
+from django.urls import path, re_path
+from .views import ContentView, LandingView, ReportDetailView
 
 app_name = 'content'
 urlpatterns = [
@@ -77,5 +77,8 @@ urlpatterns = [
         r'^nmt_7_intro$',
         ContentView.as_view(template_name='content/nmt_7_intro.html'),
         name="nmt_7_intro",
+    ),
+    path(
+        'reports/<int:pk>/', ReportDetailView.as_view(), name='report-detail'
     ),
 ]

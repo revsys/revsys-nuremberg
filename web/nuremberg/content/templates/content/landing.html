@@ -7,6 +7,27 @@
 
 {% block body_class %}landing-page{% endblock %}
 
+{% block javascript %}
+  {{ block.super }}
+  <script>
+    var select = document.querySelector('#report-select-date')
+
+    select.addEventListener('change', function(){
+      var shown_reports = document.getElementsByClassName("report-content show")
+      var i;
+
+      for (i = 0; i < shown_reports.length; i++) {
+        shown_reports[i].classList.add("hide");
+        shown_reports[i].classList.remove("show");
+      };
+
+      document.getElementById(select.value).classList.remove("hide");
+      document.getElementById(select.value).classList.add("show");
+    })
+
+  </script>
+{% endblock %}
+
 {% block content %}
 <section class="landing-hero">
   {% include 'nav.html' %}
@@ -99,19 +120,33 @@
   </footer>
 </section>
 
-<section class="theme-beige project-news">
-  <h2>TBD: Nuremberg Project News</h2>
-  <ul>
-    <li><a href="https://www.youtube.com/watch?v=finv6A3qRKg&feature=youtu.be">Treasures of the Harvard Law School Library</a></li>
-    <li><a href="https://hls.harvard.edu/today/notes-nuremberg-documentarian/">Notes of a Nuremberg Documentarian</a></li>
-    <li><a href="https://news.harvard.edu/gazette/story/2016/10/devils-in-the-details/">Devil's in the Details</a></li>
-  </ul>
+<section class="project-news">
 
-  <h2>TBD: Document Analyst's Report</h2>
-  {% for report in reports %}
-  <p><strong>{{ report.date }}</strong> {{ report.report|truncatewords:50 }}</p>
-  {% endfor %}
+  <div class="two-column-layout project-news">
+    <div class="column project-new-links">
+      <h2>Nuremberg Project News</h2>
+      <a class="teaser" href="https://www.youtube.com/watch?v=finv6A3qRKg&feature=youtu.be"> Treasures of the Harvard Law School Library </a>
+      <a class="teaser" href="https://hls.harvard.edu/today/notes-nuremberg-documentarian/"> Notes of a Nuremberg Documentarian </a>
+      <a class="teaser" href="https://news.harvard.edu/gazette/story/2016/10/devils-in-the-details/"> Devil's in the Details </a>
+    </div>
 
+    <div class="column project-new-reports">
+      <div class="two-column-layout">
+      <div class="column"><h2>Document Analyst's Report</h2></div>
+      <div class="column report-date">
+        <select id="report-select-date">
+          {% for report in reports %}<option value="report-{{ report.id }}">{{ report.date_display }}</option>{% endfor %}
+        </select>
+      </div>
+      </div>
+      {% for report in reports %}
+      <div id="report-{{ report.id }}" class="report-content {% if forloop.first %}show{% else %}hide{% endif %}">
+        <p>{{ report.content|truncatewords:75 }}</p>
+        <a class="teaser" href="{% url 'content:report-detail' report.pk %}"> Continue Reading </a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
 </section>
 
 <section class="theme-beige approaches">
