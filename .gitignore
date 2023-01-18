@@ -18,5 +18,5 @@ dumps/.*
 dumps/new
 dumps/old
 .bin/
-!.cache/.keep
+!.cache/keep
 .cache/
