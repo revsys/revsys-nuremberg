@@ -75,12 +75,14 @@ jobs:
         run: |
           baseBranch=${{ env.BASE_REF }}
           headRef=${{ env.HEAD_REF }}
-          prSpan="${baseBranch}..${headRef}"
+          prSpan="${baseBranch}..HEAD"  # ${headRef}
 
           git fetch origin ${baseBranch}:${baseBranch} --depth 1  # this provides an anchor for the next two commands
 
           prCommits=$( git log --format='%H' ${prSpan} )
           lastUpdate=$( git log -1 --format='%H' ${prSpan} -- dumps/nuremberg_prod_dump_latest.sqlite3.zip )
+          [[ -z "${lastUpdate}" ]] &&
+            lastUpdate=$( git log -1 --format='%H' -- dumps/nuremberg_prod_dump_latest.sqlite3.zip )
 
           [[ -n "${lastUpdate}" ]] && \
             echo "last-update=${lastUpdate}" >> $GITHUB_OUTPUT &&
