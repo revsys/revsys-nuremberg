@@ -220,7 +220,7 @@ jobs:
           ) || \
           (
             docker manifest inspect ${TGT_TAG} >& /dev/null &&  # use $( just tag )-solr if no PR-specific data changes
-            docker pull --quiet ${TGT_TAG}-solr &&
+            docker pull --quiet ${TGT_TAG} &&
             echo " * using ${TGT_TAG} (exists, no updates)" >> $GITHUB_STEP_SUMMARY
           ) || \
           (
