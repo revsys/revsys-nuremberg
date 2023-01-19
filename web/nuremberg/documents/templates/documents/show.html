@@ -112,19 +112,7 @@
       </div>
       {% endif %}
       <h1 class="h3" aria-role="heading" aria-level="1">{{document.title}}</h1>
-      {% if document.literal_title %}
-      <div class="h5">{{document.literal_title}}</div>
-      {% endif %}
       {% block document_details %}
-        <p class="date">
-          {% with document.date as date %}
-          {% if date %}
-            <a href="{% search_query date=date|date:'d F Y' %}">{{date|date:'d F Y'}}</a>
-          {% else %}
-            <a href="{% search_query date='unknown' %}">Date Unknown</a>
-          {% endif %}
-          {% endwith %}
-        </p>
         {% with document.personal_authors.all as personal_authors %}
         <h2 class="h6">Author{{personal_authors|length|pluralize}}</h2>
         {% for author_prop in personal_authors.metadata %}
@@ -143,7 +131,6 @@
           {% endfor %}
         {% endif %}
         {% endwith %}
-
         {% with document.defendants.all as defendants %}
         {% if defendants %}
           <h2 class="h6">Defendant{{defendants|length|pluralize}}</h2>
@@ -154,7 +141,18 @@
           {% endfor %}
         {% endif %}
         {% endwith %}
-        <br />
+        <p class="date"><strong>Date:</strong>
+          {% with document.date as date %}
+          {% if date %}
+            <a href="{% search_query date=date|date:'d F Y' %}">{{date|date:'d F Y'}}</a>
+          {% else %}
+            <a href="{% search_query date='unknown' %}">Date Unknown</a>
+          {% endif %}
+          {% endwith %}
+        </p>
+        {% if document.literal_title %}
+          <p><strong>Literal Title:</strong> {{document.literal_title}}</p>
+        {% endif %}
         <p>
           <strong>Total Pages:</strong>
           {{document.total_pages}}
