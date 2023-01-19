@@ -1,7 +1,7 @@
 from django.views.generic import TemplateView
 from django.views.generic.detail import DetailView
 
-from nuremberg.content.models import AnalystReport
+from nuremberg.content.models import AnalystReport, TrialInfo
 
 
 class ContentView(TemplateView):
@@ -16,7 +16,11 @@ class ContentView(TemplateView):
 class LandingView(ContentView):
 
     template_name = 'content/landing.html'
-    context = {'query': '', 'reports': AnalystReport.objects.all()}
+    context = {
+        'query': '',
+        'trialinfo': TrialInfo.objects.get(id=2),  # NMT 1
+        'reports': AnalystReport.objects.all(),
+    }
 
 
 class ReportDetailView(DetailView):

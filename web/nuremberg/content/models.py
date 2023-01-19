@@ -35,3 +35,7 @@ class TrialInfo(models.Model):
     class Meta:
         managed = False
         db_table = 'tblTrialsInfo'
+
+    @cached_property
+    def image_path(self):
+        return f"{self.name.lower().replace(' ', '-')}.jpg"
