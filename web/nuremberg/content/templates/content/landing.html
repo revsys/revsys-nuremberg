@@ -112,11 +112,29 @@
   </footer>
 </section>
 
-<section class="theme-beige the-trials">
-  <h2>TBD: The Trials</h2>
+<section class="trials">
+  <h2>The Trials</h2>
   <p>Each trial includes a summary, chronology overview, persons involved, indictments, detailed chronology.</p>
+
+  <div class="three-column-layout trial-preview">
+    <div class="column trial-image">
+      {% with image_path='images/trials/'|add:trialinfo.image_path %}
+      <img src="{% static image_path %}" alt="Photograph related to trial {{ trialinfo.name }}" />
+      {% endwith %}
+      <p class="module">{{ trialinfo.alias }}</p>
+    </div>
+    <div class="column trial-links">
+      <h3>{{ trialinfo.name }}</h3>
+      <a class="button tag-button" href="/search/?q=trial:1&m=documents">Documents</a>
+      <a class="button tag-button" href="/transcripts/1-transcript-for-nmt-1-medical-case?seq=1&q=+type:transcripts">Transcripts</a>
+      <a class="button tag-button" href="{% url 'content:nmt_1_intro' %}#persons">Defendants</a>
+    </div>
+    <div class="column trial-summary">
+      <p class="module">{{ trialinfo.description }}</p>
+    </div>
+  </div>
   <footer>
-    <a class="teaser" href="{% url 'content:trials' %}">Read about the trials</a>
+    <a class="teaser" href="{% url 'content:trials' %}"> Read about the trials </a>
   </footer>
 </section>
 
