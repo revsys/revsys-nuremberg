@@ -111,8 +111,12 @@
         </div>
       </div>
       {% endif %}
+
       <h1 class="h3" aria-role="heading" aria-level="1">{{document.title}}</h1>
+
       {% block document_details %}
+
+        <div class="document-details-block">
         {% with document.personal_authors.all as personal_authors %}
         <h2 class="h6">Author{{personal_authors|length|pluralize}}</h2>
         {% for author_prop in personal_authors.metadata %}
@@ -131,16 +135,10 @@
           {% endfor %}
         {% endif %}
         {% endwith %}
-        {% with document.defendants.all as defendants %}
-        {% if defendants %}
-          <h2 class="h6">Defendant{{defendants|length|pluralize}}</h2>
-          {% for defendant in defendants %}
-            <p>
-              <a href="{% search_query defendant=defendant.full_name %}" aria-label="search for defendant {{defendant.full_name}}">{{defendant.first_name}} {{defendant.last_name}}</a>
-            </p>
-          {% endfor %}
-        {% endif %}
-        {% endwith %}
+
+        </div>
+        <div class="document-details-block">
+
         <p class="date"><strong>Date:</strong>
           {% with document.date as date %}
           {% if date %}
@@ -153,6 +151,18 @@
         {% if document.literal_title %}
           <p><strong>Literal Title:</strong> {{document.literal_title}}</p>
         {% endif %}
+
+        {% with document.defendants.all as defendants %}
+        {% if defendants %}
+          <p><strong>Defendant{{defendants|length|pluralize}}:</strong>
+          {% for defendant in defendants %}
+            <a href="{% search_query defendant=defendant.full_name %}" aria-label="search for defendant {{defendant.full_name}}">
+              {{defendant.first_name}} {{defendant.last_name}}
+            </a>{% if not forloop.last %}, {% endif %}
+          {% endfor %}
+          </p>
+        {% endif %}
+        {% endwith %}
         <p>
           <strong>Total Pages:</strong>
           {{document.total_pages}}
@@ -228,8 +238,12 @@
         </p>
         {% endif %}
 
+        </div>
+
       {% endblock %}
+
       <!-- Trial Issues -->
+      <div class="document-details-block">
       {% with document.activities.all as activities %}
       {% if activities %}
         <h2 class="h6">Trial Issue{{activities|length|pluralize}}</h2>
@@ -240,8 +254,10 @@
         </p>
       {% endif %}
       {% endwith %}
+      </div>
 
       <!-- Summary (taken from external sources) -->
+      <div class="document-details-block">
       {% with external_metadata=document.external_metadata.all codes_length=evidence_codes|length %}
       {% if external_metadata %}
         <h2 class="h6">Document Summary</h2>
@@ -273,6 +289,7 @@
         </div>
       {% endif %}
       {% endwith %}
+      </div>
 
     </div>
 
