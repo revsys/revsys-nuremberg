@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %} People {% endblock %}
+
+{% block body_class %}about{% endblock %}
+
+{% block header %}
+  {{ block.super }}
+  <nav aria-label="Topics for IMT" class="sub-nav horizontal">
+    <li>
+      <a href="#summary">Summary</a>
+    </li>
+    <li>
+      <a href="#persons">Persons Involved</a>
+    </li>
+    <li>
+      <a href="#indictments">Indictments</a>
+    </li>
+    <li>
+      <a href="#chronology">General Chronology</a>
+    </li>
+    <li>
+      <a href="#judgement">Verdicts and Sentences</a>
+    </li>
+    <li>
+      <a href="#evidence">Evidence Sets used, with number range</a>
+    </li>
+  </nav>
+{% endblock %}
+
+{% block content %}
+<div id="content"></div>
+<section class="theme-light">
+    <div class="partial-width">
+        <h1>International Military Tribunal (IMT)</h1>
+    </div>
+</section>
+<section class="theme-light">
+
+</section>
+{% endblock %}

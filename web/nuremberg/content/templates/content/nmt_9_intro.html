@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %} People {% endblock %}
+
+{% block body_class %}about{% endblock %}
+
+{% block header %}
+  {{ block.super }}
+  <nav aria-label="Topics for NMT-9" class="sub-nav horizontal">
+    <li>
+      <a href="#summary">Summary</a>
+    </li>
+    <li>
+      <a href="#indictments">Indictments</a>
+    </li>
+    <li>
+      <a href="#persons">Persons Involved</a>
+    </li>
+    <li>
+      <a href="#chronology">General Chronology</a>
+    </li>
+    <li>
+      <a href="#organization">Einsatzgruppen organization</a>
+    </li>
+    <li>
+      <a href="#judgement">Verdicts and Sentences</a>
+    </li>
+  </nav>
+{% endblock %}
+
+{% block content %}
+<div id="content"></div>
+<section class="theme-light">
+    <div class="partial-width">
+        <h1>NMT Case 9</h1>
+        <p class="intro">The Einsatzgruppen Case</p>
+    </div>
+</section>
+<section class="theme-light">
+
+To be completed with the content of
+https://docs.google.com/document/d/1a4pS7ndgNzb2YXH7Fu7057Cpzq4pFql_cCGTpYbIdUY/edit
+
+</section>
+{% endblock %}
