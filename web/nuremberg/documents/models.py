@@ -882,6 +882,10 @@ class DocumentAuthorExtra(models.Model):
 class DocumentCase(models.Model):
     id = models.AutoField(primary_key=True, db_column='CaseID')
     name = models.CharField(max_length=100, db_column='Case')
+    trial_name = models.CharField(db_column='TrialName', max_length=200)
+    trial_alias = models.CharField(db_column='TrialNameAlias', max_length=200)
+    description = models.TextField(db_column='Description')
+    notes = models.TextField(db_column='Note')
 
     documents = models.ManyToManyField(
         Document,
@@ -896,6 +900,10 @@ class DocumentCase(models.Model):
 
     def __str__(self):
         return self.name
+
+    @cached_property
+    def image_path(self):
+        return f"{self.trial_name.lower().replace(' ', '-')}.jpg"
 
     @property
     def tag_name(self):

@@ -24,18 +24,3 @@ class AnalystReport(models.Model):
         if result.startswith(self.REPORT_PREFIX):
             result = result[len(self.REPORT_PREFIX) :]
         return result.strip()
-
-
-class TrialInfo(models.Model):
-    id = models.AutoField(db_column='RecordID', primary_key=True)
-    name = models.CharField(db_column='TrialName', max_length=200)
-    alias = models.CharField(db_column='TrialNameAlias', max_length=200)
-    description = models.TextField(db_column='Description')
-
-    class Meta:
-        managed = False
-        db_table = 'tblTrialsInfo'
-
-    @cached_property
-    def image_path(self):
-        return f"{self.name.lower().replace(' ', '-')}.jpg"
