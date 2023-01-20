@@ -10,7 +10,7 @@ class Command(BaseCommand):
     help = 'Parses a transcript page XML file or files and creates the appropriate models'
 
     filename_re = re.compile(
-        r'^NRMB-(?P<case_label>[A-Z]+)(?P<case_number>\d{2})?-(?P<volume>\d{2})_(?P<vol_seq>\d{5})_[01]\.xml$'
+        r'^NRMB-(?P<case_label>[A-Z]+)(?P<case_number>\d{2})?-(?P<volume>\d{2})_(?P<vol_seq>\d{5})(_[01])?\.xml$'
     )
 
     def add_arguments(self, parser):
@@ -38,18 +38,19 @@ class Command(BaseCommand):
         else:
             paths = options['paths']
         if options['s']:
-            print('Skipping', options['s'], 'files.')
+            self.stdout.write(f'Skipping {options["s"]} files.')
             paths = paths[options['s'] :]
-        print('Ingesting', len(paths), 'files.')
+
+        self.stdout.write(f'Ingesting {len(paths)} files.')
         for file_path in paths:
             if not path.exists(file_path):
-                print("No such file:", file_path)
+                self.stderr.write(f'No such file: {file_path}')
                 continue
 
             filename = path.basename(file_path)
             m = self.filename_re.match(filename)
             if not m:
-                print("Don't know how to process this:", filename)
+                self.stderr.write(f'Invalid filename: {filename}')
                 continue
 
             # sketchily get case ID
@@ -58,7 +59,9 @@ class Command(BaseCommand):
             elif m.group('case_label') == 'IMT':
                 case_id = 1
             else:
-                print("I don't know a case called", m.group('case_label'))
+                self.stderr.write(
+                    f'Invalid case name: {m.group("case_label")}'
+                )
                 continue
 
             case = DocumentCase.objects.get(pk=case_id)
@@ -67,9 +70,9 @@ class Command(BaseCommand):
             except Transcript.DoesNotExist:
                 transcript = Transcript.objects.create(
                     case=case,
-                    title="Transcript for {}".format(case.short_name()),
+                    title=f"Transcript for {case.short_name()}",
                 )
-                print("Created transcript", transcript.title)
+                self.stdout.write(f'Created transcript {transcript.title}')
 
             volume_number = int(m.group('volume'))
 
@@ -78,10 +81,9 @@ class Command(BaseCommand):
             ).first()
             if not volume:
                 volume = transcript.volumes.create(volume_number=volume_number)
-                print(
-                    "Created transcript volume",
-                    transcript.title,
-                    volume.volume_number,
+                self.stdout.write(
+                    f'Created transcript volume {transcript.title} '
+                    f'{volume.volume_number}'
                 )
 
             volume_seq_number = int(m.group('vol_seq'))
@@ -97,15 +99,14 @@ class Command(BaseCommand):
                     volume_seq_number=volume_seq_number,
                 )
             page.xml = xml
-            page._url = "//s3.amazonaws.com/nuremberg-transcripts/{}".format(
-                filename.replace('.xml', '.jpg')
-            )
+            page.image = filename.replace('.xml', '.jpg')
             try:
                 page.populate_from_xml()
             except Exception as e:
-                print('error populating page', file_path)
+                self.stderr.write(f'Error populating page from {file_path}')
                 raise e
+
             page.save()
             count += 1
             if count % 100 == 0:
-                print('Created', count, 'pages.')
+                self.stdout.write(f'Created {count} pages.')
