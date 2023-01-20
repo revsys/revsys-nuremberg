@@ -1,7 +1,8 @@
 from django.views.generic import TemplateView
 from django.views.generic.detail import DetailView
 
-from nuremberg.content.models import AnalystReport, TrialInfo
+from nuremberg.content.models import AnalystReport
+from nuremberg.documents.models import DocumentCase
 
 
 class ContentView(TemplateView):
@@ -18,8 +19,16 @@ class LandingView(ContentView):
     template_name = 'content/landing.html'
     context = {
         'query': '',
-        'trialinfo': TrialInfo.objects.get(id=2),  # NMT 1
+        'case': DocumentCase.objects.get(tag_name='IMT'),
         'reports': AnalystReport.objects.all(),
+    }
+
+
+class TrialsView(ContentView):
+
+    template_name = 'content/trials.html'
+    context = {
+        'cases': DocumentCase.objects.all().order_by('id'),
     }
 
 
