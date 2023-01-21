@@ -1,84 +1,92 @@
-from django.urls import path, re_path
-from .views import ContentView, LandingView, ReportDetailView
+from django.urls import path
+from .views import ContentView, LandingView, ReportDetailView, TrialsView
 
 app_name = 'content'
 urlpatterns = [
-    re_path(
-        r'^$',
+    path(
+        '',
         LandingView.as_view(),
         name="landing",
     ),
-    re_path(
-        r'^trials$',
-        ContentView.as_view(template_name='content/trials.html'),
+    path(
+        'trials',
+        TrialsView.as_view(),
         name="trials",
     ),
-    re_path(
-        r'^approaches$',
+    path(
+        'approaches',
         ContentView.as_view(template_name='content/approaches.html'),
         name="approaches",
     ),
-    re_path(
-        r'^history$',
+    path(
+        'history',
         ContentView.as_view(template_name='content/history.html'),
         name="history",
     ),
-    re_path(
-        r'^about$',
+    path(
+        'about',
         ContentView.as_view(template_name='content/about.html'),
         name="about",
     ),
-    re_path(
-        r'^people$',
+    path(
+        'people',
         ContentView.as_view(template_name='content/people.html'),
         name="people",
     ),
-    re_path(
-        r'^intro$',
+    path(
+        'intro',
         ContentView.as_view(template_name='content/about.html'),
         name="intro",
     ),
-    re_path(
-        r'^funding$',
+    path(
+        'funding',
         ContentView.as_view(template_name='content/funding.html'),
         name="funding",
     ),
-    re_path(
-        r'^additional$',
+    path(
+        'additional',
         ContentView.as_view(template_name='content/history.html'),
         name="additional",
     ),
-    re_path(
-        r'^documents$',
+    path(
+        'documents',
         ContentView.as_view(template_name='content/documents.html'),
         name="documents",
     ),
-    re_path(
-        r'^nmt_1_intro$',
-        ContentView.as_view(template_name='content/nmt_1_intro.html'),
-        name="nmt_1_intro",
-    ),
-    re_path(
-        r'^nmt_2_intro$',
-        ContentView.as_view(template_name='content/nmt_2_intro.html'),
-        name="nmt_2_intro",
-    ),
-    re_path(
-        r'^nmt_3_intro$',
-        ContentView.as_view(template_name='content/nmt_3_intro.html'),
-        name="nmt_3_intro",
-    ),
-    re_path(
-        r'^nmt_4_intro$',
-        ContentView.as_view(template_name='content/nmt_4_intro.html'),
-        name="nmt_4_intro",
-    ),
-    re_path(
-        r'^nmt_7_intro$',
-        ContentView.as_view(template_name='content/nmt_7_intro.html'),
-        name="nmt_7_intro",
+    path(
+        'imt_intro',
+        ContentView.as_view(template_name='content/imt_intro.html'),
+        name="imt",
     ),
     path(
-        'reports/<int:pk>/', ReportDetailView.as_view(), name='report-detail'
+        'nmt_1_intro',
+        ContentView.as_view(template_name='content/nmt_1_intro.html'),
+        name="nmt-1",
     ),
+    path(
+        'nmt_2_intro',
+        ContentView.as_view(template_name='content/nmt_2_intro.html'),
+        name="nmt-2",
+    ),
+    path(
+        'nmt_3_intro',
+        ContentView.as_view(template_name='content/nmt_3_intro.html'),
+        name="nmt-3",
+    ),
+    path(
+        'nmt_4_intro',
+        ContentView.as_view(template_name='content/nmt_4_intro.html'),
+        name="nmt-4",
+    ),
+    path(
+        'nmt_7_intro',
+        ContentView.as_view(template_name='content/nmt_7_intro.html'),
+        name="nmt-7",
+    ),
+    path(
+        'nmt_9_intro',
+        ContentView.as_view(template_name='content/nmt_9_intro.html'),
+        name="nmt-9",
+    ),
+    path('reports/<int:pk>', ReportDetailView.as_view(), name='report-detail'),
 ]
