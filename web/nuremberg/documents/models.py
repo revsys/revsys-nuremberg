@@ -882,6 +882,10 @@ class DocumentAuthorExtra(models.Model):
 class DocumentCase(models.Model):
     id = models.AutoField(primary_key=True, db_column='CaseID')
     name = models.CharField(max_length=100, db_column='Case')
+    tag_name = models.CharField(db_column='TrialName', max_length=200)
+    alias = models.CharField(db_column='TrialNameAlias', max_length=200)
+    description = models.TextField(db_column='Description')
+    notes = models.TextField(db_column='Note')
 
     documents = models.ManyToManyField(
         Document,
@@ -897,15 +901,17 @@ class DocumentCase(models.Model):
     def __str__(self):
         return self.name
 
-    @property
-    def tag_name(self):
-        # cheating for now
-        if self.id == 1:
-            return 'IMT'
-        elif self.id > 13:
-            return 'Other'
-        else:
-            return 'NMT {}'.format(self.id - 1)
+    @cached_property
+    def code_name(self):
+        return f"{self.tag_name.lower().replace(' ', '-')}"
+
+    @cached_property
+    def image_path(self):
+        return f"{self.code_name}.jpg"
+
+    @cached_property
+    def processed(self):
+        return 'currently being processed' not in self.notes.lower()
 
     def short_name(self):
         return self.name.split(' -')[0].replace('.', ':').replace(' 0', ' ')
