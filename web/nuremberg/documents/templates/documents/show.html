@@ -79,14 +79,22 @@
     {% endif %}
   {% endblock %}
   <div class="sidebar-layout">
+
+    <h1 class="h2" aria-role="heading" aria-level="1">{{document.title}}</h1>
+
     <div class="sidebar-column document-info">
       <div class="material-icon small material-documents"></div>
+
+      {% with cases=document.cases.all %}
+      {% if cases %}
       <p class="trial-flags">
         {% for case in document.cases.all %}
           <span class="trial-flag trial-{{case.tag_name|slugify}}">{{case.tag_name}}</span>
         {% endfor %}
         &nbsp;
       </p>
+      {% endif %}
+      {% endwith %}
       {% if mode == 'image' and full_text %}
       <p class="trial-flags">
         <a data-test="full-text-view" href="{% url 'documents:show' document_id=full_text.id slug=full_text.slug %}?mode=text{% if query %}&q={% encode_string query %}{% endif %}">Full-text View</a>
@@ -112,11 +120,9 @@
       </div>
       {% endif %}
 
-      <h1 class="h3" aria-role="heading" aria-level="1">{{document.title}}</h1>
-
       {% block document_details %}
 
-        <div class="document-details-block">
+      <div class="document-details-block">
         {% with document.personal_authors.all as personal_authors %}
         <h2 class="h6">Author{{personal_authors|length|pluralize}}</h2>
         {% for author_prop in personal_authors.metadata %}
@@ -135,10 +141,9 @@
           {% endfor %}
         {% endif %}
         {% endwith %}
+      </div>
 
-        </div>
-        <div class="document-details-block">
-
+      <div class="document-details-block">
         <p class="date"><strong>Date:</strong>
           {% with document.date as date %}
           {% if date %}
@@ -237,29 +242,28 @@
           {{ document.description }}
         </p>
         {% endif %}
-
-        </div>
+      </div>
 
       {% endblock %}
 
-      <!-- Trial Issues -->
-      <div class="document-details-block">
       {% with document.activities.all as activities %}
       {% if activities %}
+      <!-- Trial Issues -->
+      <div class="document-details-block">
         <h2 class="h6">Trial Issue{{activities|length|pluralize}}</h2>
         <p>
           {% for activity in activities %}
             <a class="tag-button" href="{% search_query issue=activity.short_name %}">{{activity.short_name|truncatechars:75}}</a>
           {% endfor %}
         </p>
+      </div>
       {% endif %}
       {% endwith %}
-      </div>
 
-      <!-- Summary (taken from external sources) -->
-      <div class="document-details-block">
       {% with external_metadata=document.external_metadata.all codes_length=evidence_codes|length %}
       {% if external_metadata %}
+      <!-- Summary (taken from external sources) -->
+      <div class="document-details-block">
         <h2 class="h6">Document Summary</h2>
         <div class="summary">
 
@@ -287,9 +291,9 @@
         {% endif %}
 
         </div>
+      </div>
       {% endif %}
       {% endwith %}
-      </div>
 
     </div>
 
