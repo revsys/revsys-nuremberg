@@ -104,7 +104,8 @@ def test_document_400():
     info = page('.document-info').text()
     assert 'NMT 1' in info
     assert '24 October 1939' in info
-    assert 'Defendants\nKarl Gebhardt' in info
+    # Defendants are sorted by last name in the template
+    assert 'Defendants: Fritz Fischer, Karl Gebhardt, Herta Oberheuser' in info
     assert 'Authors\nAdolf Hitler' in info
     assert 'Total Pages: 3' in info
     assert 'Language of Text: English' in info

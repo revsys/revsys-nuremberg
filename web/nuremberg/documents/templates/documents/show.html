@@ -79,14 +79,22 @@
     {% endif %}
   {% endblock %}
   <div class="sidebar-layout">
+
+    <h1 class="h2" aria-role="heading" aria-level="1">{{document.title}}</h1>
+
     <div class="sidebar-column document-info">
       <div class="material-icon small material-documents"></div>
+
+      {% with cases=document.cases.all %}
+      {% if cases %}
       <p class="trial-flags">
         {% for case in document.cases.all %}
           <span class="trial-flag trial-{{case.tag_name|slugify}}">{{case.tag_name}}</span>
         {% endfor %}
         &nbsp;
       </p>
+      {% endif %}
+      {% endwith %}
       {% if mode == 'image' and full_text %}
       <p class="trial-flags">
         <a data-test="full-text-view" href="{% url 'documents:show' document_id=full_text.id slug=full_text.slug %}?mode=text{% if query %}&q={% encode_string query %}{% endif %}">Full-text View</a>
@@ -111,8 +119,10 @@
         </div>
       </div>
       {% endif %}
-      <h1 class="h3" aria-role="heading" aria-level="1">{{document.title}}</h1>
+
       {% block document_details %}
+
+      <div class="document-details-block">
         {% with document.personal_authors.all as personal_authors %}
         <h2 class="h6">Author{{personal_authors|length|pluralize}}</h2>
         {% for author_prop in personal_authors.metadata %}
@@ -131,16 +141,9 @@
           {% endfor %}
         {% endif %}
         {% endwith %}
-        {% with document.defendants.all as defendants %}
-        {% if defendants %}
-          <h2 class="h6">Defendant{{defendants|length|pluralize}}</h2>
-          {% for defendant in defendants %}
-            <p>
-              <a href="{% search_query defendant=defendant.full_name %}" aria-label="search for defendant {{defendant.full_name}}">{{defendant.first_name}} {{defendant.last_name}}</a>
-            </p>
-          {% endfor %}
-        {% endif %}
-        {% endwith %}
+      </div>
+
+      <div class="document-details-block">
         <p class="date"><strong>Date:</strong>
           {% with document.date as date %}
           {% if date %}
@@ -153,6 +156,16 @@
         {% if document.literal_title %}
           <p><strong>Literal Title:</strong> {{document.literal_title}}</p>
         {% endif %}
+
+        {% with document.defendants.all as defendants %}
+        {% if defendants %}
+          <p><strong>Defendant{{defendants|length|pluralize}}:</strong>
+            {% for defendant in defendants|dictsort:"last_name" %}
+            <a href="{% search_query defendant=defendant.full_name %}" aria-label="search for defendant {{defendant.full_name}}">{{defendant.full_name}}</a>{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+          </p>
+        {% endif %}
+        {% endwith %}
         <p>
           <strong>Total Pages:</strong>
           {{document.total_pages}}
@@ -227,23 +240,28 @@
           {{ document.description }}
         </p>
         {% endif %}
+      </div>
 
       {% endblock %}
-      <!-- Trial Issues -->
+
       {% with document.activities.all as activities %}
       {% if activities %}
+      <!-- Trial Issues -->
+      <div class="document-details-block">
         <h2 class="h6">Trial Issue{{activities|length|pluralize}}</h2>
         <p>
           {% for activity in activities %}
-            <a class="tag-button" href="{% search_query issue=activity.short_name %}">{{activity.short_name|truncatechars:75}}</a>
+            <a class="tag-button" href="{% search_query issue=activity.short_name %}" title="{{ activity.short_name }}">{{activity.short_name|truncatechars:75}}</a>
           {% endfor %}
         </p>
+      </div>
       {% endif %}
       {% endwith %}
 
-      <!-- Summary (taken from external sources) -->
       {% with external_metadata=document.external_metadata.all codes_length=evidence_codes|length %}
       {% if external_metadata %}
+      <!-- Summary (taken from external sources) -->
+      <div class="document-details-block">
         <h2 class="h6">Document Summary</h2>
         <div class="summary">
 
@@ -271,6 +289,7 @@
         {% endif %}
 
         </div>
+      </div>
       {% endif %}
       {% endwith %}
 

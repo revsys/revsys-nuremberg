@@ -133,7 +133,7 @@ html.touchevents & {
 }
 
 .sidebar-layout, .full-width {
-  margin-top: 50px;
+  margin-top: 26px;
 
   .main-column {
     .make-md-column(8);
@@ -149,9 +149,14 @@ html.touchevents & {
     padding-top: 25px;
   }
 
+  .h2 {
+    padding: 0px 15px;
+  }
+
   h3 {
     .serif-headline(normal, 21px, 27px);
     margin: 0 0 5px;
+    text-align: center;
   }
 
   p {
@@ -160,10 +165,6 @@ html.touchevents & {
     &.trial-flags {
       margin: 14px 0;
     }
-  }
-
-  p.date {
-    padding-top: 10px;
   }
 
   h6, .h6 {
@@ -175,6 +176,12 @@ html.touchevents & {
     color: @gray;
     text-transform: uppercase;
   }
+
+  .document-details-block {
+    margin-top: 10px;
+    padding-top: 5px;
+  }
+
 }
 
 .print-controls {
