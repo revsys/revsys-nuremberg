@@ -118,9 +118,9 @@
   <div class="three-column-layout trial-preview">
     <div class="column trial-image">
       {% with image_path='images/trials/'|add:case.image_path %}
-      <img src="{% static image_path %}" alt="Photograph related to trial {{ case.name }}" />
+      <img src="{% static image_path %}" alt="{{ caption }}" />
       {% endwith %}
-      <p class="module">{{ case.alias }}</p>
+      <p class="module">{{ caption }}</p>
     </div>
     <div class="column trial-links">
       <h3>{{ case.tag_name }}</h3>
