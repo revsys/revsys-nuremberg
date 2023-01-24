@@ -13,13 +13,13 @@
 <div class="three-column-layout nav-date">
   <div class="column previous-report">
     {% if previous %}
-    <a href="{% url 'content:report-detail' previous.pk %}">Previous: {{ previous.date_display }}</a>
+    <p><a href="{% url 'content:report-detail' previous.pk %}">Previous: {{ previous.date_display }}</a></p>
     {% endif %}
   </div>
-  <div class="column"><h3>{{ object.date_display }}</h3></div>
+  <div class="column"><p class="h3">{{ object.date_display }}</p></div>
   <div class="column next-report">
     {% if next %}
-    <a href="{% url 'content:report-detail' next.pk %}">Next: {{ next.date_display }}</a>
+    <p><a href="{% url 'content:report-detail' next.pk %}">Next: {{ next.date_display }}</a></p>
     {% endif %}
   </div>
 </div>
