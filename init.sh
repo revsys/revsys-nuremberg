@@ -5,7 +5,6 @@ set -o pipefail
 
 SOLR_CORE="nuremberg_dev"
 SOLR_HOME="/var/solr/data/$SOLR_CORE"
-SOLR_SNAPSHOT_DIR=$PWD/dumps/nuremberg_solr_snapshot_latest
 SOLR_HOST="http://localhost:8983"
 SOLR_URL="$SOLR_HOST/solr"
 SOLR_CORE_STATUS="$SOLR_URL/admin/cores?action=STATUS"
@@ -51,22 +50,13 @@ then
 	echo "Solr ready!!!"
 
 	echo "Setting up solr config"
-
 	$DOCKER_COMPOSE cp solr_conf ${solr}:/opt/solr-8.11.2/ && \
 	$DOCKER_COMPOSE_EXEC -u0 ${solr} cp -Rp /opt/solr-8.11.2/solr_conf /var/solr/data/nuremberg_dev && \
 	$DOCKER_COMPOSE_EXEC -u0 ${solr} chown -R solr:solr /var/solr/data solr_conf || exit 1
-
-
 	$DOCKER_COMPOSE_EXEC ${solr} solr create_core -c $SOLR_CORE -d solr_conf || echo 'Solr core already exists'
 
-	if [[ -n ${SOLR_RESTORE_SNAPSHOT} ]]; then
-		echo "Restoring Solr snapshot $SOLR_SNAPSHOT_DIR"
-		cat $SOLR_SNAPSHOT_DIR/* | $DOCKER_COMPOSE_EXEC ${solr} tar -xzv -f - --strip-component=1 -C $SOLR_HOME/data
-		$DOCKER_COMPOSE_EXEC -T ${solr} curl -sS "$SOLR_URL/$SOLR_CORE/replication?command=restore" || exit 1
-	else
-		echo "Rebuilding Solr index (SLOW)"
-		time $DOCKER_COMPOSE_EXEC ${web} python manage.py rebuild_index -b500 -k4 --noinput || exit 1
-	fi
+	echo "Rebuilding Solr index (SLOW)"
+	time $DOCKER_COMPOSE_EXEC ${web} python manage.py rebuild_index -b500 -k4 --noinput || exit 1
 fi
 
 # this is used by the regen-solr-image just(1) target

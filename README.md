@@ -22,12 +22,6 @@ Populate the database and the search engine index (this could take some time):
 ./init.sh
 ```
 
-> **_NOTE:_**  For a faster search index setup, set the env var
-> `SOLR_RESTORE_SNAPSHOPT` so Solr indexes are restored from a snapshot.
-> This is how the CI test run is configured, which can be inspected in
-> [this file](.github/workflows/tests.yml).
-
-
 Then visit [localhost:8000](http://localhost:8000).
 
 To run with production settings, set appropriate `SECRET_KEY`,
@@ -240,46 +234,6 @@ reindexing that model is fast anyway.)
 
 For more fine-grained information on indexing progress, use `--batch-size 100
 --verbosity 2` or similar.
-
-### Updating the stored Solr snapshot
-
-After making changes to the Solr schema and reindexing its index, it's advised
-to update the snapshopt of such index used to speed up tests and potentially
-local setup. To do so, ensure that services were started as described in
-[Setup](#setup) and that the Solr index is up to date. Then:
-
-```shell
-curl "http://localhost:8983/solr/nuremberg_dev/replication?command=backup&name=`date +%y%m%d`"
-```
-
-Wait until the snapshot is completed (check for `snapshotCompletedAt` and
-confirm that `status` is a `success`):
-
-```shell
-curl http://localhost:8983/solr/nuremberg_dev/replication?command=details
-```
-
-And then compress the resulting snapshot directory and move the tarball to the
-host's `dumps` folder. The tarball will be split in < 100M files so they can
-be pushed to GitHub, no worries the `init.sh` script will put the pieces
-together when necessary:
-
-```shell
-rm dumps/nuremberg_solr_snapshot_latest/*
-docker compose exec solr tar czvf - -C /var/solr/data/nuremberg_dev/data/ snapshot.`date +%y%m%d` | split -b 95M - dumps/nuremberg_solr_snapshot_latest/nuremberg_solr_snapshot_`date +%y%m%d`.tar.gz-part-
-```
-
-For more information about Solr Backups, see the [the full docs for Solr snapshot API](https://solr.apache.org/guide/8_11/making-and-restoring-backups.html#standalone-mode-backups).
-
-Review the changes and potentially:
-
- 1. Remove older dump(s)
- 2. Stage and commit your changes to the git repo
- 3. Update the `SOLR_SNAPSHOT_NAME` variable in the `init.sh` script
-
-```shell
-sed -i s/SOLR_SNAPSHOT_NAME=\".*\"/SOLR_SNAPSHOT_NAME=\"`date +%y%m%d`\"/g init.sh
-```
 
 ### Deploying
 
