@@ -22,12 +22,14 @@
   <table class="table-trials">
     {% for case in cases %}
     <tr>
-      <td>
+      <td class="trial-img">
+      {% if case.processed %}
       {% with image_path='images/trials/'|add:case.image_path %}
       <img src="{% static image_path %}" alt="Photograph for trial {{ case.name }}" />
       {% endwith %}
+      {% endif %}
       </td>
-      <td>
+      <td class="trial-details">
         <p><strong>{{ case.alias }}</strong> {{ case.description }}</p>
         {% if case.notes %}
         <p><strong>Note:</strong> {{ case.notes }}</p>
