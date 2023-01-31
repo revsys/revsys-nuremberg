@@ -129,7 +129,8 @@ def test_document_3799():
     info = page('.document-info').text()
     assert 'NMT 1' not in info
     assert '02 December 1939' in info
-    assert 'Author\nHans Frank' in info
+    assert 'Authors\nHans Frank' in info
+    assert 'Government General of Occupied Polish Territories' in info
     assert 'Total Pages: 492' in info
     assert 'Language of Text: German' in info
     assert 'Source of Text: Photostat' in info
