@@ -400,17 +400,18 @@ class TranscriptPageJoiner:
                     if element.tag == 'evidenceFileDoc':
                         q = 'evidence:"{}"'.format(element.get('n'))
                     elif element.tag == 'exhibitDocPros':
-                        q = 'exhibit:"Prosecution {}"'.format(element.get('n'))
+                        q = 'exhibit:"Prosecution {}" trial:"{}"'.format(
+                            element.get('n'), page.transcript.case.code_name
+                        )
                     elif element.tag == 'exhibitDocDef':
                         q = 'exhibit:"{} {}"'.format(
                             element.get('def'), element.get('n')
                         )
                     if q:
-                        q += f' trial:"{page.transcript.case.code_name}"'
-                        base_link = '<a href="/search?{}">{}</a>'
-                        self.put(
-                            base_link.format(urlencode({'q': q}), element.text)
+                        link = '<a href="/search?{}">{}</a>'.format(
+                            urlencode({'q': q}), element.text
                         )
+                        self.put(link)
 
                     if element.tail:
                         if not self.joining:
