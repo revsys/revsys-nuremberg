@@ -1,4 +1,6 @@
 import re
+from urllib.parse import urlencode
+
 from lxml import etree
 
 
@@ -394,25 +396,20 @@ class TranscriptPageJoiner:
                     'exhibitDocPros',
                     'exhibitDocDef',
                 ):
+                    q = None
                     if element.tag == 'evidenceFileDoc':
-                        self.put(
-                            '<a href="/search?q=evidence:&quot;{}&quot;">{}</a>'.format(
-                                element.get('n'), element.text
-                            )
-                        )
+                        q = 'evidence:"{}"'.format(element.get('n'))
                     elif element.tag == 'exhibitDocPros':
-                        self.put(
-                            '<a href="/search?q=exhibit:&quot;Prosecution+{}&quot;">{}</a>'.format(
-                                element.get('n'), element.text
-                            )
-                        )
+                        q = 'exhibit:"Prosecution {}"'.format(element.get('n'))
                     elif element.tag == 'exhibitDocDef':
+                        q = 'exhibit:"{} {}"'.format(
+                            element.get('def'), element.get('n')
+                        )
+                    if q:
+                        q += f' trial:"{page.transcript.case.code_name}"'
+                        base_link = '<a href="/search?{}">{}</a>'
                         self.put(
-                            '<a href="/search?q=exhibit:&quot;{}+{}&quot;">{}</a>'.format(
-                                element.get('def'),
-                                element.get('n'),
-                                element.text,
-                            )
+                            base_link.format(urlencode({'q': q}), element.text)
                         )
 
                     if element.tail:
