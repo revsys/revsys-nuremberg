@@ -5,7 +5,7 @@ set dotenv-load := false
 IMAGE_REGISTRY := 'registry.revsys.com/nuremberg'
 CACHE_REGISTRY := env_var_or_default('CACHE_REGISTRY', 'registry.revsys.com/cache/nuremberg')
 
-VERSION := 'v0.5.25'
+VERSION := 'v0.5.26'
 
 GITHUB_STEP_SUMMARY := env_var_or_default('GITHUB_STEP_SUMMARY', '')
 NO_CACHE_TO := env_var_or_default('NO_CACHE_TO', '')
