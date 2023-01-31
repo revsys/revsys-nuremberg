@@ -122,26 +122,21 @@
 
       {% block document_details %}
 
+      {% with personal_authors=document.personal_authors.all group_authors=document.group_authors.all %}
+      {% if personal_authors or group_authors %}
       <div class="document-details-block">
-        {% with document.personal_authors.all as personal_authors %}
-        <h2 class="h6">Author{{personal_authors|length|pluralize}}</h2>
+        <h2 class="h6">Authors</h2>
         {% for author_prop in personal_authors.metadata %}
           {% include 'documents/_author_properties_hover.html' with include_title=True %}
-        {% empty %}
-          <p> Unknown </p>
         {% endfor %}
-        {% endwith %}
-        {% with document.group_authors.all as group_authors %}
-        {% if group_authors %}
-          <h2 class="h6">Institutional Author{{group_authors|length|pluralize}}</h2>
-          {% for author in group_authors %}
-            <p>
-              <a href="{% search_query author=author.short_name %}" aria-label="search for author {{author.name}}">{{author.name}}</a>
-            </p>
-          {% endfor %}
-        {% endif %}
-        {% endwith %}
+        {% for author in group_authors %}
+          <p>
+            <a href="{% search_query author=author.short_name %}" aria-label="search for author {{author.name}}">{{author.name}}</a>
+          </p>
+        {% endfor %}
       </div>
+      {% endif %}
+      {% endwith %}
 
       <div class="document-details-block">
         <p class="date"><strong>Date:</strong>
