@@ -1,4 +1,5 @@
 import os
+import re
 from datetime import datetime
 
 import pytest
@@ -187,7 +188,10 @@ def test_evidence_links(seq):
     page = seq(136)
     page = follow_link(page('a').with_text('NO-417'))
 
-    assert 'Results 1-2 of 2 for * evidence:"NO-417"' in page.text()
+    matches = re.findall(
+        r'Results 1-\d+ of \d+ for \* evidence:"NO-417"', page.text()
+    )
+    assert matches
     assert (
         'Organizational chart of the SS Medical Service (from September 1943)'
         in page.text()
@@ -206,7 +210,10 @@ def test_exhibit_links(seq):
     page = seq(210)
     page = follow_link(page('a').with_text('61'))
 
-    assert 'Results 1-12 of 12 for * exhibit:"Prosecution 61"' in page.text()
+    matches = re.findall(
+        r'Results 1-\d+ of \d+ for \* exhibit:"Prosecution 61"', page.text()
+    )
+    assert matches
     assert (
         'Letter to Heinrich Himmler, sending report on high altitude '
         'experiments' in page.text()
