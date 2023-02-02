@@ -461,11 +461,11 @@ class DocumentPersonalAuthor(models.Model):
     ):
         result = {
             'author': {
-                'name': self.full_name(),
+                'name': '',  # To be populated from PersonalAuthorProperty
                 'id': self.id,
                 'slug': self.slug,
                 'title': self.title,
-                'description': '',
+                'description': '',  # To be filled from PersonalAuthorProperty
             },
         }
 
@@ -489,6 +489,10 @@ class DocumentPersonalAuthor(models.Model):
 
             if rank is None or rank < 1:
                 continue
+
+            if not result['author']['name']:
+                # use first non empty property to update author's name
+                result['author']['name'] = p.personal_author_name
 
             if not result['author']['description']:
                 # use first non empty property to update author's description
@@ -785,7 +789,8 @@ class DocumentAuthorExtraManager(models.Manager):
             items.append(author.extra)
 
         return self.bulk_update(
-            items, fields=['description', 'image', 'image_alt', 'properties']
+            items,
+            fields=['name', 'description', 'image', 'image_alt', 'properties'],
         )
 
 
@@ -793,6 +798,7 @@ class DocumentAuthorExtra(models.Model):
     author = models.OneToOneField(
         DocumentPersonalAuthor, related_name='extra', on_delete=models.CASCADE
     )
+    name = models.TextField()
     description = models.TextField()
     image = models.ImageField(null=True, blank=True, storage=AuthorStorage())
     image_alt = models.CharField(max_length=1024)
@@ -844,25 +850,19 @@ class DocumentAuthorExtra(models.Model):
         self, metadata, dry_run=False, force=False, save=True
     ):
         logger.info(f'Updating DocumentAuthorExtra instance for {metadata=}')
-        image_path, image_alt = self.process_image(metadata, dry_run, force)
+        # image_path, image_alt = self.process_image(metadata, dry_run, force)
+        self.name = metadata['author']['name']
         self.description = metadata['author']['description']
-        self.image = image_path
-        self.image_alt = image_alt
+        # self.image = image_path
+        # self.image_alt = image_alt
         self.properties = metadata['properties']
         if save:
-            self.save(
-                update_fields=[
-                    'description',
-                    'image',
-                    'image_alt',
-                    'properties',
-                ]
-            )
+            self.save()
 
     def as_dict(self, minimal=False):
         result = {
             'author': {
-                'name': self.author.full_name(),
+                'name': self.name,
                 'id': self.author.id,
                 'slug': self.author.slug,
                 'title': self.author.title,
