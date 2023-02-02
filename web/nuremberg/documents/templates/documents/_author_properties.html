@@ -21,7 +21,11 @@
           {{ prop.value }}
           <small>({% qualifierformat prop.qualifiers max_qualifiers=max_qualifiers max_qualifier_values=max_qualifier_values %})</small>{% if not forloop.last %}; {% endif %}
         {% else %}
+          {% if prop.value|slice:":4" == 'http' %}
+          <a href="{{ prop.value }}" title="External link to {{ item.name }}">{{ prop.value }}</a>{% if not forloop.last %}; {% endif %}
+          {% else %}
           {{ prop.value }}{% if not forloop.last %}; {% endif %}
+          {% endif %}
         {% endif %}
     {% endfor %}
   </li>
