@@ -2,7 +2,7 @@
 {% load static %}
 {% load author_properties %}
 
-<h2 data-test="author-name">{{ author.name }}</h2>
+<h2 data-test="author-name">{{ author.wikidata_name|default:author.name }}</h2>
 <h4 data-test="author-description">{{ author.description }}</h4>
 
 <img data-test="author-image"
