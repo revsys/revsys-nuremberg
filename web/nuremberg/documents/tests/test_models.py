@@ -443,11 +443,12 @@ def test_author_properties_uses_property_ranks():
     ]
     assert result == {
         'author': {
-            'name': prop_1_1.personal_author_name,
+            'name': author.full_name(),
             'id': author.id,
             'slug': author.slug,
             'title': author.title,
             'description': prop_1_1.personal_author_description,
+            'wikidata_name': prop_1_1.personal_author_name,
         },
         'image': None,
         'properties': expected,
@@ -550,11 +551,12 @@ def test_author_properties_groups_qualifiers(django_assert_num_queries):
     ]
     assert result == {
         'author': {
-            'name': first.personal_author_name,
+            'name': author.full_name(),
             'id': author.id,
             'slug': author.slug,
             'title': author.title,
             'description': first.personal_author_description,
+            'wikidata_name': first.personal_author_name,
         },
         'image': None,
         'properties': expected,
@@ -598,11 +600,12 @@ def test_author_properties_extracts_image():
         'alt': f'Image of {author.full_name()}',
     }
     author_data = {
-        'name': prop_image_1.personal_author_name,
+        'name': author.full_name(),
         'id': author.id,
         'slug': author.slug,
         'title': author.title,
         'description': prop_image_1.personal_author_description,
+        'wikidata_name': prop_image_1.personal_author_name,
     }
     assert result == {
         'author': author_data,
@@ -686,11 +689,12 @@ def test_author_properties_groups_birth_data():
     ]
     assert result == {
         'author': {
-            'name': prop_place_of_birth.personal_author_name,
+            'name': author.full_name(),
             'id': author.id,
             'slug': author.slug,
             'title': author.title,
             'description': prop_place_of_birth.personal_author_description,
+            'wikidata_name': prop_place_of_birth.personal_author_name,
         },
         'image': None,
         'properties': properties,
@@ -735,11 +739,12 @@ def test_author_properties_groups_death_data():
     ]
     assert result == {
         'author': {
-            'name': prop_place_of_death.personal_author_name,
+            'name': author.full_name(),
             'id': author.id,
             'slug': author.slug,
             'title': author.title,
             'description': prop_place_of_death.personal_author_description,
+            'wikidata_name': prop_place_of_death.personal_author_name,
         },
         'image': None,
         'properties': properties,
@@ -783,11 +788,12 @@ def test_author_properties_name_data_ignored():
 
     assert result == {
         'author': {
-            'name': first.personal_author_name,
+            'name': author.full_name(),
             'id': author.id,
             'slug': author.slug,
             'title': author.title,
             'description': first.personal_author_description,
+            'wikidata_name': first.personal_author_name,
         },
         'image': None,
         'properties': [],
@@ -974,11 +980,12 @@ def test_author_properties_dates_and_qualifiers():
     ]
     assert result == {
         'author': {
-            'name': prop_place_of_birth.personal_author_name,
+            'name': author.full_name(),
             'id': author.id,
             'slug': author.slug,
             'title': author.title,
             'description': prop_place_of_birth.personal_author_description,
+            'wikidata_name': prop_place_of_birth.personal_author_name,
         },
         'image': None,
         'properties': properties,
