@@ -449,6 +449,11 @@ class DocumentPersonalAuthor(models.Model):
                     minimal=minimal
                 )
 
+        # fallback to instance's full name if the metadata hasn't been migrated
+        # yet
+        if not result['author']['name']:
+            result['author']['name'] = self.full_name()
+
         return result
 
     def _metadata(
@@ -850,11 +855,11 @@ class DocumentAuthorExtra(models.Model):
         self, metadata, dry_run=False, force=False, save=True
     ):
         logger.info(f'Updating DocumentAuthorExtra instance for {metadata=}')
-        # image_path, image_alt = self.process_image(metadata, dry_run, force)
+        image_path, image_alt = self.process_image(metadata, dry_run, force)
         self.name = metadata['author']['name']
         self.description = metadata['author']['description']
-        # self.image = image_path
-        # self.image_alt = image_alt
+        self.image = image_path
+        self.image_alt = image_alt
         self.properties = metadata['properties']
         if save:
             self.save()
