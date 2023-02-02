@@ -449,10 +449,16 @@ class DocumentPersonalAuthor(models.Model):
                     minimal=minimal
                 )
 
-        # fallback to instance's full name if the metadata hasn't been migrated
-        # yet
-        if not result['author']['name']:
-            result['author']['name'] = self.full_name()
+        # Metadata is built from Wikidata information, ensure that the author's
+        # name is the one provided by `tblPersonalAuthor`.
+        # The `wikidata_name` is only used in two places:
+        #   1. in the author details dedicated page, and
+        #   2. in the author details fly-out.
+        # Both of these are built using the `_author_properties.html` template.
+        wikidata_name = result['author'].pop('name', None)
+        result['author']['name'] = self.full_name()
+        if wikidata_name:
+            result['author']['wikidata_name'] = wikidata_name
 
         return result
 
@@ -470,7 +476,7 @@ class DocumentPersonalAuthor(models.Model):
                 'id': self.id,
                 'slug': self.slug,
                 'title': self.title,
-                'description': '',  # To be filled from PersonalAuthorProperty
+                'description': '',  # Also taken from PersonalAuthorProperty
             },
         }
 
@@ -756,7 +762,7 @@ class PersonalAuthorProperty(models.Model):
         )
         return 'Property {} for {}: {}{}'.format(
             self.name,
-            self.personal_author.full_name(),
+            self.personal_author_name,
             self.value,
             qualifier,
         )
