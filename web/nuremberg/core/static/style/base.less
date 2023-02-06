@@ -20,46 +20,66 @@
 body.landing-page {
   @import "landing";
 }
-body.document-viewer, body.transcript-viewer, body.transcript-search, body.photographs {
+
+body.document-viewer,
+body.transcript-viewer,
+body.transcript-search,
+body.photographs {
   @import "documents";
   @import "document-printing";
 }
+
 body.document-viewer {
   @import "document-viewer";
 }
+
 body.document-search {
   @import "search";
 }
-body.transcript-viewer, body.transcript-search {
+
+body.transcript-viewer,
+body.transcript-search {
   @import "transcript-viewer";
 }
-body.document-search, body.transcript-search {
+
+body.document-search,
+body.transcript-search {
   @import "search-results";
 }
+
 body.transcript-search {
   @import "transcript-search.less";
 }
+
 body.mockups {
   background-position: top;
 
-  header, footer, main {
+  header,
+  footer,
+  main {
     opacity: 0.8;
   }
+
   &.approaches {
     background-image: url('@{image_url}/approaches-mockup.png');
   }
+
   &.landing-page {
     background-image: url('@{image_url}/landing-mockup.png');
   }
+
   &.document-viewer {
     background-image: url('@{image_url}/document-viewer-mockup.png');
   }
+
   &.transcript-viewer {
     background-image: url('@{image_url}/transcript-viewer-mockup.png');
   }
+
   &.document-search {
     background-image: url('@{image_url}/search-results-mockup.png');
   }
+
   &.transcript-search {
     background-image: url('@{image_url}/transcript-search-mockup.png');
   }
@@ -87,14 +107,18 @@ img {
   height: auto;
 }
 
-div, button, a, input, li, section, footer {
+div,
+button,
+a,
+input,
+li,
+section,
+footer {
   background-repeat: no-repeat;
   background-position: center;
 }
 
-.h4 {
-
-}
+.h4 {}
 
 a.bypass-link {
   position: fixed;
@@ -132,13 +156,18 @@ a.bypass-link {
   display: none;
   position: absolute;
   background-color: #f1f1f1;
+  right: 90%;
   min-width: 500px;
-  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
   z-index: 10;
-  padding: 10px;
+  padding: 20px;
+  max-width: 90vw;
+  border: 1px solid #aaa;
 }
 
-.dropdown:hover .dropdown-content {display: block;}
+.dropdown:hover .dropdown-content {
+  display: block;
+}
 
 .dropdown-content ul {
   font-size: 95%;
@@ -153,7 +182,7 @@ a.bypass-link {
   line-height: 180%;
 }
 
-.dropdown-content .see-more-details{
+.dropdown-content .see-more-details {
   float: right;
 }
 
@@ -168,4 +197,9 @@ body.analyst-report {
     margin: 0;
   }
 
+}
+
+/* Author hover box styles */
+.author-hover-content {
+  display: none;
 }

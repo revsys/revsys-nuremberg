@@ -26,6 +26,19 @@
     </script>
     {% endif %}
   {% endfor %}
+
+  <script type="text/javascript">
+  // Author hover setup
+  var authorHovers = document.getElementsByClassName('author-hover');
+  console.log("authorHovers");
+  console.dir(authorHovers);
+  for (var i = 0; i < authorHovers.length; i++) {
+    var hoverContent = authorHovers[i].querySelector('.author-hover-content');
+    Popper.createPopper(authorHovers[i], hoverContent, {
+      placement: 'left-start',
+    });
+  }
+  </script>
 {% endblock javascript %}
 
 {% block content %}
