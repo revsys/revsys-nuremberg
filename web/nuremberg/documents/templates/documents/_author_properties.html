@@ -16,7 +16,7 @@
 {% for item in properties %}
   <li data-test="author-property">
     <strong>{{ item.name|capfirst }}:</strong>
-    {% for prop in item.prop_values %}
+    {% for prop in item.prop_values|slice:max_property_values %}
         {% if prop.qualifiers %}
           {{ prop.value }}
           <small>({% qualifierformat prop.qualifiers max_qualifiers=max_qualifiers max_qualifier_values=max_qualifier_values %})</small>{% if not forloop.last %}; {% endif %}

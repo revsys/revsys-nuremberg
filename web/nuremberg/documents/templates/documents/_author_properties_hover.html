@@ -10,7 +10,7 @@
             {% if author_prop.properties %}
             <p><a class="see-more-details" href="{% url 'documents:author' author_id=author_prop.author.id author_slug=author_prop.author.slug %}">See more details</a></p>
             {% endif %}
-            {% include 'documents/_author_properties.html' with author=author_prop.author image=author_prop.image properties=author_prop.properties|slice:":8" max_qualifiers=3 max_qualifier_values=3 %}
+            {% include 'documents/_author_properties.html' with author=author_prop.author image=author_prop.image properties=author_prop.properties|slice:":8" max_property_values=4 max_qualifiers=3 max_qualifier_values=3 %}
           </div>
       </div>
 {% endwith %}
