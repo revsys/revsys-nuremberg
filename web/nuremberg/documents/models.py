@@ -2,10 +2,12 @@ import logging
 import operator
 import re
 from collections import defaultdict
+from urllib.parse import urlencode
 
 from django.db import models
 from django.db.models import Case, Count, Subquery, Value, When
 from django.db.models.functions import Concat
+from django.urls import reverse
 from django.utils.functional import cached_property
 from django.utils.text import slugify
 
@@ -962,6 +964,9 @@ class DocumentCitation(models.Model):
     transcript_page_number_suffix = models.TextField(
         db_column='EngTransPageNoSuffix', null=True
     )
+    transcript_seq_number = models.IntegerField(
+        db_column='TranscriptCitationSeqNo'
+    )
 
     class Meta:
         managed = False
@@ -970,10 +975,29 @@ class DocumentCitation(models.Model):
     def __str__(self):
         result = (
             f'{self.document} | {self.case} | {self.date} | '
-            '{self.transcript_page_number}'
+            f'{self.transcript_page_number}'
         )
         if self.transcript_page_number_suffix:
             result += f'-{self.transcript_page_number_suffix}'
+        result += f' ({self.transcript_seq_number})'
+        return result
+
+    @cached_property
+    def transcript_link(self):
+        result = None
+        if self.case.transcript:
+            t_id = self.case.transcript.id
+            qs = None
+            if self.transcript_seq_number is None:
+                qs = {'page': self.transcript_page_number}
+            elif self.transcript_seq_number > 0:
+                qs = {'seq': self.transcript_seq_number}
+            if qs:
+                result = (
+                    reverse('transcripts:show', args=(t_id,))
+                    + '?'
+                    + urlencode(qs)
+                )
         return result
 
     @cached_property

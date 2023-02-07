@@ -208,21 +208,14 @@
         {% endfor %}
         {% endwith %}
 
-        {% with document.citations.all as citations %}
         {% if citations %}
         <p>
           <strong>Citation{{ citations|length|pluralize }}:</strong>
           {% for citation in citations %}
-            {% if citation.case.transcript %}
-            <a href="{% url 'transcripts:show' citation.case.transcript.id %}?page={{ citation.transcript_page_number }}">
-              {{ citation.case.tag_name }} (page {{ citation.transcript_page_number }})</a>{% if not forloop.last %}, {% endif %}
-          {% else %}
-              {{ citation.case.tag_name }} (page {{ citation.transcript_page_number }}){% if not forloop.last %}, {% endif %}
-          {% endif %}
+          <a href="{{ citation.transcript_link }}">{{ citation.case.tag_name }} (page {{ citation.transcript_page_number }})</a>{% if not forloop.last %}, {% endif %}
           {% endfor %}
         </p>
         {% endif %}
-        {% endwith %}
 
         <p>
           <strong>HLSL Item No.:</strong>
