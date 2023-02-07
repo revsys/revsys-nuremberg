@@ -61,6 +61,9 @@ class Show(View):
                 'hlsl_item_id': hlsl_item_id,
                 'mode': mode,
                 'evidence_codes': evidence_codes,
+                'citations': [
+                    c for c in document.citations.all() if c.transcript_link
+                ],
                 'query': query,
             },
         )
