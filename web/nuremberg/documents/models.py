@@ -984,8 +984,11 @@ class DocumentCitation(models.Model):
 
     @cached_property
     def transcript_link(self):
+        try:
+            transcript = getattr(self.case, 'transcript', None)
+        except DocumentCase.DoesNotExist:
+            transcript = None
         result = None
-        transcript = getattr(self.case, 'transcript', None)
         if transcript is not None:
             qs = None
             if self.transcript_seq_number is None:

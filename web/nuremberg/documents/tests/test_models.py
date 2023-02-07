@@ -7,6 +7,7 @@ from django.utils.text import slugify
 
 from nuremberg.documents.models import (
     Document,
+    DocumentCase,
     DocumentDate,
     DocumentPersonalAuthor,
     DocumentText,
@@ -129,7 +130,17 @@ def test_document_citations_zero():
     assert doc.citations.all().count() == 0
 
 
-def test_document_citations_transcrip_does_not_exist():
+def test_document_citations_case_does_not_exist():
+    doc = baker.make('Document')
+    invalid_case_id = 100
+    assert DocumentCase.objects.filter(id=invalid_case_id).count() == 0
+    baker.make('DocumentCitation', document=doc, case_id=invalid_case_id)
+
+    assert doc.citations.all().count() == 1
+    assert doc.citations.get().transcript_link is None
+
+
+def test_document_citations_transcript_does_not_exist():
     doc = baker.make('Document')
     citation = baker.make('DocumentCitation', document=doc)
 
@@ -139,7 +150,7 @@ def test_document_citations_transcrip_does_not_exist():
     assert doc.citations.get().transcript_link is None
 
 
-def test_document_citations_transcrip_link_none():
+def test_document_citations_transcript_link_none():
     doc = baker.make('Document')
     citation = baker.make(
         'DocumentCitation',
@@ -155,7 +166,7 @@ def test_document_citations_transcrip_link_none():
     assert doc.citations.get().transcript_link is None
 
 
-def test_document_citations_transcrip_link_page_number():
+def test_document_citations_transcript_link_page_number():
     doc = baker.make('Document')
     citation = baker.make(
         'DocumentCitation',
@@ -174,7 +185,7 @@ def test_document_citations_transcrip_link_page_number():
     )
 
 
-def test_document_citations_transcrip_link_seq_number():
+def test_document_citations_transcript_link_seq_number():
     doc = baker.make('Document')
     citation = baker.make(
         'DocumentCitation',
