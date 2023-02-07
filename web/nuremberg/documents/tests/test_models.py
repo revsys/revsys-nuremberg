@@ -2,6 +2,7 @@ import datetime
 
 import pytest
 from model_bakery import baker
+from django.urls import reverse
 from django.utils.text import slugify
 
 from nuremberg.documents.models import (
@@ -120,6 +121,76 @@ def test_document_retrieve_full_text_real_473():
         assert result.id == 473
         assert doc.full_text == result
         assert doc.text == result.text
+
+
+def test_document_citations_zero():
+    doc = baker.make('Document')
+
+    assert doc.citations.all().count() == 0
+
+
+def test_document_citations_transcrip_does_not_exist():
+    doc = baker.make('Document')
+    citation = baker.make('DocumentCitation', document=doc)
+
+    assert citation.case is not None
+    assert getattr(citation.case, 'transcript', None) is None
+    assert doc.citations.all().count() == 1
+    assert doc.citations.get().transcript_link is None
+
+
+def test_document_citations_transcrip_link_none():
+    doc = baker.make('Document')
+    citation = baker.make(
+        'DocumentCitation',
+        document=doc,
+        transcript_seq_number=0,
+        transcript_page_number=42,
+    )
+    transcript = baker.make('Transcript', case=citation.case)
+
+    assert citation.case is not None
+    assert getattr(citation.case, 'transcript', None) is transcript
+    assert doc.citations.all().count() == 1
+    assert doc.citations.get().transcript_link is None
+
+
+def test_document_citations_transcrip_link_page_number():
+    doc = baker.make('Document')
+    citation = baker.make(
+        'DocumentCitation',
+        document=doc,
+        transcript_seq_number=None,
+        transcript_page_number=42,
+    )
+    transcript = baker.make('Transcript', case=citation.case)
+
+    assert citation.case is not None
+    assert getattr(citation.case, 'transcript', None) is transcript
+    assert doc.citations.all().count() == 1
+    assert (
+        doc.citations.get().transcript_link
+        == reverse('transcripts:show', args=(transcript.id,)) + '?page=42'
+    )
+
+
+def test_document_citations_transcrip_link_seq_number():
+    doc = baker.make('Document')
+    citation = baker.make(
+        'DocumentCitation',
+        document=doc,
+        transcript_seq_number=230,
+        transcript_page_number=42,
+    )
+    transcript = baker.make('Transcript', case=citation.case)
+
+    assert citation.case is not None
+    assert getattr(citation.case, 'transcript', None) is transcript
+    assert doc.citations.all().count() == 1
+    assert (
+        doc.citations.get().transcript_link
+        == reverse('transcripts:show', args=(transcript.id,)) + '?seq=230'
+    )
 
 
 def test_document_retrieve_external_metadata_empty():

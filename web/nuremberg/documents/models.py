@@ -985,8 +985,8 @@ class DocumentCitation(models.Model):
     @cached_property
     def transcript_link(self):
         result = None
-        if self.case.transcript:
-            t_id = self.case.transcript.id
+        transcript = getattr(self.case, 'transcript', None)
+        if transcript is not None:
             qs = None
             if self.transcript_seq_number is None:
                 qs = {'page': self.transcript_page_number}
@@ -994,7 +994,7 @@ class DocumentCitation(models.Model):
                 qs = {'seq': self.transcript_seq_number}
             if qs:
                 result = (
-                    reverse('transcripts:show', args=(t_id,))
+                    reverse('transcripts:show', args=(transcript.id,))
                     + '?'
                     + urlencode(qs)
                 )
