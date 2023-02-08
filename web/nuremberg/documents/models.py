@@ -432,6 +432,12 @@ class DocumentPersonalAuthor(models.Model):
         else:
             return self.first_name or self.last_name or 'Unknown'
 
+    @cached_property
+    def name_and_title(self):
+        return ', '.join(
+            j for j in (self.last_name, self.first_name, self.title) if j
+        )
+
     def metadata(self, minimal=False, ranks=None, backfill=False):
         try:
             result = self.extra.as_dict(minimal=minimal)
