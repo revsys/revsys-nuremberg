@@ -26,6 +26,7 @@
       {% if case.processed %}
       {% with image_path='images/trials/'|add:case.image_path %}
       <img src="{% static image_path %}" alt="Photograph for trial {{ case.name }}" />
+      <p>{{ case.alias }}</p>
       {% endwith %}
       {% endif %}
       </td>
