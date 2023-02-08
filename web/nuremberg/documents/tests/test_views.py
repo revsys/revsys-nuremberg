@@ -226,7 +226,7 @@ def test_author_properties_empty_properties():
         '',
         image_url,
         image_alt,
-        'Additional biographical details not yet available.',
+        'Additional details not yet available.',
     )
 
 
