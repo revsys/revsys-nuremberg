@@ -1,3 +1,4 @@
+import operator
 import re
 from collections import deque
 
@@ -330,8 +331,12 @@ class AdvancedDocumentSearchForm(forms.Form):
     AUTHOR_CHOICES = lazy(
         lambda: [CHOICE_EMPTY]
         + sorted(
-            (i.full_name(), i.full_name())
-            for i in DocumentPersonalAuthor.objects.all()
+            (
+                (i.full_name(), i.name_and_title)
+                for i in DocumentPersonalAuthor.objects.all()
+                if i.name_and_title
+            ),
+            key=operator.itemgetter(1),
         )
         + sorted(
             (i.name, i.name)
