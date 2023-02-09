@@ -34,16 +34,16 @@ def test_search_page(query):
 
     search_bar = page('input[type="search"]')
     assert search_bar
-    assert search_bar.val() == '*'
+    assert search_bar.val() == ''
 
     assert re.findall(
-        r'Results 1-15 of \d+ for \*', page(SEARCH_SUMMARY_SELECTOR).text()
+        r'Results 1-15 of \d+', page(SEARCH_SUMMARY_SELECTOR).text()
     )
     assert re.findall(r'Document \(\d+\)', page('.facet').text())
 
     page = follow_link(page('.facet p').with_text('Transcript').find('a'))
 
-    assert 'Results 1-7 of 7 for *' in page(SEARCH_SUMMARY_SELECTOR).text()
+    assert 'Results 1-7 of 7' in page(SEARCH_SUMMARY_SELECTOR).text()
     assert 'Document' not in page('.facet').text()
     filter_link = (
         page('.applied-filters')
@@ -179,18 +179,17 @@ def count_results(query):
     def _count(q, count=None, page_count=15, first_count=1):
         page = query(q)
         matches = re.findall(
-            r'Results (\d+)-(\d+) of (\d+) for (.*)',
+            r'Results (\d+)-(\d+) of (\d+)',
             page('.results-count').text(),
         )
         assert len(matches) == 1
-        [(first, page_size, total, search_query)] = matches
+        [(first, page_size, total)] = matches
         assert int(first) == first_count
         assert int(page_size) == page_count
         if count is None:
             assert int(total) > 0
         else:
             assert int(total) == count
-        assert search_query == q
         return int(total)
 
     return _count
@@ -219,8 +218,8 @@ def test_field_search(count_results):
     count_results('workers author:"hitler adolf"', 0, 0, 0)
     count_results('workers author:"adolf hitler"')
     count_results('workers exhibit:prosecution')
-    count_results('* author:"adolf hitler" -author:adolf', 0, 0, 0)
-    count_results('* exhibit:handloser')
+    count_results('author:"adolf hitler" -author:adolf', 0, 0, 0)
+    count_results('exhibit:handloser')
     count_results('malaria')
     count_results('freezing')
     count_results('malaria freezing')
@@ -363,7 +362,7 @@ def test_pagination(query):
     page = query('')
 
     matches = re.findall(
-        r'Results 1-15 of (\d+) for \*', page(SEARCH_SUMMARY_SELECTOR).text()
+        r'Results 1-15 of (\d+)', page(SEARCH_SUMMARY_SELECTOR).text()
     )
     assert matches
 
@@ -372,7 +371,7 @@ def test_pagination(query):
     total_search_results = int(matches[0])
     i = total_search_results - (total_search_results % 15) + 1
     assert (
-        f'Results {i}-{total_search_results} of {total_search_results} for *'
+        f'Results {i}-{total_search_results} of {total_search_results}'
         in page(SEARCH_SUMMARY_SELECTOR).text()
     )
 
