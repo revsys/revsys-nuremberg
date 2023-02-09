@@ -45,7 +45,7 @@ def test_transcript_search(seq):
 
     search_bar = page('input[type="search"]')
     assert search_bar
-    assert search_bar.val() == "*"
+    assert search_bar.val() == ""
 
     assert not page('mark').text()
     assert page('a').with_text('Page 26')
@@ -189,7 +189,7 @@ def test_evidence_links(seq):
     page = follow_link(page('a').with_text('NO-417'))
 
     matches = re.findall(
-        r'Results 1-\d+ of \d+ for \* evidence:"NO-417"', page.text()
+        r'Results 1-\d+ of \d+ for evidence:"NO-417"', page.text()
     )
     assert matches
     assert (
@@ -211,7 +211,7 @@ def test_exhibit_links(seq):
     page = follow_link(page('a').with_text('61'))
 
     matches = re.findall(
-        r'Results 1-\d+ of \d+ for \* exhibit:"Prosecution 61"', page.text()
+        r'Results 1-\d+ of \d+ for exhibit:"Prosecution 61"', page.text()
     )
     assert matches
     assert (
@@ -230,7 +230,7 @@ def test_exhibit_links(seq):
     page = seq(6267)
     page = follow_link(page('a').with_text('8'))
 
-    assert 'Results 1-2 of 2 for * exhibit:"Rose 8"' in page.text()
+    assert 'Results 1-2 of 2 for exhibit:"Rose 8"' in page.text()
     assert (
         'Extract from a report of a conference of consulting specialists, '
         'concerning dysentery' in page.text()
