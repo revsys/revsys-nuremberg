@@ -17,7 +17,7 @@
     {% csrf_token %}
     <p>{% trans 'Match all entered search terms below' %}</p>
     {% for field in form %}
-      {% if field.name != 'match' and field.name != 'evidence' and field.name != 'exhibit' and field.name != 'book' and '_' not in field.name %}
+      {% if field.name != 'evidence' and field.name != 'exhibit' and field.name != 'book' and '_' not in field.name %}
       <div class="{% if field.errors %}has-error{% endif %}">
       <p>{{ field.label_tag }} {{ field }}</p>
       {% for error in field.errors %}
@@ -47,6 +47,12 @@
       <p><small class="has-error">{{ error }}</small></p>
       {% endfor %}
       </div>
+
+      <div class="{% if form.year_range.errors %}has-error{% endif %}">
+      <p>{{ form.year_range.label_tag }} {{ form.year_range }}</p>
+      {% for error in form.year_range.errors %}
+      <p><small class="has-error">{{ error }}</small></p>
+      {% endfor %}
 
       <button class="button search-button" type="submit">Advanced Search</button>
 
