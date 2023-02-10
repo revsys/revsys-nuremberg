@@ -75,6 +75,45 @@ def test_advanced_search_form_as_search_qs_cleaned_data():
     assert form.as_search_qs() == expected
 
 
+def test_advanced_search_form_as_search_qs_year_range():
+    data = {'year_range_start': ''}
+    form = AdvancedDocumentSearchForm(data)
+    assert form.is_valid(), form.errors
+
+    assert form.as_search_qs() == ''
+
+    data['year_range_start'] = '1948'
+    form = AdvancedDocumentSearchForm(data)
+    assert form.is_valid(), form.errors
+
+    assert form.as_search_qs() == 'date:1948'
+
+    data['year_range_end'] = '1948'  # start was already set to 1948
+    form = AdvancedDocumentSearchForm(data)
+    assert form.is_valid(), form.errors
+
+    assert form.as_search_qs() == 'date:1948'
+
+    data['year_range_start'] = '1940'
+    data['year_range_end'] = '1945'
+    form = AdvancedDocumentSearchForm(data)
+    assert form.is_valid(), form.errors
+
+    assert form.as_search_qs() == 'date:1940|1941|1942|1943|1944|1945'
+
+    # invalid value for an int
+    data = {'year_range_start': 'PS'}
+    form = AdvancedDocumentSearchForm(data)
+    assert not form.is_valid()
+    assert sorted(form.errors.keys()) == ['year_range']
+
+    # invalid value for an int
+    data = {'year_range_end': 'not a number'}
+    form = AdvancedDocumentSearchForm(data)
+    assert not form.is_valid()
+    assert sorted(form.errors.keys()) == ['year_range']
+
+
 def test_advanced_search_form_as_search_qs_evidence():
     data = {
         'evidence': 'PS',
