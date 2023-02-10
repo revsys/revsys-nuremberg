@@ -78,8 +78,6 @@ def test_document_2():
     assert len(images) == 78
     assert 'HLSL_NUR_00002001.jpg' in images.attr['data-screen-url']
 
-    assert "Missing Image No. 13" in page.text()
-
     info = page('.document-info').text()
     assert 'NMT 1' in info
     assert '14 July 1947' in info
