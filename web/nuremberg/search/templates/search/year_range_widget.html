@@ -1,0 +1,3 @@
+{% for subwidget in widget.subwidgets %}
+  {% include subwidget.template_name with widget=subwidget %}{% if not forloop.last %} to {% endif %}
+{% endfor %}

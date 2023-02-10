@@ -326,6 +326,60 @@ class DocumentSearchForm(EmptyFacetsSearchForm, FieldedSearchForm):
 CHOICE_EMPTY = ('', _('Choose one...'))
 
 
+class YearRangeWidget(forms.MultiWidget):
+
+    template_name = 'search/year_range_widget.html'
+
+    def __init__(self, attrs=None):
+        if attrs is None:
+            attrs = {'size': 4}
+        widgets = {
+            'start': forms.NumberInput(attrs={'placeholder': 1898, **attrs}),
+            'end': forms.NumberInput(attrs={'placeholder': 1948, **attrs}),
+        }
+        super().__init__(widgets, attrs)
+
+    def decompress(self, value):
+        if value is None:
+            value = [None, None]
+        return value
+
+    def value_from_datadict(self, data, files, name):
+        value = super().value_from_datadict(data, files, name)
+        value = [i for i in value if i]  # drop empty values
+        if not value:
+            value = None
+        return value
+
+
+class YearRangeField(forms.MultiValueField):
+
+    ERROR_MSG = _('Enter a valid year range for document creation date.')
+
+    def __init__(self, **kwargs):
+        # Define one message for all fields.
+        error_messages = {
+            'incomplete': self.ERROR_MSG,
+            'invalid': self.ERROR_MSG,
+        }
+        fields = (
+            forms.IntegerField(required=False),
+            forms.IntegerField(required=False),
+        )
+        super().__init__(
+            error_messages=error_messages,
+            fields=fields,
+            widget=YearRangeWidget(),
+            require_all_fields=False,
+            **kwargs,
+        )
+
+    def compress(self, data_list):
+        # The list of years [start, end] is exactly what we need, though remove
+        # empty values from it
+        return sorted(i for i in data_list if i)
+
+
 class AdvancedDocumentSearchForm(forms.Form):
 
     AUTHOR_CHOICES = lazy(
@@ -443,6 +497,10 @@ class AdvancedDocumentSearchForm(forms.Form):
     language = forms.ChoiceField(required=False, choices=LANGUAGE_CHOICES)
     source = forms.ChoiceField(required=False, choices=SOURCE_CHOICES)
 
+    year_range = YearRangeField(
+        label=_('Document Creation Year Range'), required=False
+    )
+
     # Evidence, Exhibit and Book fields should really be MultiValueField
     # https://docs.djangoproject.com/en/4.1/ref/forms/fields/#multivaluefield
 
@@ -557,6 +615,12 @@ class AdvancedDocumentSearchForm(forms.Form):
             if value:
                 terms.append(f'{term}:"{value}"')
 
+        # year range for document creation date
+        year_range = data.get('year_range')
+        if year_range:
+            years = [str(i) for i in range(year_range[0], year_range[-1] + 1)]
+            terms.append(f'date:{"|".join(years)}')
+
         # special treatment, uses `_code` suffix for field name
         for term in ('evidence', 'exhibit', 'book'):
             value = data.get(f'{term}_code')
@@ -571,46 +635,58 @@ class AdvancedDocumentSearchForm(forms.Form):
     def from_search_qs(cls, qs, errors=None):
         # This assumes AND operation between search fields
         expr = re.compile(r'([a-z0-9_]+):("[^"]+"|[^"\s]+)\s*')
-        initial = {}
+        data = {}
         for k, v in expr.findall(qs):
             v = v.strip('"')
-            if k in initial:
+            if k in data:
                 # support advanced search syntax using multiple occurrences of
                 # the same field name, for example:
                 # q=keywords:euthanasia keywords:disabled
-                # should result in initial['keywords'] = 'euthanasia disabled'
-                initial[k] += ' ' + v
+                # should result in data['keywords'] = 'euthanasia disabled'
+                data[k] += ' ' + v
             else:
-                initial[k] = v
+                data[k] = v
+
+        # handle year range
+        try:
+            years = sorted(
+                int(i) for i in data.pop('date', '').split('|') if i
+            )
+        except ValueError:
+            # ignore invalid year values given in the query string
+            years = []
+        if years:
+            data['year_range_start'] = years[0]
+            data['year_range_end'] = years[-1]
 
         # handle evidence code
-        evidence = initial.get('evidence')
+        evidence = data.get('evidence')
         if evidence:
             matches = EVIDENCE_CODE_RE.match(evidence)
             if matches:
                 evidence, evidence_num, evidence_suffix = matches.groups()
-                initial['evidence'] = evidence
-                initial['evidence_num'] = evidence_num
-                initial['evidence_suffix'] = evidence_suffix
+                data['evidence'] = evidence
+                data['evidence_num'] = evidence_num
+                data['evidence_suffix'] = evidence_suffix
 
         # handle exhibit and book codes similarly to how evidence is handled
-        exhibit = initial.get('exhibit')
+        exhibit = data.get('exhibit')
         if exhibit:
             matches = EXHIBIT_CODE_RE.match(exhibit)
             if matches:
                 exhibit, exhibit_num = matches.groups()
-                initial['exhibit'] = exhibit
-                initial['exhibit_num'] = exhibit_num
+                data['exhibit'] = exhibit
+                data['exhibit_num'] = exhibit_num
 
-        book = initial.get('book')
+        book = data.get('book')
         if book:
             matches = EXHIBIT_CODE_RE.match(book)
             if matches:
                 book, book_num = matches.groups()
-                initial['book'] = book
-                initial['book_num'] = book_num
+                data['book'] = book
+                data['book_num'] = book_num
 
-        result = cls(data=initial)
+        result = cls(data=data)
 
         if errors:
             result.cleaned_data = {}
