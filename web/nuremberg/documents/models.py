@@ -904,6 +904,9 @@ class DocumentCase(models.Model):
     tag_name = models.CharField(db_column='TrialName', max_length=200)
     alias = models.CharField(db_column='TrialNameAlias', max_length=200)
     description = models.TextField(db_column='Description')
+    image_caption = models.CharField(
+        db_column='TrialImageCaption', max_length=500
+    )
     notes = models.TextField(db_column='Note')
 
     documents = models.ManyToManyField(
