@@ -66,7 +66,6 @@ input[type=search] {
 
   max-width: 560px;
   margin-right: 5px;
-  padding-left: 34px;
 
   &:-webkit-autofill,
   &:-webkit-autofill:hover,
@@ -79,23 +78,6 @@ input[type=search] {
     display: none;
   }
 
-  &.search-icon-hidden {
-    padding-left: 10px;
-  }
-
-}
-
-.search-icon {
-  display: inline-block;
-  width: 18px;
-  height: 18px;
-  margin-left: -18px;
-
-  position: relative;
-  left: 31px;
-  top: 3px;
-
-  background-image: url('@{image_url}/search-icon.png') !important;
 }
 
 .search-bar-wrapper {
@@ -136,8 +118,7 @@ input[type=number],
 
   height: 15px;
   width: 100%;
-  padding-top: 10px;
-  padding-bottom: 10px;
+  padding: 10px;
 
   background-color: @white;
   border: 1px solid @light-gray;
