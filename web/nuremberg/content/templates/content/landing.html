@@ -118,12 +118,12 @@
   <div class="three-column-layout trial-preview">
     <div class="column trial-image">
       {% with image_path='images/trials/'|add:case.image_path %}
-      <img src="{% static image_path %}" alt="{{ caption }}" />
+      <img src="{% static image_path %}" alt="{{ case.image_caption }}" />
       {% endwith %}
-      <p class="module">{{ caption }}</p>
+      <p class="module">{{ case.image_caption }}</p>
     </div>
     <div class="column trial-links">
-      <h3>{{ case.tag_name }}</h3>
+      <a class="button tag-button" href="{% url 'content:'|add:case.code_name %}">Overview</a>
       <a class="button tag-button" href="/search/?q=trial:{{ case.code_name }}&m=documents">Documents</a>
       <a class="button tag-button" href="/transcripts/{{ case.transcript.id }}?seq=1&q=+type:transcripts">Transcripts</a>
       <a class="button tag-button" href="{% url 'content:'|add:case.code_name %}#persons">Defendants</a>
@@ -133,7 +133,7 @@
     </div>
   </div>
   <footer>
-    <a class="teaser" href="{% url 'content:trials' %}"> Read about the trials </a>
+    <a class="teaser" href="{% url 'content:trials' %}"> Access all the trials </a>
   </footer>
 </section>
 
