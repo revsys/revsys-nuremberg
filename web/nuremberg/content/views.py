@@ -20,7 +20,6 @@ class LandingView(ContentView):
     context = {
         'query': '',
         'case': DocumentCase.objects.get(tag_name='IMT'),
-        'caption': 'Hermann Göring, Karl Dönitz, Rudolf Hess',
         'reports': AnalystReport.objects.all(),
     }
 
