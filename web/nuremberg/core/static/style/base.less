@@ -165,24 +165,41 @@ a.bypass-link {
   border: 1px solid #aaa;
 }
 
-.dropdown:hover .dropdown-content {
-  display: block;
+.author-hover-link {
+  position: relative;
+  display: inline-block;
 }
 
-.dropdown-content ul {
+.author-hover-content {
+  display: none;
+  background-color: #f1f1f1;
+  min-width: 500px;
+  max-width: 90vw;
+  max-height: 90vh;
+  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+  padding: 20px;
+  border: 1px solid #aaa;
+  z-index: 10;
+
+  &[data-show] {
+    display: block;
+  }
+}
+
+.author-hover-content ul {
   font-size: 95%;
   margin: 0;
   padding: 0;
 }
 
-.dropdown-content ul li {
+.author-hover-content ul li {
   list-style-type: none;
   margin: 0;
   padding: 0;
   line-height: 180%;
 }
 
-.dropdown-content .see-more-details {
+.author-hover-content .see-more-details {
   float: right;
 }
 
@@ -197,9 +214,4 @@ body.analyst-report {
     margin: 0;
   }
 
-}
-
-/* Author hover box styles */
-.author-hover-content {
-  display: none;
 }

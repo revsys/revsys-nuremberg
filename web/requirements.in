@@ -25,6 +25,9 @@ django-static-precompiler
 django-storages
 pillow
 
+# ViteJS Integration
+django-vite
+
 # Web Server (non-development)
 gunicorn
 whitenoise
