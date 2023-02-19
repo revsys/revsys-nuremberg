@@ -74,7 +74,7 @@ RUN apt update; apt -y install curl
 
 RUN  tar -xzC /node --strip-components=1 -f <( curl -sL https://nodejs.org/dist/v18.12.1/node-v18.12.1-linux-x64.tar.gz )
 
-RUN --mount=type=bind,source=web/requirements.prod.txt,target=/requirements.txt \
+RUN --mount=type=bind,source=web/requirements.txt,target=/requirements.txt \
     pip install -r /requirements.txt
 
 WORKDIR /node
@@ -115,6 +115,7 @@ FROM release as tester
 
 USER 0
 
+WORKDIR /nuremberg
 ENV SECRET_KEY xx
 ENV SOLR_URL http://solr:8983/solr/nuremberg_dev
 ENV DJANGO_SETTINGS_MODULE nuremberg.test_settings
@@ -124,12 +125,9 @@ ENV pytest_github_report true
 COPY web/requirements.in web/requirements.in
 COPY justfile /code/
 
-RUN --mount=type=cache,target=/root/.cache \
-    pip install $( just _test-packages ) pytest-github-report
-
 RUN python -m zipfile -e /code/data/nuremberg_prod_dump_latest.sqlite3.zip /tmp
 
-RUN ./manage.py collectstatic; chmod -R 777 /code/static
+RUN ./manage.py collectstatic; chmod -R 777 /nuremberg/static
 RUN ./manage.py migrate
 
 

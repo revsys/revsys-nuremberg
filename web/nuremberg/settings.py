@@ -1,18 +1,13 @@
 import environ
 import os
-
+from pathlib import Path
 
 # Load the environment smartly
 env = environ.Env()
 environ.Env.read_env()
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = env.str(
-    'BASE_DIR',
-    os.path.dirname(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    ),
-)
+BASE_DIR = Path(__file__).parent.parent
 
 LOCAL_DEVELOPMENT = env.bool("LOCAL_DEVELOPMENT", default=False)
 
@@ -47,6 +42,7 @@ INSTALLED_APPS = [
     'compressor',
     'haystack',
     'static_precompiler',
+    'django_vite',
 ]
 
 MIDDLEWARE = [
@@ -121,7 +117,6 @@ USE_L10N = True
 USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/1.9/howto/static-files/
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
@@ -132,6 +127,7 @@ STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
     'compressor.finders.CompressorFinder',
+    'static_precompiler.finders.StaticPrecompilerFinder',
 ]
 
 COMPRESS_CSS_FILTERS = [
@@ -141,9 +137,7 @@ COMPRESS_CSS_FILTERS = [
 
 # Compress supports precompilers, but static_precompiler has better watch features for dev
 #
-# COMPRESS_PRECOMPILERS = (
-#     ('text/less', 'lessc {infile} {outfile}'),
-# )
+COMPRESS_PRECOMPILERS = (('text/less', 'lessc {infile} {outfile}'),)
 
 COMPRESS_STORAGE = 'compressor.storage.GzipCompressorFileStorage'
 
@@ -151,6 +145,10 @@ COMPRESS_STORAGE = 'compressor.storage.GzipCompressorFileStorage'
 # https://warehouse.python.org/project/whitenoise/
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+
+STATICFILES_DIRS = [
+    BASE_DIR.joinpath("frontend/dist/").as_posix(),
+]
 
 SOLR_URL = env('SOLR_URL', default='http://solr:8983/solr/nuremberg_dev')
 
@@ -220,6 +218,12 @@ if not LOCAL_DEVELOPMENT:
 # DOCUMENTS_URL = f'http://s3.amazonaws.com/nuremberg-documents/'
 # TRANSCRIPTS_URL = f'http://s3.amazonaws.com/nuremberg-transcripts/'
 
+#############################################################################
+# ViteJS Settings
+#############################################################################
+DJANGO_VITE_DEV_MODE = False
+DJANGO_VITE_DEV_SERVER_PORT = 5173
+DJANGO_VITE_ASSETS_PATH = BASE_DIR.joinpath("frontend/dist/").as_posix()
 
 ##############################################################################
 # Local Development Settings
@@ -228,7 +232,7 @@ if not LOCAL_DEVELOPMENT:
 if LOCAL_DEVELOPMENT:
     SECRET_KEY = 'supersecret'
     DEBUG = True
-    COMPRESS_ENABLED = False
+    COMPRESS_ENABLED = True
 
     CACHES = {
         'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}
