@@ -1,12 +1,12 @@
 {% load search_url %}
 
 {% with author_prop.author.name as full_name %}
-      <div class="dropdown">
+      <div class="author-hover-link">
           <p>
             <a href="{% search_query author=full_name %}" aria-label="search for author {{ full_name }}">{{ full_name }}</a>
             {% if include_title %}({{ author_prop.author.title }}){% endif %}
           </p>
-          <div class="dropdown-content">
+          <div class="author-hover-content">
             {% if author_prop.properties %}
             <p><a class="see-more-details" href="{% url 'documents:author' author_id=author_prop.author.id author_slug=author_prop.author.slug %}">See more details</a></p>
             {% endif %}

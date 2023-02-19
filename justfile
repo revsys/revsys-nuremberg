@@ -44,7 +44,6 @@ registry:
 # rebuild requirements files
 regen-requirements:
     docker compose run web pip-compile requirements.in -o requirements.txt
-    docker compose run web pip-compile <( head -n$( grep -n "# Dev" requirements.in | cut -d":" -f1 ) requirements.in  ) -o requirements.prod.txt
 
 
 _test-packages:
