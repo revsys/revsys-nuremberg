@@ -1,0 +1,26 @@
+{
+  "src/assets/react.svg": {
+    "file": "react-35ef61ed.svg",
+    "src": "src/assets/react.svg"
+  },
+  "src/authorHover.jsx": {
+    "file": "author-87b384d9.js",
+    "isEntry": true,
+    "src": "src/authorHover.jsx"
+  },
+  "src/main.css": {
+    "file": "main-d526a0c5.css",
+    "src": "src/main.css"
+  },
+  "src/main.jsx": {
+    "assets": [
+      "react-35ef61ed.svg"
+    ],
+    "css": [
+      "main-d526a0c5.css"
+    ],
+    "file": "main-f59553ba.js",
+    "isEntry": true,
+    "src": "src/main.jsx"
+  }
+}
