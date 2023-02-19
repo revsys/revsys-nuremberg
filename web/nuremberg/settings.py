@@ -148,7 +148,7 @@ COMPRESS_STORAGE = 'compressor.storage.GzipCompressorFileStorage'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 STATICFILES_DIRS = [
-    BASE_DIR.joinpath("frontend/static/").as_posix(),
+    BASE_DIR.joinpath("frontend/dist/").as_posix(),
 ]
 
 SOLR_URL = env('SOLR_URL', default='http://solr:8983/solr/nuremberg_dev')
@@ -222,9 +222,9 @@ if not LOCAL_DEVELOPMENT:
 #############################################################################
 # ViteJS Settings
 #############################################################################
-DJANGO_VITE_DEV_MODE = DEBUG
+DJANGO_VITE_DEV_MODE = False
 DJANGO_VITE_DEV_SERVER_PORT = 5173
-DJANGO_VITE_ASSETS_PATH = BASE_DIR.joinpath("frontend/public/").as_posix()
+DJANGO_VITE_ASSETS_PATH = BASE_DIR.joinpath("frontend/dist/").as_posix()
 
 ##############################################################################
 # Local Development Settings
