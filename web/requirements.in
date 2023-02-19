@@ -48,3 +48,4 @@ pytest-django
 pytest-instafail
 requests-mock
 selenium
+pytest-github-report
