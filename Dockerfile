@@ -115,6 +115,7 @@ FROM release as tester
 
 USER 0
 
+WORKDIR /nuremberg
 ENV SECRET_KEY xx
 ENV SOLR_URL http://solr:8983/solr/nuremberg_dev
 ENV DJANGO_SETTINGS_MODULE nuremberg.test_settings
