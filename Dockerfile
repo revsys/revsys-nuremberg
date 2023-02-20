@@ -96,6 +96,7 @@ RUN ln -s /node/node_modules/less/bin/lessc /bin/lessc
 COPY dumps/nuremberg_prod_dump_latest.sqlite3.zip /code/data/
 
 COPY web/nuremberg /code/nuremberg
+COPY web/frontend /code/frontend
 COPY web/manage.py /code
 COPY solr_conf /code/solr_conf
 
