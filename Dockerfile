@@ -115,16 +115,15 @@ FROM release as tester
 
 USER 0
 
-WORKDIR /nuremberg
 ENV SECRET_KEY xx
 ENV SOLR_URL http://solr:8983/solr/nuremberg_dev
 ENV DJANGO_SETTINGS_MODULE nuremberg.test_settings
 ENV SQLITE_DB_PATH /tmp/nuremberg_dev.db
 ENV pytest_github_report true
 
-COPY web/requirements.in web/requirements.in
 COPY justfile /code/
 
+RUN pip install pytest-github-report
 RUN python -m zipfile -e /code/data/nuremberg_prod_dump_latest.sqlite3.zip /tmp
 
 RUN ./manage.py collectstatic; chmod -R 777 /nuremberg/static
