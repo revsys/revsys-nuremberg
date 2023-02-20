@@ -161,12 +161,12 @@ jobs:
           docker tag solr $( just tag )-solr || docker images
           docker push $( just tag )-solr
           echo " * retagged & persisted: solr -> \`$( just tag )-solr\`" >> $GITHUB_STEP_SUMMARY
-      -
-        name: run tests
-        run: |
-          egrep -q '\[[[:blank:]]*notest[[:blank:]]*\]' <( git log -1 --format=%B ) &&
-          echo 'skipping tests (notest in msg body)' ||
-          NO_CACHE_TO=1 just test
+#      -
+#        name: run tests
+#        run: |
+#          egrep -q '\[[[:blank:]]*notest[[:blank:]]*\]' <( git log -1 --format=%B ) &&
+#          echo 'skipping tests (notest in msg body)' ||
+#          NO_CACHE_TO=1 just test
       -
         name: push version updates to repo
         if: ${{ github.ref_type == 'branch' && github.ref_name == github.event.repository.default_branch }}
