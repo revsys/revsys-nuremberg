@@ -88,7 +88,6 @@ FROM builder as release
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
 
 ENV DJANGO_SETTINGS_MODULE nuremberg.settings
-ENV BASE_DIR=/code
 ENV IMAGE_VERSION v0.5.40-r2
 
 RUN ln -s /node/node_modules/less/bin/lessc /bin/lessc
@@ -127,8 +126,7 @@ COPY justfile /code/
 RUN pip install pytest-github-report
 RUN python -m zipfile -e /code/data/nuremberg_prod_dump_latest.sqlite3.zip /tmp
 
-RUN ./manage.py collectstatic --noinput
-RUN chmod -R 777 /code/static
+RUN ./manage.py collectstatic; chmod -R 777 /code/static
 RUN ./manage.py migrate
 
 

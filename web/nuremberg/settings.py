@@ -7,7 +7,7 @@ env = environ.Env()
 environ.Env.read_env()
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = env.str('BASE_DIR', Path(__file__).parent.parent)
+BASE_DIR = Path(__file__).parent.parent
 
 LOCAL_DEVELOPMENT = env.bool("LOCAL_DEVELOPMENT", default=False)
 
@@ -217,9 +217,6 @@ if not LOCAL_DEVELOPMENT:
 # Look for images in AWS S3
 # DOCUMENTS_URL = f'http://s3.amazonaws.com/nuremberg-documents/'
 # TRANSCRIPTS_URL = f'http://s3.amazonaws.com/nuremberg-transcripts/'
-
-# XXX
-COMPRESS_ENABLED = False
 
 #############################################################################
 # ViteJS Settings
