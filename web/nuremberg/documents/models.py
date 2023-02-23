@@ -1244,6 +1244,34 @@ class DocumentEvidenceCode(models.Model):
         )
 
 
+class DefenseDocumentCodeName(models.Model):
+    id = models.AutoField(db_column='DefenseDocNameID', primary_key=True)
+    name = models.CharField(
+        db_column='DefenseDocName', max_length=50, blank=True, null=True
+    )
+    case = models.ForeignKey(
+        DocumentCase, db_column='CaseID', on_delete=models.CASCADE
+    )
+
+    class Meta:
+        managed = False
+        db_table = 'tblDefenseDocNames'
+
+
+class DefenseDocumentBookCodeName(models.Model):
+    id = models.AutoField(db_column='DefenseDocBkNameID', primary_key=True)
+    name = models.CharField(
+        db_column='DefenseDocBkName', max_length=50, blank=True, null=True
+    )
+    case = models.ForeignKey(
+        DocumentCase, db_column='CaseID', on_delete=models.CASCADE
+    )
+
+    class Meta:
+        managed = False
+        db_table = 'tblDefenseDocBkNames'
+
+
 class DocumentExhibitCodeName(models.Model):
     id = models.AutoField(
         db_column='DefenseExhNameID', primary_key=True
@@ -1261,31 +1289,30 @@ class DocumentExhibitCodeName(models.Model):
 
 
 class DocumentExhibitCode(models.Model):
-    id = models.AutoField(
-        db_column='CasesListID', primary_key=True
-    )  # Field name made lowercase.
+    id = models.AutoField(db_column='CasesListID', primary_key=True)
     document = models.ForeignKey(
         Document,
         related_name='exhibit_codes',
         db_column='DocID',
         on_delete=models.CASCADE,
     )
-
     case = models.ForeignKey(
         DocumentCase, db_column='DocCaseID', on_delete=models.CASCADE
     )
+
     prosecution_number = models.IntegerField(
         db_column='ProsExhNo', blank=True, null=True
-    )  # Field name made lowercase.
+    )
     prosecution_suffix = models.CharField(
-        db_column='ProsExhNoSuffix', max_length=5, blank=True, null=True
-    )  # Field name made lowercase.
-    prosecution_doc_book_number = models.IntegerField(
-        db_column='ProsDocBkNo', blank=True, null=True
-    )  # Field name made lowercase.
+        db_column='ProsExhNoSuffix', max_length=30, blank=True, null=True
+    )
+
+    prosecution_doc_book_number = models.CharField(
+        db_column='ProsDocBkNo', max_length=255, blank=True, null=True
+    )
     prosecution_doc_book_suffix = models.CharField(
         db_column='ProsDocBkNoSuffix', max_length=5, blank=True, null=True
-    )  # Field name made lowercase.
+    )
 
     defense_name = models.ForeignKey(
         DocumentExhibitCodeName,
@@ -1293,42 +1320,50 @@ class DocumentExhibitCode(models.Model):
         blank=True,
         null=True,
         on_delete=models.SET_NULL,
-    )  # Field name made lowercase.
+    )
     defense_name_denormalized = models.CharField(
         db_column='DefExhName', max_length=50, blank=True, null=True
     )
     defense_number = models.IntegerField(
         db_column='DefExhNo', blank=True, null=True
-    )  # Field name made lowercase.
+    )
     defense_suffix = models.CharField(
-        db_column='DefExhNoSuffix', max_length=5, blank=True, null=True
-    )  # Field name made lowercase.
+        db_column='DefExhNoSuffix', max_length=30, blank=True, null=True
+    )
 
-    defense_doc_name_id = models.IntegerField(
-        db_column='DefDocNameID', blank=True, null=True
-    )  # Field name made lowercase.
-    defense_doc_name = models.CharField(
+    defense_doc_name = models.ForeignKey(
+        DefenseDocumentCodeName,
+        db_column='DefDocNameID',
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+    )
+    defense_doc_name_denormalized = models.CharField(
         db_column='DefDocName', max_length=50, blank=True, null=True
-    )  # Field name made lowercase.
-
+    )
     defense_doc_number = models.IntegerField(
         db_column='DefDocNo', blank=True, null=True
-    )  # Field name made lowercase.
+    )
     defense_doc_suffix = models.CharField(
-        db_column='DefDocNoSuffix', max_length=5, blank=True, null=True
-    )  # Field name made lowercase.
-    defense_doc_book_name_id = models.IntegerField(
-        db_column='DefDocBkNameID', blank=True, null=True
-    )  # Field name made lowercase.
-    defense_doc_book_name = models.CharField(
+        db_column='DefDocNoSuffix', max_length=30, blank=True, null=True
+    )
+
+    defense_doc_book_name = models.ForeignKey(
+        DefenseDocumentBookCodeName,
+        db_column='DefDocBkNameID',
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+    )
+    defense_doc_book_name_denormalized = models.CharField(
         db_column='DefDocBkName', max_length=50, blank=True, null=True
-    )  # Field name made lowercase.
+    )
     defense_doc_book_number = models.IntegerField(
         db_column='DefDocBkNo', blank=True, null=True
-    )  # Field name made lowercase.
+    )
     defense_doc_book_suffix = models.CharField(
-        db_column='DefDocBkNoSuffix', max_length=5, blank=True, null=True
-    )  # Field name made lowercase.
+        db_column='DefDocBkNoSuffix', max_length=30, blank=True, null=True
+    )
 
     class Meta:
         managed = False
@@ -1351,15 +1386,24 @@ class DocumentExhibitCode(models.Model):
 
     @cached_property
     def book_code(self):
-        if self.prosecution_doc_book_number:
+        if self.prosecution_doc_book_number not in (None, '', '0'):
             return f'Prosecution {self.prosecution_doc_book_number}'
 
         if self.defense_doc_book_number:
-            if self.defense_name:
-                name = self.defense_name.name
+            if self.defense_doc_book_name:
+                name = self.defense_doc_book_name.name
             else:
-                name = self.defense_name_denormalized or 'Defendant'
+                name = self.defense_doc_book_name_denormalized or 'Defendant'
             return f'{name} {self.defense_doc_book_number}'
+
+    @cached_property
+    def defense_doc_code(self):
+        if self.defense_doc_number:
+            if self.defense_doc_name:
+                name = self.defense_doc_name.name
+            else:
+                name = self.defense_doc_name_denormalized or 'Defendant'
+            return f'{name} {self.defense_doc_number}'
 
 
 class DocumentTextQuerySet(models.QuerySet):

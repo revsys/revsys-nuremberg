@@ -1143,6 +1143,18 @@ def test_document_exhibit_code_book_code_prosecution():
 
     assert exhibit.book_code == 'Prosecution 3'
 
+    del exhibit.book_code
+    exhibit.prosecution_doc_book_number = None
+    assert exhibit.book_code is None
+
+    del exhibit.book_code
+    exhibit.prosecution_doc_book_number = ''
+    assert exhibit.book_code is None
+
+    del exhibit.book_code
+    exhibit.prosecution_doc_book_number = '0'
+    assert exhibit.book_code is None
+
 
 def test_document_exhibit_code_book_code_defendant_name():
     exhibit = baker.make(
@@ -1150,18 +1162,48 @@ def test_document_exhibit_code_book_code_defendant_name():
         defense_doc_book_number=42,
         defense_name__name='Last Name',
         defense_name_denormalized='Other Name',
+        defense_doc_book_name__name='The Real Name',
+        defense_doc_book_name_denormalized='Real but Other Name',
     )
     assert exhibit.defense_name is not None
     assert bool(exhibit.defense_name.name)
-    assert exhibit.book_code == 'Last Name 42'
+    assert exhibit.book_code == 'The Real Name 42'
 
     del exhibit.book_code
-    exhibit.defense_name = None
-    assert exhibit.book_code == 'Other Name 42'
+    exhibit.defense_doc_book_name = None
+    assert exhibit.book_code == 'Real but Other Name 42'
 
     del exhibit.book_code
-    exhibit.defense_name_denormalized = ''
+    exhibit.defense_doc_book_name_denormalized = ''
     assert exhibit.book_code == 'Defendant 42'
+
+
+def test_document_exhibit_code_defense_doc_code_none():
+    exhibit = baker.make('DocumentExhibitCode')
+
+    assert exhibit.defense_doc_code is None
+
+
+def test_document_exhibit_code_defense_doc_code_uses_defense_doc_name():
+    exhibit = baker.make(
+        'DocumentExhibitCode',
+        defense_doc_number=5,
+        defense_doc_name__name='Name',
+        defense_doc_name_denormalized='Do not use',
+    )
+
+    assert exhibit.defense_doc_code == 'Name 5'
+
+
+def test_document_exhibit_code_defense_doc_code_uses_doc_name_denormalized():
+    exhibit = baker.make(
+        'DocumentExhibitCode',
+        defense_doc_number=5,
+        defense_doc_name=None,
+        defense_doc_name_denormalized='Will Be Used',
+    )
+
+    assert exhibit.defense_doc_code == 'Will Be Used 5'
 
 
 def test_document_text_evidence_code():

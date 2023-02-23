@@ -461,9 +461,9 @@ class AdvancedDocumentSearchForm(forms.Form):
             for i in DocumentExhibitCode.objects.filter(
                 defense_doc_book_name__isnull=False
             )
-            .exclude(defense_doc_book_name=0)
-            .order_by('defense_doc_book_name')
-            .values_list('defense_doc_book_name', flat=True)
+            .select_related('defense_doc_book_name')
+            .order_by('defense_doc_book_name__name')
+            .values_list('defense_doc_book_name__name', flat=True)
             .distinct()
         ],
         list,
