@@ -14,8 +14,7 @@ services:
       target: release
     tty: true
     working_dir: /nuremberg
-    command: >
-      bash -c "python manage.py collectstatic --noinput && python manage.py runserver 0.0.0.0:8000"
+    command: python manage.py runserver 0.0.0.0:8000
     volumes:
       # BIND MOUNTS
       - ./web:/nuremberg
