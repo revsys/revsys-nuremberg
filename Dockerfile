@@ -89,7 +89,7 @@ FROM builder as release
 
 ENV DJANGO_SETTINGS_MODULE nuremberg.settings
 ENV BASE_DIR=/code
-ENV IMAGE_VERSION v0.5.40-r2
+ENV IMAGE_VERSION v0.5.41
 
 RUN ln -s /node/node_modules/less/bin/lessc /bin/lessc
 
@@ -155,7 +155,7 @@ ENV SOLR_CORE nuremberg_dev
 
 COPY solr_conf /opt/solr-8.11.2/solr_conf
 
-ENV IMAGE_VERSION v0.5.40-r2-solr
+ENV IMAGE_VERSION v0.5.41-solr
 
 RUN --mount=type=bind,source=./dist/var-solr.tgz,target=/mnt/var-solr.tgz \
     cd / && \
