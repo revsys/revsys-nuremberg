@@ -127,7 +127,8 @@ COPY justfile /code/
 RUN pip install pytest-github-report
 RUN python -m zipfile -e /code/data/nuremberg_prod_dump_latest.sqlite3.zip /tmp
 
-RUN ./manage.py collectstatic; chmod -R 777 /code/static
+RUN ./manage.py collectstatic --noinput
+RUN chmod -R 777 /code/static
 RUN ./manage.py migrate
 
 
