@@ -7,7 +7,12 @@ env = environ.Env()
 environ.Env.read_env()
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = Path(__file__).parent.parent
+BASE_DIR = Path(env.str(
+    'BASE_DIR',
+    os.path.dirname(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    ),
+))
 
 LOCAL_DEVELOPMENT = env.bool("LOCAL_DEVELOPMENT", default=False)
 
@@ -232,7 +237,7 @@ DJANGO_VITE_ASSETS_PATH = BASE_DIR.joinpath("frontend/dist/").as_posix()
 if LOCAL_DEVELOPMENT:
     SECRET_KEY = 'supersecret'
     DEBUG = True
-    COMPRESS_ENABLED = True
+    COMPRESS_ENABLED = False
 
     CACHES = {
         'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}
