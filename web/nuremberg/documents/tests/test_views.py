@@ -521,3 +521,59 @@ def test_document_details_mode_text_term_higlighting():
         content.find('[data-test="document-text-viewport"]').html().strip()
         == f'<p>{highlithed}</p>'
     )
+
+
+def test_document_details_mode_text_term_higlighting_exact_phrase():
+    doc = make_document(evidence_codes=['PPSS-123456'])
+    # Taken from real document text ID 605
+    text = (
+        'After the customary removal of Jews from all public offices, the '
+        'Jewish question will have to have a decisive solution, through the '
+        'institution of Ghettos. Insofar as the Jews have not been driven out '
+        'by the Ukrainians themselves, the small communities must be lodged '
+        'in large camps, in order to be kept busy by means of forced labor, '
+        'in the same way as it has already been the practice in '
+        'Letzmanorstadt (Lodz). [Translation of paragraph, excluding all '
+        'crossed out words.] After the customary removal of Jews from all '
+        'public offices, the Jewish question will have to undergo a decisive '
+        'solution through the institution of ghettos or labor battalions. '
+        'Forced labor is to be introduced.'
+    )
+
+    full_text = baker.make(
+        'DocumentText',
+        text=text,
+        evidence_code_series='PPSS',
+        evidence_code_num='123456',
+    )
+
+    q = (
+        '  lodged "  after the CuSTOMary removal of jews"   ghettos  '
+        '"public offices"   CAmPS  '
+    )
+    content = get_document(doc.id, q=q)
+    links = content.find('[data-test="full-text-view"]')
+    assert len(links) == 1
+
+    text_view_url = document_show_url(
+        full_text.id, slug=full_text.slug, mode='text', q=q
+    )
+    [link] = links
+    assert link.attrib['href'] == text_view_url
+    assert link.text.strip() == 'Full-text View'
+    assert content.find('[data-test="image-view"]') == []
+
+    # if a search term is carried from the search page, highlight the matches
+    content = get_document(url=text_view_url)
+    actual_highligths = [h.text for h in content.find('mark.highlighted')]
+    expected = [
+        'After the customary removal of Jews',
+        'public offices',
+        'Ghettos',
+        'lodged',
+        'camps',
+        'After the customary removal of Jews',
+        'public offices',
+        'ghettos',
+    ]
+    assert actual_highligths == expected
