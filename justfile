@@ -26,7 +26,7 @@ shell:
 # Rebuild local development container
 rebuild:
     docker compose rm -f web
-    docker-compose build --force-rm web
+    docker compose build --force-rm web
 
 # display image layer names (e.g.: just build [name])
 layers:
@@ -41,9 +41,20 @@ tag:
 registry:
     @echo {{IMAGE_REGISTRY}}
 
-# rebuild requirements files
-regen-requirements:
-    docker compose run web pip-compile requirements.in -o requirements.txt
+# Compile new python dependencies
+# Taken from https://github.com/revsys/alphakit/blob/main/justfile
+@pip-compile *ARGS:
+    docker compose run \
+        --entrypoint= \
+        --rm web \
+            bash -c "pip-compile {{ ARGS }} ./requirements.in \
+                --generate-hashes \
+                --resolver=backtracking \
+                --output-file ./requirements.txt"
+
+# Upgrade existing Python dependencies to their latest versions
+@pip-compile-upgrade:
+    just pip-compile --upgrade
 
 
 _test-packages:
@@ -105,11 +116,11 @@ _solr-compose:
 
 # shortcut for interacting w/ the solr image-build docker-compose project
 @solr-dc *args='ps':
-    docker-compose -f $( just solr-compose ) -p solrbld {{args}}
+    docker compose -f $( just solr-compose ) -p solrbld {{args}}
 
 # shortcut for interacting w/ the CI docker-compose project
 @ci-dc *args='ps':
-    docker-compose -f ./docker-compose.yml -f ./docker-compose.override.yml -f ./docker-compose.ci.yml -p ci {{args}}
+    docker compose -f ./docker-compose.yml -f ./docker-compose.override.yml -f ./docker-compose.ci.yml -p ci {{args}}
 
 # target for running tests IN CI
 test:
