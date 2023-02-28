@@ -1,0 +1,22 @@
+{% extends base_template|default:"base.html" %}
+{% load search_url django_vite %}
+
+{% block title %} Document Search Results {% endblock %}
+
+{% block body_class %}document-search{% endblock %}
+
+{% block extra_head_js %}
+  <script type="module">
+      import RefreshRuntime from 'http://localhost:5173/static/@react-refresh'
+      RefreshRuntime.injectIntoGlobalHook(window)
+      window.$RefreshReg$ = () => {}
+      window.$RefreshSig$ = () => (type) => type
+      window.__vite_plugin_react_preamble_installed__ = true
+  </script>
+  {% vite_asset 'src/search.jsx' %}
+  <!-- foo bar baz -->
+{% endblock extra_head_js %}
+
+{% block content %}
+<div id="search"></div>
+{% endblock %}
