@@ -167,6 +167,12 @@ class Search(FacetedSearchView):
         )
 
 
+class NewSearch(Search):
+    """Temporarily duplicated search view for ViteJS integration"""
+
+    template_name = 'search/new-search.html'
+
+
 @csrf_exempt
 def advanced_search(request):
     form = AdvancedDocumentSearchForm(data=request.POST)

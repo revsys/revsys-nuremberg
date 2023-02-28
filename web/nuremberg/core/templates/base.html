@@ -32,6 +32,8 @@
 
     {% vite_hmr_client %}
     {% vite_asset 'src/authorHover.jsx' %}
+
+    {% block extra_head_js %}{% endblock extra_head_js %}
   </head>
   <body class="{% block body_class %}{% endblock %} {% if show_mockup %}mockups{% endif %}">
     <nav aria-labelledby="bypass-link">

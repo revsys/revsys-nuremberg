@@ -12,4 +12,5 @@ urlpatterns = [
         TemplateView.as_view(template_name='search/advanced-search-help.html'),
         name='search-help',
     ),
+    path('new-search', views.NewSearch.as_view(), name='new-search'),
 ]
