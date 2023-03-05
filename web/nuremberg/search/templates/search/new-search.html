@@ -14,9 +14,96 @@
       window.__vite_plugin_react_preamble_installed__ = true
   </script>
   {% vite_asset 'src/search.jsx' %}
+  {% vite_asset 'src/vanilla/search.js' %}
   <!-- foo bar baz -->
 {% endblock extra_head_js %}
 
 {% block content %}
 <div id="search"></div>
+<section class="theme-light results">
+  <div class="sidebar-layout">
+    <div class="sidebar-column search-facets">
+      <div class="h4">Filter Results</div>
+      {% include 'search/search_facets.html' %}
+    </div>
+    <div class="main-column search-results" id="results">
+      <div class="results-summary">
+        <div class="loading-indicator hide">
+          Loading results...
+        </div>
+        <div class="results-count">
+          <p class="hint" data-test="search-result-pages-summary">
+            Results {{page_obj.start_index}}-{{page_obj.end_index}} of {{paginator.count}}
+            {% if form.auto_query or form.field_queries %}for{% endif %}
+            {% if form.auto_query %}<strong>{{form.auto_query}}</strong>{% endif %}
+            {% for field_query in form.field_queries %}
+              {% if field_query.0 %}
+                <span class="field-query {{field_query.2}}">
+                  {{field_query.0}}:<strong>{{field_query.1}}</strong>
+                </span>
+              {% else %}
+                <strong>
+                  {{field_query.1|default:""}}
+                </strong>
+              {% endif %}
+            {% endfor %}
+          </p>
+        </div>
+        <div class="results-sort">
+          <label>
+            Sort by
+            <select id="results-sort">
+              <option value="{% sort_results 'relevance' %}" {% if form.sort_results == 'relevance' %}selected{% endif %}>Relevance</option>
+              <option value="{% sort_results 'date-asc' %}" {% if form.sort_results == 'date-asc' %}selected{% endif %}>Earliest Date</option>
+              <option value="{% sort_results 'date-desc' %}" {% if form.sort_results == 'date-desc' %}selected{% endif %}>Latest Date</option>
+              <option value="{% sort_results 'pages-asc' %}" {% if form.sort_results == 'pages-asc' %}selected{% endif %}>Fewest Pages</option>
+              <option value="{% sort_results 'pages-desc' %}" {% if form.sort_results == 'pages-desc' %}selected{% endif %}>Most Pages</option>
+            </select>
+          </label>
+        </div>
+      </div>
+      <div id="content"></div>
+      {% if form.applied_filters %}
+        <div class="applied-filters">
+          {% for filter in form.applied_filters %}
+            <a href="{% remove_facet filter.2 %}" class="applied-filter">
+              <strong>{{filter.0}}</strong>
+              {{filter.1}}
+              <span class="remove-button">&times;</span>
+            </a>
+          {% endfor %}
+          <a href="{% clear_facets %}" class="clear-all"> Clear All Filters </a>
+        </div>
+      {% endif %}
+      {% if paginator.count == 0 %}
+        <div class="no-results">
+          <p>
+            No documents found for your query. Try removing some filters or search terms.
+          </p>
+        </div>
+      {% else %}
+        <table>
+          <caption>Search results</caption>
+          <thead>
+            <tr>
+              <th class="material-col"> Material </th>
+              <th class="author-col"> Authors </th>
+              <th> Date </th>
+              <th class="type-col"> Type </th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for group in page_obj.object_list %}
+              {% with group.documents.0 as result %}
+                {% include 'search/document-row.html' %}
+              {% endwith %}
+            {% endfor %}
+          </tbody>
+        </table>
+      {% endif %}
+      <div class="spacing" style="height: 20px"></div>
+      {% include 'search/pagination.html' %}
+    </div>
+  </div>
+</section>
 {% endblock %}

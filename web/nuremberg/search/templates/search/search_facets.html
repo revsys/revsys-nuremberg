@@ -24,7 +24,7 @@
         </p>
       {% endif %}
       <p> Year range: </p>
-      <form class="date-filter-form" role="search" aria-label="Filter by date range" action="">
+      <form class="date-filter-form" id="date-filter-form" role="search" aria-label="Filter by date range" action="">
         <input type="hidden" name="q" value="{{query}}" />
         {% for filter in form.applied_filters %}
           <input type="hidden" name="f" value="{{filter.2}}" />

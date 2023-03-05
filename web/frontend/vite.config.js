@@ -20,7 +20,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: path.resolve(__dirname, './src/main.jsx'),
-        author: path.resolve(__dirname, './src/authorHover.jsx'),
+        author: path.resolve(__dirname, './src/vanilla/authorHover.js'),
         search: path.resolve(__dirname, './src/search.jsx'),
       },
       output: {

@@ -226,7 +226,7 @@ if not LOCAL_DEVELOPMENT:
 #############################################################################
 # ViteJS Settings
 #############################################################################
-DJANGO_VITE_DEV_MODE = False
+DJANGO_VITE_DEV_MODE = True
 DJANGO_VITE_DEV_SERVER_PORT = 5173
 DJANGO_VITE_ASSETS_PATH = BASE_DIR.joinpath("frontend/dist/").as_posix()
 
