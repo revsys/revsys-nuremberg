@@ -1,15 +1,13 @@
 {
+  "_index-583bd3f0.js": {
+    "file": "index-583bd3f0.js"
+  },
   "src/assets/react.svg": {
     "file": "react-35ef61ed.svg",
     "src": "src/assets/react.svg"
   },
-  "src/authorHover.jsx": {
-    "file": "author-87b384d9.js",
-    "isEntry": true,
-    "src": "src/authorHover.jsx"
-  },
   "src/main.css": {
-    "file": "main-d526a0c5.css",
+    "file": "main-e12e197a.css",
     "src": "src/main.css"
   },
   "src/main.jsx": {
@@ -17,10 +15,26 @@
       "react-35ef61ed.svg"
     ],
     "css": [
-      "main-d526a0c5.css"
+      "main-e12e197a.css"
     ],
-    "file": "main-f59553ba.js",
+    "file": "main-813a3c5a.js",
+    "imports": [
+      "_index-583bd3f0.js"
+    ],
     "isEntry": true,
     "src": "src/main.jsx"
+  },
+  "src/search.jsx": {
+    "file": "search-a581f3ea.js",
+    "imports": [
+      "_index-583bd3f0.js"
+    ],
+    "isEntry": true,
+    "src": "src/search.jsx"
+  },
+  "src/vanilla/authorHover.js": {
+    "file": "author-6e73c9d0.js",
+    "isEntry": true,
+    "src": "src/vanilla/authorHover.js"
   }
 }
