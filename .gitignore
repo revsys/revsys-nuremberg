@@ -8,7 +8,6 @@ web/htmlcov
 debug.txt
 /*.log
 venv
-src
 *.pyc
 nuremberg_dev.db
 */**/.t
