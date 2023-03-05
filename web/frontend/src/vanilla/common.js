@@ -2,6 +2,14 @@
 let controller;
 let loadingTimeout = null;
 
+export const min = (nums) => {
+  if (nums.length) return Math.min(...nums)
+}
+
+export const max = (nums) => {
+  if (nums.length) return Math.max(...nums)
+}
+
 export const loadResults = (href) => {
   // Abort any already running requests
   if (controller) {

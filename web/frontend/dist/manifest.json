@@ -36,5 +36,10 @@
     "file": "author-6e73c9d0.js",
     "isEntry": true,
     "src": "src/vanilla/authorHover.js"
+  },
+  "src/vanilla/search.js": {
+    "file": "vanillasearch-8dc8d6fb.js",
+    "isEntry": true,
+    "src": "src/vanilla/search.js"
   }
 }
