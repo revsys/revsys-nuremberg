@@ -14,7 +14,7 @@ const Search = (props) => {
           setParams={setParams}
         />
         <div className="show-advanced-search"><a>Advanced Search</a></div>
-        {/* <p>{% include 'search/advanced-search-form.html' with form=advanced_search_form %}</p> */}
+        <p></p>
       </div>
     </section >
   )

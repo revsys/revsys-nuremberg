@@ -1,7 +1,7 @@
 /*
  * This is the entry point for the non-ReactJS bits of the search page
  */
-import { min, max } from '@/vanilla/common';
+import { min, max, gotoResults } from '@/vanilla/common';
 
 // Handle toggling the 'collapsed' class on facet nav elements
 const toggleFacetCollapse = () => {
@@ -66,11 +66,30 @@ const yearRangeControls = () => {
   // FIXME handle updating query params when date range changes
   // FIXME handle slider
 
-  // Handle submit of the form
-  dateForm.addEventListener("submit", (e) => {
+  // Handle submit of the form.  The sidebar green arrow button isn't a submit
+  // button type for some reason.  Assuming it was intentional and keeping it.
+  let goButton = document.getElementById("date-submit-button")
+
+  goButton.addEventListener("click", (e) => {
+    console.log(`Clicking! ${fromYear.value}  ${toYear.value}`)
     e.preventDefault()
     e.stopPropagation()
-
+    let href = window.location.href
+    let range = 'f=date_year:' + fromYear.value + '-' + toYear.value;
+    if (location.search && location.search.indexOf('date_year') > -1) {
+      href = location.search.replace(/f=date_year:\d+-?\d+/, range)
+    }
+    else if (location.search.indexOf('?') > -1) {
+      href = location.search + '&' + range;
+    }
+    else {
+      href = '?' + range;
+    }
+    href = href.replace(/([\?&])page=\d+&?/, function (m, c) { return c });
+    href = "/search/new-search" + href
+    console.log(href)
+    //gotoResults(href);
+    window.location.href = href
   })
 }
 /* **********************************************************************

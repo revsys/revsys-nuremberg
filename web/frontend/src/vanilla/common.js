@@ -27,12 +27,14 @@ export const loadResults = (href) => {
     },
     signal: controller.signal
   }).then((response) => {
-    controller = null;
-    loadingTimeout = null;
-    let main = document.getElementsByTagName('main')[0];
-    main.innerHTML = response.text();
+    return response.text()
+  }).then((response) => {
+    controller = null
+    loadingTimeout = null
+    let main = document.getElementsByTagName('main')[0]
+    main.innerHTML = response
   }).catch((error) => {
-    console.error(`Retrieve failed: ${error.message}`);
+    console.error(`Retrieve failed: ${error.message}`)
   })
 }
 
