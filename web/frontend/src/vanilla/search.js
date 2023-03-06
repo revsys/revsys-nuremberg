@@ -47,28 +47,18 @@ const yearRangeControls = () => {
     let facetYears = document.querySelectorAll(".facet p[data-year]")
     let years = []
     Array.from(facetYears).forEach((facetYear) => {
-      years.push(facetYear.dataset.year)
+      if (facetYear.dataset.year) {
+        years.push(facetYear.dataset.year)
+      }
     })
+    console.log(`Years: ${years}`)
     let minYear = min(years)
     let maxYear = max(years)
+    console.log(`Setting min/max on empty to ${minYear}/${maxYear}`)
     fromYear.value = minYear
     toYear.value = maxYear
   }
 
-  // Handle out of bounds years
-  if (fromYear.value < 1895 || fromYear.value > 1950 || toYear.value < 1895 || toYear.value > 1950) {
-    let currentFrom = fromYear.value
-    let currentTo = toYear.value
-    fromYear.value = min([max([currentFrom, 1895]), 1950])
-    toYear.value = min([max([currentTo, 1895]), 1950])
-  }
-
-  if (fromYear.value > toYear.value) {
-    let oldFromYear = fromYear.value
-    let oldToYear = toYear.value
-    fromYear.value = oldToYear
-    toYear.value = oldFromYear
-  }
   // FIXME handle slider
 
   // Handle submit of the form.  The sidebar green arrow button isn't a submit
@@ -76,9 +66,28 @@ const yearRangeControls = () => {
   let goButton = document.getElementById("date-submit-button")
 
   goButton.addEventListener("click", (e) => {
-    console.log(`Clicking! ${fromYear.value}  ${toYear.value}`)
     e.preventDefault()
     e.stopPropagation()
+
+    console.log(`Clicking! ${fromYear.value}  ${toYear.value}`)
+
+    // Handle out of bounds years
+    if (fromYear.value < 1895 || fromYear.value > 1950 || toYear.value < 1895 || toYear.value > 1950) {
+      let currentFrom = fromYear.value
+      let currentTo = toYear.value
+      fromYear.value = min([max([currentFrom, 1895]), 1950])
+      toYear.value = min([max([currentTo, 1895]), 1950])
+      console.log(`Setting min/max on bounds ${fromYear.value}/${toYear.value}`)
+    }
+
+    if (fromYear.value > toYear.value) {
+      let oldFromYear = fromYear.value
+      let oldToYear = toYear.value
+      fromYear.value = oldToYear
+      toYear.value = oldFromYear
+      console.log(`Flipping years`)
+    }
+
     let href = window.location.href
     let range = 'f=date_year:' + fromYear.value + '-' + toYear.value;
     if (location.search && location.search.indexOf('date_year') > -1) {
