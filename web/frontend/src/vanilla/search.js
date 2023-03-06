@@ -63,7 +63,12 @@ const yearRangeControls = () => {
     toYear.value = min([max([currentTo, 1895]), 1950])
   }
 
-  // FIXME handle updating query params when date range changes
+  if (fromYear.value > toYear.value) {
+    let oldFromYear = fromYear.value
+    let oldToYear = toYear.value
+    fromYear.value = oldToYear
+    toYear.value = oldFromYear
+  }
   // FIXME handle slider
 
   // Handle submit of the form.  The sidebar green arrow button isn't a submit
