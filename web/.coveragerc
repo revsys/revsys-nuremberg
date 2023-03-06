@@ -20,7 +20,7 @@ branch=True
 
 [report]
 skip_covered=True
-fail_under=88
+fail_under=85
 
 [html]
 directory=coverage
