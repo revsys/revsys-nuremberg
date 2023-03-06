@@ -1,7 +1,7 @@
 /*
  * This is the entry point for the non-ReactJS bits of the search page
  */
-import { min, max, gotoResults } from '@/vanilla/common';
+import { min, max, gotoResults, debounce } from '@/vanilla/common'
 
 // Handle toggling the 'collapsed' class on facet nav elements
 const toggleFacetCollapse = () => {
@@ -51,16 +51,28 @@ const yearRangeControls = () => {
         years.push(facetYear.dataset.year)
       }
     })
-    console.log(`Years: ${years}`)
     let minYear = min(years)
     let maxYear = max(years)
-    console.log(`Setting min/max on empty to ${minYear}/${maxYear}`)
     fromYear.value = minYear
     toYear.value = maxYear
   }
 
-  // FIXME handle slider
+  // Date Range Slider
+  const setRange = debounce(() => {
+    dateForm.submit()
+  }, 700)
 
+  $('.date-slider').slider({
+    range: true,
+    min: 1898,
+    max: 1948,
+    values: [$('input[name="year_min"]').val(), $('input[name="year_max"]').val()],
+    slide: function (e, ui) {
+      $('input[name="year_min"]').val(ui.values[0]);
+      $('input[name="year_max"]').val(ui.values[1]);
+      setRange();
+    },
+  })
   // Handle submit of the form.  The sidebar green arrow button isn't a submit
   // button type for some reason.  Assuming it was intentional and keeping it.
   let goButton = document.getElementById("date-submit-button")
@@ -69,15 +81,12 @@ const yearRangeControls = () => {
     e.preventDefault()
     e.stopPropagation()
 
-    console.log(`Clicking! ${fromYear.value}  ${toYear.value}`)
-
     // Handle out of bounds years
     if (fromYear.value < 1895 || fromYear.value > 1950 || toYear.value < 1895 || toYear.value > 1950) {
       let currentFrom = fromYear.value
       let currentTo = toYear.value
       fromYear.value = min([max([currentFrom, 1895]), 1950])
       toYear.value = min([max([currentTo, 1895]), 1950])
-      console.log(`Setting min/max on bounds ${fromYear.value}/${toYear.value}`)
     }
 
     if (fromYear.value > toYear.value) {
@@ -106,6 +115,7 @@ const yearRangeControls = () => {
     window.location.href = href
   })
 }
+
 /* **********************************************************************
    Main Entry Point
    ********************************************************************* */
