@@ -6,6 +6,7 @@
 {% block body_class %}document-search{% endblock %}
 
 {% block extra_head_js %}
+{% comment %}
   <script type="module">
       import RefreshRuntime from 'http://localhost:5173/static/@react-refresh'
       RefreshRuntime.injectIntoGlobalHook(window)
@@ -13,6 +14,7 @@
       window.$RefreshSig$ = () => (type) => type
       window.__vite_plugin_react_preamble_installed__ = true
   </script>
+  {% endcomment %}
   {% vite_asset 'src/search.jsx' %}
   {% vite_asset 'src/vanilla/search.js' %}
   <!-- foo bar baz -->
