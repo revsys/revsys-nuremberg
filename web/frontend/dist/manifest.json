@@ -25,7 +25,7 @@
     "src": "src/main.jsx"
   },
   "src/search.jsx": {
-    "file": "search-a581f3ea.js",
+    "file": "search-e1cc0e67.js",
     "imports": [
       "_index-583bd3f0.js"
     ],
@@ -38,7 +38,7 @@
     "src": "src/vanilla/authorHover.js"
   },
   "src/vanilla/search.js": {
-    "file": "vanillasearch-8dc8d6fb.js",
+    "file": "vanillasearch-78bea1a2.js",
     "isEntry": true,
     "src": "src/vanilla/search.js"
   }
