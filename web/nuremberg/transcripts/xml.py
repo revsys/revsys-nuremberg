@@ -3,6 +3,8 @@ from urllib.parse import urlencode
 
 from lxml import etree
 
+from nuremberg.documents.views import DocumentHighlighter
+
 
 class TranscriptPageJoiner:
     """
@@ -85,10 +87,13 @@ class TranscriptPageJoiner:
     and seq_number__lte=2 will give a page range that can be spliced before.
     """
 
-    def __init__(self, pages, include_first=False, include_last=False):
+    def __init__(
+        self, pages, query='', include_first=False, include_last=False
+    ):
         self.include_first = include_first
         self.include_last = include_last
         self.pages = pages
+        self.query = query
 
     # Matches paragraphs that look like 'Court No. 1', mod OCR errors
     ignore_p = re.compile(
@@ -210,6 +215,10 @@ class TranscriptPageJoiner:
                 {'page': self.output_page, 'html': self.page_html}
             )
 
+    def highlight_query(self, text, query):
+        highlight = DocumentHighlighter(query, html_tag='mark')
+        return highlight.highlight(text)
+
     def put(self, text):
         self.page_html += text
 
@@ -224,6 +233,12 @@ class TranscriptPageJoiner:
             self.page_html += text
 
     def join_text(self, joined_text):
+        print(f'\n==== {joined_text=}')
+        if self.query:
+            joined_text = self.highlight_query(joined_text, query=self.query)
+            if '<mark class=' in joined_text:
+                print(f'    ==== HIGHLIGHTED {joined_text=}')
+
         if joined_text:
             ends = self.sentence_break.split(joined_text, 1)
             if len(ends) == 3 and not self.reject_sentence_end.match(ends[1]):
