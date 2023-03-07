@@ -1,7 +1,7 @@
 /*
  * This is the entry point for the non-ReactJS bits of the search page
  */
-import { min, max } from '@/vanilla/common';
+import { min, max, gotoResults, debounce } from '@/vanilla/common'
 
 // Handle toggling the 'collapsed' class on facet nav elements
 const toggleFacetCollapse = () => {
@@ -47,7 +47,9 @@ const yearRangeControls = () => {
     let facetYears = document.querySelectorAll(".facet p[data-year]")
     let years = []
     Array.from(facetYears).forEach((facetYear) => {
-      years.push(facetYear.dataset.year)
+      if (facetYear.dataset.year) {
+        years.push(facetYear.dataset.year)
+      }
     })
     let minYear = min(years)
     let maxYear = max(years)
@@ -55,24 +57,65 @@ const yearRangeControls = () => {
     toYear.value = maxYear
   }
 
-  // Handle out of bounds years
-  if (fromYear.value < 1895 || fromYear.value > 1950 || toYear.value < 1895 || toYear.value > 1950) {
-    let currentFrom = fromYear.value
-    let currentTo = toYear.value
-    fromYear.value = min([max([currentFrom, 1895]), 1950])
-    toYear.value = min([max([currentTo, 1895]), 1950])
-  }
+  // Date Range Slider
+  const setRange = debounce(() => {
+    dateForm.submit()
+  }, 700)
 
-  // FIXME handle updating query params when date range changes
-  // FIXME handle slider
+  $('.date-slider').slider({
+    range: true,
+    min: 1898,
+    max: 1948,
+    values: [$('input[name="year_min"]').val(), $('input[name="year_max"]').val()],
+    slide: function (e, ui) {
+      $('input[name="year_min"]').val(ui.values[0]);
+      $('input[name="year_max"]').val(ui.values[1]);
+      setRange();
+    },
+  })
+  // Handle submit of the form.  The sidebar green arrow button isn't a submit
+  // button type for some reason.  Assuming it was intentional and keeping it.
+  let goButton = document.getElementById("date-submit-button")
 
-  // Handle submit of the form
-  dateForm.addEventListener("submit", (e) => {
+  goButton.addEventListener("click", (e) => {
     e.preventDefault()
     e.stopPropagation()
 
+    // Handle out of bounds years
+    if (fromYear.value < 1895 || fromYear.value > 1950 || toYear.value < 1895 || toYear.value > 1950) {
+      let currentFrom = fromYear.value
+      let currentTo = toYear.value
+      fromYear.value = min([max([currentFrom, 1895]), 1950])
+      toYear.value = min([max([currentTo, 1895]), 1950])
+    }
+
+    if (fromYear.value > toYear.value) {
+      let oldFromYear = fromYear.value
+      let oldToYear = toYear.value
+      fromYear.value = oldToYear
+      toYear.value = oldFromYear
+      console.log(`Flipping years`)
+    }
+
+    let href = window.location.href
+    let range = 'f=date_year:' + fromYear.value + '-' + toYear.value;
+    if (location.search && location.search.indexOf('date_year') > -1) {
+      href = location.search.replace(/f=date_year:\d+-?\d+/, range)
+    }
+    else if (location.search.indexOf('?') > -1) {
+      href = location.search + '&' + range;
+    }
+    else {
+      href = '?' + range;
+    }
+    href = href.replace(/([\?&])page=\d+&?/, function (m, c) { return c });
+    href = "/search/new-search" + href
+    console.log(href)
+    //gotoResults(href);
+    window.location.href = href
   })
 }
+
 /* **********************************************************************
    Main Entry Point
    ********************************************************************* */

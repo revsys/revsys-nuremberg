@@ -10,6 +10,15 @@ export const max = (nums) => {
   if (nums.length) return Math.max(...nums)
 }
 
+// equivalent to lodash.debounce
+export function debounce(func, timeout = 300) {
+  let timer;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => { func.apply(this, args); }, timeout);
+  };
+}
+
 export const loadResults = (href) => {
   // Abort any already running requests
   if (controller) {
@@ -27,12 +36,14 @@ export const loadResults = (href) => {
     },
     signal: controller.signal
   }).then((response) => {
-    controller = null;
-    loadingTimeout = null;
-    let main = document.getElementsByTagName('main')[0];
-    main.innerHTML = response.text();
+    return response.text()
+  }).then((response) => {
+    controller = null
+    loadingTimeout = null
+    let main = document.getElementsByTagName('main')[0]
+    main.innerHTML = response
   }).catch((error) => {
-    console.error(`Retrieve failed: ${error.message}`);
+    console.error(`Retrieve failed: ${error.message}`)
   })
 }
 
