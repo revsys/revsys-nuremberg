@@ -1,21 +1,12 @@
-
 version: '2'
 services:
 
   solr:
-<<<<<<< HEAD
-    image: registry.revsys.com/nuremberg:v0.5.51-r1-solr
-    volumes: []
-
-  web:
-    image: registry.revsys.com/nuremberg:v0.5.51-r1-tester
-=======
     image: registry.revsys.com/nuremberg:v0.5.52-solr
     volumes: []
 
   web:
     image: registry.revsys.com/nuremberg:v0.5.52-tester
->>>>>>> 4821011 (Bump version: 0.5.51 → 0.5.52)
     entrypoint: /bin/bash
     command: ""
     volumes:
@@ -27,4 +18,3 @@ services:
       - GITHUB_STEP_SUMMARY=/code/media/github-step-summary
 
 volumes: {}
-
