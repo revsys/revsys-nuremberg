@@ -89,11 +89,7 @@ FROM builder as release
 
 ENV DJANGO_SETTINGS_MODULE nuremberg.settings
 ENV BASE_DIR=/code
-<<<<<<< HEAD
-ENV IMAGE_VERSION v0.5.51-r1
-=======
 ENV IMAGE_VERSION v0.5.52
->>>>>>> 4821011 (Bump version: 0.5.51 → 0.5.52)
 
 RUN ln -s /node/node_modules/less/bin/lessc /bin/lessc
 
