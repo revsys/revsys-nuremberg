@@ -6,7 +6,7 @@ const Search = (props) => {
   const [params, setParams] = useSearchParams()
 
   return (
-    <section role="search" aria-label="Search the archive" className="theme-beige thin">
+    <>
       <h1 className="h4">Search the archive</h1>
       <div className="full-width">
         <SearchBar
@@ -16,7 +16,7 @@ const Search = (props) => {
         <div className="show-advanced-search"><a>Advanced Search</a></div>
         <p></p>
       </div>
-    </section >
+    </>
   )
 }
 
