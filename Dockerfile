@@ -155,11 +155,7 @@ ENV SOLR_CORE nuremberg_dev
 
 COPY solr_conf /opt/solr-8.11.2/solr_conf
 
-<<<<<<< HEAD
-ENV IMAGE_VERSION v0.5.51-r1-solr
-=======
 ENV IMAGE_VERSION v0.5.52-solr
->>>>>>> 4821011 (Bump version: 0.5.51 → 0.5.52)
 
 RUN --mount=type=bind,source=./dist/var-solr.tgz,target=/mnt/var-solr.tgz \
     cd / && \
