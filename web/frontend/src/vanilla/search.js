@@ -116,6 +116,19 @@ const yearRangeControls = () => {
   })
 }
 
+const scrollToTop = () => {
+  const results = document.querySelector(".results-count")
+  results.scrollIntoView();
+}
+
+const gotoResults = (href) => {
+  if (location.search === href) {
+    return;
+  }
+  if (history && history.pushState) {
+    history.pushState(undefined, undefined, href);
+  }
+}
 /* **********************************************************************
    Main Entry Point
    ********************************************************************* */
@@ -136,6 +149,10 @@ const main = () => {
 
   // Handle show all facets
   toggleShowAllFacets()
+
+  // Handle scrolling to top
+  document.querySelector("a.page-number").addEventListener("click", scrollToTop)
+
 }
 
 document.addEventListener('DOMContentLoaded', main)

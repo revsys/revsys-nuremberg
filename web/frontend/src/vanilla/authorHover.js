@@ -4,10 +4,7 @@ import { createPopper } from '@popperjs/core'
 const showEvents = ['mouseenter', 'focus']
 const hideEvents = ['mouseleave', 'blur']
 
-
-const main = () => {
-    const authorLinks = document.getElementsByClassName("author-hover-link")
-
+const handleHover = (authorLinks) => {
     Array.from(authorLinks).forEach(link => {
         const content = link.getElementsByClassName("author-hover-content")[0]
         const instance = createPopper(link, content, {
@@ -35,6 +32,22 @@ const main = () => {
             })
         })
     })
+
+}
+
+const main = () => {
+    const authorLinks = document.getElementsByClassName("author-hover-link")
+
+    // Handle initial hover on page load
+    handleHover(authorLinks)
+
+    // Setup subsequent hover handling on form updates
+    const form = document.getElementById("main-search-form")
+    if (form) {
+        form.addEventListener("submit", () => {
+            handleHover(authorLinks)
+        })
+    }
 }
 
 
