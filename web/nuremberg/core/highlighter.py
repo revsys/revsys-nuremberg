@@ -31,3 +31,11 @@ class NurembergHighlighter(Highlighter):
     def find_window(self, highlight_locations):
         # Do not truncate the text at all -- show everything, from start to end
         return (0, len(self.text_block))
+
+    def highlight(self, text_block):
+        # Override from parent to avoid stripping HTML tags, the original code
+        # would do: self.text_block = strip_tags(text_block)
+        self.text_block = text_block
+        highlight_locations = self.find_highlightable_words()
+        start_offset, end_offset = self.find_window(highlight_locations)
+        return self.render_html(highlight_locations, start_offset, end_offset)

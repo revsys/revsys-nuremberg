@@ -3,7 +3,7 @@ from urllib.parse import urlencode
 
 from lxml import etree
 
-from nuremberg.documents.views import DocumentHighlighter
+from nuremberg.core.highlighter import NurembergHighlighter
 
 
 class TranscriptPageJoiner:
@@ -93,7 +93,10 @@ class TranscriptPageJoiner:
         self.include_first = include_first
         self.include_last = include_last
         self.pages = pages
-        self.query = query
+        if query:
+            self.highlighter = NurembergHighlighter(query)
+        else:
+            self.highlighter = None
 
     # Matches paragraphs that look like 'Court No. 1', mod OCR errors
     ignore_p = re.compile(
@@ -203,6 +206,11 @@ class TranscriptPageJoiner:
                     # if the first page ends with an open join, signal to drop that join from the output.
                     self.ignore_join = True
 
+    def highlight(self, text):
+        if self.highlighter:
+            text = self.highlighter.highlight(text)
+        return text
+
     def open_page(self):
         self.page_html = ''
         self.log('<span>[opened seq {}]</span>'.format(self.seq))
@@ -211,13 +219,11 @@ class TranscriptPageJoiner:
     def close_page(self):
         self.log('<span>[closed]</span>')
         if self.page_html and self.output_page:
+            # highlight search terms if available
+            self.page_html = self.highlight(self.page_html)
             self.html_pages.append(
                 {'page': self.output_page, 'html': self.page_html}
             )
-
-    def highlight_query(self, text, query):
-        highlight = DocumentHighlighter(query, html_tag='mark')
-        return highlight.highlight(text)
 
     def put(self, text):
         self.page_html += text
@@ -233,12 +239,6 @@ class TranscriptPageJoiner:
             self.page_html += text
 
     def join_text(self, joined_text):
-        print(f'\n==== {joined_text=}')
-        if self.query:
-            joined_text = self.highlight_query(joined_text, query=self.query)
-            if '<mark class=' in joined_text:
-                print(f'    ==== HIGHLIGHTED {joined_text=}')
-
         if joined_text:
             ends = self.sentence_break.split(joined_text, 1)
             if len(ends) == 3 and not self.reject_sentence_end.match(ends[1]):
