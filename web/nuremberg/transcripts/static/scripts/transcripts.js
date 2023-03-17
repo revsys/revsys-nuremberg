@@ -134,49 +134,6 @@ modulejs.define('transcript-viewer', function () {
       loadFromScratch({date: date});
   });
 
-  var highlightEl = function (el, query) {
-    el.find('mark').contents().unwrap();
-    if (!query)
-      return;
-
-    // rough highlighting of terms in javascript
-
-    query = query
-    .replace(/evidence:|exhibit:/, '')
-    .replace(/((?:\-?\w+)\s*\:\s*(?:"[^"]+"|\([^:]+\)|[\w\-\+\.\|]+))/, '');
-    var exact_terms = query.match(/"([^"]+)"/g);
-    exact_terms = _.map(exact_terms, function (t) { return t.replace(/^"|"$/g, '').replace(/[^\w]+/g, '[^\\w]+'); })
-    query = query.replace(/"([^"]+)"/g, '');
-
-    var terms = query
-    .replace(/[^\w\-]+/g, ' ')
-    .replace(/^\s+|\s+$/g, '')
-    .replace(/(s|ing|ed|ment)\b/g, '')
-    .split(/\ +/g);
-
-    terms = _.reject(terms, function (term) {return !term || (term.length < 3 && !term.match(/[A-Z]{2,3}|\d+/));});
-    terms = terms.concat(exact_terms);
-
-    if (!terms.length)
-      return;
-
-    var rx = new RegExp( '\\b('+terms.join('|')+')(s|ing|ed|ment)?\\b', 'ig');
-    el.find('p, span, a').contents().filter(function(){ return this.nodeType == 3; }).replaceWith(function (n, text) {
-        return this.textContent.replace(rx, function (m, term, stem) {
-            return '<mark>' + term + (stem || '') + '</mark>';
-        });
-    });
-  };
-
-  var rehighlight = function () {
-    $text.html(highlightEl($text, query));
-  };
-
-  rehighlight();
-  $('input[name=q]').on('keyup', _.debounce(function () {
-    query = this.value;
-    rehighlight();
-  }, 500));
   $('.clear-search').on('click', function (e) {
     e.preventDefault();
     $(this).closest('form').find('input[type="search"]').val('').trigger('keyup')
@@ -199,6 +156,7 @@ modulejs.define('transcript-viewer', function () {
       data: {
         from_seq: toSeq,
         to_seq: Math.min(totalPages, toSeq + batches * (batchSize) + 1),
+        q: $('input[name=q]').val(),
         partial: true,
       }
     })
@@ -206,7 +164,6 @@ modulejs.define('transcript-viewer', function () {
       toSeq = data.to_seq;
       var container = $('<div></div>');
       container.append($(data.html));
-      highlightEl(container, query);
       $text.append(container);
       loading = false;
     });
@@ -227,6 +184,7 @@ modulejs.define('transcript-viewer', function () {
       data: {
         from_seq: Math.max(1, fromSeq - (batchSize + 1)),
         to_seq: fromSeq,
+        q: $('input[name=q]').val(),
         partial: true,
       }
     })
@@ -234,7 +192,6 @@ modulejs.define('transcript-viewer', function () {
       fromSeq = data.from_seq;
       var container = $('<div></div>');
       container.append($(data.html));
-      highlightEl(container, query);
       $text.prepend(container);
       $viewport.scrollTop($viewport.scrollTop() + container.height() + 29);
       loading = false;
@@ -246,6 +203,7 @@ modulejs.define('transcript-viewer', function () {
     if (loading)
       return;
     options.partial = true;
+    options.q = $('input[name=q]').val(),
     options.seq = options.seq || currentSeq;
     loading = true;
     $text.empty();
@@ -257,7 +215,6 @@ modulejs.define('transcript-viewer', function () {
       fromSeq = data.from_seq;
       toSeq = data.to_seq;
       $text.append(data.html);
-      rehighlight();
       if (data.seq)
         goToSeq(data.seq)
       loading = false;
