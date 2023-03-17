@@ -39,6 +39,7 @@ class Show(View):
         transcript = Transcript.objects.get(id=transcript_id)
         total_pages = transcript.total_pages
 
+        query = request.GET.get('q')
         seq_number = int(request.GET.get('seq', 1))
         page_number = int(request.GET.get('page', 0))
         if page_number:
@@ -67,37 +68,34 @@ class Show(View):
         )
         joiner.build_html()
 
+        context = {
+            'html': render_to_string(
+                'transcripts/joined_pages.html',
+                {'pages': joiner.html_pages},
+            ),
+            'from_seq': joiner.from_seq,
+            'to_seq': joiner.to_seq,
+            'seq': seq_number,
+        }
+
         if request.GET.get('partial'):
-            return JsonResponse(
-                {
-                    'html': render_to_string(
-                        'transcripts/joined_pages.html',
-                        {'pages': joiner.html_pages},
-                    ),
-                    'from_seq': joiner.from_seq,
-                    'to_seq': joiner.to_seq,
-                    'seq': seq_number,
-                }
-            )
+            return JsonResponse(context)
 
         current_page = next(
             page for page in pages if page.seq_number == seq_number
         )
-        return render(
-            request,
-            self.template_name,
+        context.update(
             {
                 'transcript': transcript,
-                'joiner': joiner,
-                'seq': seq_number,
                 'total_pages': total_pages,
                 'dates': transcript.dates(),
                 'current_page': current_page,
-                'query': request.GET.get('q'),
+                'query': query,
                 'page_obj': None,
                 'show_search_bar': False,
-            },
+            }
         )
+        return render(request, self.template_name, context)
 
     def get_request_seq_range(self, request, seq_number):
         # so that page ranges are generally cacheable, we align initial page loads to 10-page strides, plus 1

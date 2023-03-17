@@ -1,7 +1,7 @@
 {% load humanize %}
 {% for row in pages %}
   {% with page=row.page html=row.html %}
-    <div class="page"  data-seq="{{ page.seq_number }}" data-page="{{ page.page_number|default:"" }}" data-date="{{ page.date|date:'Y-m-d'}}">
+    <div class="page" data-seq="{{ page.seq_number }}" data-page="{{ page.page_number|default:"" }}" data-date="{{ page.date|date:'Y-m-d'}}">
       <div class="page-handle">
           <span class="page-details">
               HLSL Seq. No. {{ page.seq_number }}
