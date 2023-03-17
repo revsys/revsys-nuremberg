@@ -63,6 +63,7 @@ class Show(View):
         ).all()
         joiner = TranscriptPageJoiner(
             pages,
+            query=query,
             include_first=from_seq == 1,
             include_last=to_seq == total_pages,
         )
