@@ -32,6 +32,7 @@
 
     {% vite_hmr_client %}
     {% vite_asset 'src/vanilla/authorHover.js' %}
+    {% vite_asset 'src/vanilla/transcript.js' %}
 
     {% block extra_head_js %}{% endblock extra_head_js %}
   </head>
@@ -78,7 +79,9 @@
         <script src="{% static 'scripts/backbone.min.js' %}" type="text/javascript"></script>
         <script src="{% static 'scripts/search.js' %}" type="text/javascript"></script>
 
+        {% comment %}
         <script src="{% static 'scripts/transcripts.js' %}" type="text/javascript"></script>
+        {% endcomment %}
 
         <script src="{% static 'scripts/download-pdf.js' %}" type="text/javascript"></script>
         <script src="{% static 'scripts/download-queue.js' %}" type="text/javascript"></script>
