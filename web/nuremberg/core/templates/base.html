@@ -74,15 +74,15 @@
 
         {% comment %}
         <script src="{% static 'scripts/transcripts.js' %}" type="text/javascript"></script>
-        {% endcomment %}
-
-        <script src="{% static 'scripts/download-pdf.js' %}" type="text/javascript"></script>
         <script src="{% static 'scripts/download-queue.js' %}" type="text/javascript"></script>
         <script src="{% static 'scripts/document-tools.js' %}" type="text/javascript"></script>
         <script src="{% static 'scripts/document-viewport.js' %}" type="text/javascript"></script>
         <script src="{% static 'scripts/images.js' %}" type="text/javascript"></script>
         <script src="{% static 'scripts/dragging.js' %}" type="text/javascript"></script>
         <script src="{% static 'scripts/documents.js' %}" type="text/javascript"></script>
+        {% endcomment %}
+
+        <script src="{% static 'scripts/download-pdf.js' %}" type="text/javascript"></script>
       {% endcompress %}
       <script>
         $(document).ready(function () {
