@@ -64,3 +64,39 @@ def test_highlight_skips_html_tags():
     )
     actual = h.highlight(text)
     assert actual == expected
+
+
+def test_highlight_skips_html_tags_multiple_locations():
+    # Mimics real case for
+    # /transcripts/7?seq=4012&q=trial:imt+type:transcript+January+speaker
+    h = NurembergHighlighter(query='trial:imt type:transcript January speaker')
+
+    assert sorted(h.query_words) == [
+        'imt',
+        'january',
+        'speaker',
+        'transcript',
+    ]
+
+    text = (
+        '<p>'
+        '<span class="speaker">THE PRESIDENT:</span>   It would help us, I '
+        'think, when you are passing on in your expose, if you were to say '
+        'that you were passing to such and such a page. We should then be '
+        'able to go on with it.'
+        '</p>'
+        '<p>'
+        'Will you do that?'
+        '</p>'
+        '<p>'
+        '<span class="speaker">M. GERTHOFFER:</span>   Yes.  This is page 14 '
+        'of the brief.  It is a copy of a document which was discovered by '
+        'the American Army, which bears the number 1-PS, which I offer in '
+        'evidence in the form of a copy in the Document Book under the number '
+        '1311.'
+        '</p>'
+    )
+    expected = text  # no highlight
+
+    actual = h.highlight(text)
+    assert actual == expected

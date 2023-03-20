@@ -66,12 +66,12 @@ class NurembergHighlighter(Highlighter):
         # `speaker` is a CSS class used to format trial speaker names, and
         # `NOKW-192` is part of a href link to search for all the items
         # referencing that evidence code.
-        for word, locations in list(highlight_locations.items()):
-            for location in locations:
+        for word, locations in highlight_locations.items():
+            for location in list(locations):  # copy to allow for modification
                 # is this location inside an opened HTML tag?
                 tags = [i for i in text_block[location:] if i in ['>', '<']]
                 if tags and tags[0] == '>':
-                    highlight_locations[word].remove(location)
+                    locations.remove(location)
 
         # These two last calls match the parent implementation.
         start_offset, end_offset = self.find_window(highlight_locations)
