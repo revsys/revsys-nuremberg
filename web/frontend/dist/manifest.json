@@ -25,7 +25,7 @@
     "src": "src/main.jsx"
   },
   "src/search.jsx": {
-    "file": "search-e1cc0e67.js",
+    "file": "search-ac6793a3.js",
     "imports": [
       "_index-583bd3f0.js"
     ],
@@ -33,13 +33,23 @@
     "src": "src/search.jsx"
   },
   "src/vanilla/authorHover.js": {
-    "file": "author-6e73c9d0.js",
+    "file": "author-4f951e1a.js",
     "isEntry": true,
     "src": "src/vanilla/authorHover.js"
   },
+  "src/vanilla/documents.js": {
+    "file": "vanilladocuments-026662eb.js",
+    "isEntry": true,
+    "src": "src/vanilla/documents.js"
+  },
   "src/vanilla/search.js": {
-    "file": "vanillasearch-78bea1a2.js",
+    "file": "vanillasearch-4ac325a1.js",
     "isEntry": true,
     "src": "src/vanilla/search.js"
+  },
+  "src/vanilla/transcript.js": {
+    "file": "vanillatranscripts-91af9376.js",
+    "isEntry": true,
+    "src": "src/vanilla/transcript.js"
   }
 }
