@@ -1,6 +1,9 @@
-.row { .make-row(); }
+.row {
+  .make-row();
+}
 
-main > section {
+main>section,
+main>div#search>section {
   .clearfix();
   padding-left: 50px;
   padding-right: 50px;
@@ -13,6 +16,7 @@ main > section {
     padding-left: 20px;
     padding-right: 20px;
   }
+
   @media (max-width: @screen-xxs-min) {
     padding-left: 10px;
     padding-right: 10px;
@@ -21,32 +25,40 @@ main > section {
   &:last-child {
     border-bottom: none;
   }
+
   &.content-head {
     padding-top: 0;
   }
+
   &.flush {
     padding-top: 0;
     padding-bottom: 0;
   }
+
   &.thin {
     padding-top: 14px;
     padding-bottom: 18px;
   }
+
   &.spacer {
     border-bottom: none;
   }
+
   &.theme-light {
     background-color: @white;
     color: @light-black;
   }
+
   &.theme-beige {
     background-color: @background-beige;
     color: @black;
   }
+
   &.theme-blue {
     background-color: @background-blue;
     color: @black;
   }
+
   &.theme-dark {
     background-color: @black;
     color: @light-gray;
@@ -74,12 +86,15 @@ hr {
 .left-text {
   text-align: left;
 }
+
 .center-text {
   text-align: center;
 }
+
 .right-text {
   text-align: right;
 }
+
 .partial-width {
   max-width: 750px;
 }
@@ -90,6 +105,7 @@ hr {
   .sidebar-column {
     .make-md-column(3);
   }
+
   .main-column {
     .make-md-column(8);
     .make-md-column-offset(1);
@@ -104,10 +120,13 @@ hr {
   .sidebar-column {
     .make-md-column(4);
   }
+
   .main-column {
     .make-md-column(7.6);
   }
-  .sidebar-column,.main-column {
+
+  .sidebar-column,
+  .main-column {
     &:last-child {
       .make-md-column-offset(0.4);
     }
@@ -153,9 +172,9 @@ hr {
 
   img {
     background-color: @gray;
-    display:block;
-    margin-left:auto;
-    margin-right:auto;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
   }
 }
 
@@ -167,8 +186,9 @@ hr {
   }
 }
 
-.column, .main-column {
-  > img {
+.column,
+.main-column {
+  >img {
     max-width: 100%;
   }
 }
@@ -183,6 +203,7 @@ blockquote {
   &::after {
     content: '\201d'; // &rdquo;
   }
+
   &::before {
     position: absolute;
     left: -43px;

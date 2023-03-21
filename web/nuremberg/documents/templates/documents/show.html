@@ -1,19 +1,22 @@
 {% extends "base.html" %}
-{% load search_url static cache %}
+{% load search_url static cache django_vite %}
 
 {% block title %} Document Viewer - {{document.title}} {% endblock %}
 
 {% block body_class %}document-viewer{% endblock %}
 
-{% block javascript_module %}documents{% endblock %}
+{% block javascript_module %}{% endblock %}
+
+{% block extra_head_js %}
+  {% vite_asset 'src/vanilla/documents.js' %}
+{% endblock extra_head_js %}
 
 {% block javascript %}
   {{ block.super }}
   <script>
-  var acc = document.getElementsByClassName("accordion");
-  var i;
+  let acc = document.getElementsByClassName("accordion");
 
-  for (i = 0; i < acc.length; i++) {
+  for (let i = 0; i < acc.length; i++) {
     acc[i].addEventListener("click", function() {
       /* Toggle between adding and removing the "active" class,
       to highlight the button that controls the panel */
@@ -52,7 +55,7 @@
       {% endblock %}
       <div class="page-buttons">
         {% block page_selection %}
-          <select title="Jump to document page">
+          <select title="Jump to document page" id="page-selector">
             {% for page in document.page_range %}
               <option value="{{page}}">Sequence No. {{page}} </option>
             {% endfor %}
