@@ -2,11 +2,11 @@ version: '2'
 services:
 
   solr:
-    image: registry.revsys.com/nuremberg:v0.5.57-r1-solr
+    image: registry.revsys.com/nuremberg:v0.5.57-r2-solr
     volumes: []
 
   web:
-    image: registry.revsys.com/nuremberg:v0.5.57-r1-tester
+    image: registry.revsys.com/nuremberg:v0.5.57-r2-tester
     entrypoint: /bin/bash
     command: ""
     volumes:
