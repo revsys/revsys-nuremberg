@@ -4,6 +4,7 @@ import DownloadQueue from './download-queue'
 // Globals
 let currentPage = 1
 let currentOrigin = null
+let currentTool = 'scoll'
 let firstPage = null
 let lastPage = null
 let scale = 1
@@ -17,6 +18,8 @@ let documentID = null
 let totalPages = null
 let pagePlaceholder = null
 let imageCSSRule = null
+let dragPosition = null
+
 
 const goToPage = (page) => {
   images[currentPage - 1].$el.removeClass('current')
@@ -46,8 +49,6 @@ const setPageDownload = (url, filename) => {
 }
 
 const setFirstVisible = (newFirst) => {
-  console.log("setFirstVisible")
-  console.dir(newFirst)
   firstVisible = newFirst
   let viewport = $('.viewport-content')
 
@@ -58,8 +59,6 @@ const setFirstVisible = (newFirst) => {
 }
 
 const setCurrentImage = (newImage) => {
-  console.log("setCurrentImage")
-  console.dir(newImage)
   let viewport = $('.viewport-content')
   let previous = currentImage
   if (!newImage) {
@@ -80,8 +79,10 @@ const setCurrentImage = (newImage) => {
     }
   }
 }
+
 // Set which tool is in use in the overlay
 const setTool = (viewport, tool) => {
+  currentTool = tool
   viewport.removeClass('tool-magnify tool-scroll')
   viewport.off('mousewheel', wheelZoom)
   viewport.off('click', magnifyTool)
@@ -200,11 +201,13 @@ const smoothZoom = (thisViewScale, scaleOrigin) => {
     scaleView(viewScale, true, targetOrigin)
   }
 
+  viewScale = newViewScale
 }
 
 let zoomTimeout = null
 
 const scaleView = (scale, animate, scaleOrigin) => {
+  console.log(`scaleView: ${scale} ${animate} ${scaleOrigin}`)
   let viewport = $("div.viewport-content")
   let scaleDelta = scale / (prevViewScale || 1)
   prevViewScale = scale
@@ -267,7 +270,8 @@ const isVisible = (n, bounds) => {
 }
 
 // Scan all images, marking which are currently visible in the viewport
-const recalculateVisible = () => {
+
+const baseRecalculateVisible = () => {
   const preloadRange = 200
   let viewport = $("div.viewport-content")
   DownloadQueue.resetPriority()
@@ -339,18 +343,20 @@ const recalculateVisible = () => {
   }
 }
 
+const recalculateVisible = _.debounce(baseRecalculateVisible, 50)
+
 const magnifyTool = (e) => {
   let viewport = $("div.viewport-content")
   e.preventDefault()
 
-  var scaleOrigin = {
+  let scaleOrigin = {
     x: e.pageX - viewport.offset().left,
     y: e.pageY - viewport.offset().top
-  };
+  }
 
-  let scale;
+  let newScale;
 
-  let $page = $(e.target).closest('.document-image');
+  let $page = $(e.target).closest('.document-image')
   let page
 
   images.forEach((image, i) => {
@@ -367,8 +373,8 @@ const magnifyTool = (e) => {
   // this mode is used in smooth zoom mode to focus on a page. never zooms to page
   if (e.type == 'dblclick') {
     if (viewScale >= 1 / scale) {
-      scale = 1;
-      smoothZoom(scale, scaleOrigin);
+      newScale = 1;
+      smoothZoom(newScale, scaleOrigin);
     } else {
       viewScale = 1 / scale;
       scaleView(1 / scale, true, { x: page.$el.position().left, y: page.$el.position().top });
@@ -378,42 +384,43 @@ const magnifyTool = (e) => {
     if (e.type === 'click' && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
       // on left-click, view scale for 100% and page zoom under 100%
       if (scale == 1) {
-        scale = 1.5 * viewScale;
-        smoothZoom(scale, scaleOrigin);
+        newScale = 1.5 * viewScale;
+        console.log("Click here1")
+        smoothZoom(newScale, scaleOrigin);
       } else {
-        scale = 1;
-        zoomToPage(page, scale);
+        newScale = 1;
+        console.log("Click here2")
+        zoomToPage(page, newScale);
       }
     } else if (e.type === 'contextmenu' || e.ctrlKey || e.metaKey || e.shiftKey) {
       // on right-click, reset zoom if zoomed in on multiple columns,
       // zoom out if zoomed in on one column, add more columns otherwise
       if (viewScale > 1) {
         if (scale < 1) {
-          scale = 1;
-          smoothZoom(scale, scaleOrigin);
+          newScale = 1;
+          smoothZoom(newScale, scaleOrigin);
         } else {
-          scale = 1 / 1.5 * viewScale;
-          smoothZoom(scale, scaleOrigin);
+          newScale = 1 / 1.5 * viewScale;
+          smoothZoom(newScale, scaleOrigin);
         }
       } else {
-        scale = 1 / (scaleRatio() + 1);
-        zoomToPage(page, scale);
+        newScale = 1 / (scaleRatio() + 1);
+        zoomToPage(page, newScale);
       }
     }
   }
 }
 
 const zoomIn = () => {
-  // behavior of the "zoom out" button
+  // behavior of the "zoom in" button
   // Page zoom over 100%, smooth zoom under 100%
-  console.log("zoomIn!")
   let viewport = $("div.viewport-content")
-  let newScale = scale * viewScale;
-  if (newScale <= 1) {
-    newScale = 1 / Math.min(10, scaleRatio(newScale) + 1);
-    zoomToPage(_.find(images, function (img) { return img === firstVisible }), newScale);
+  let newScale = scale * viewScale
+  if (newScale < 1) {
+    newScale = 1 / (scaleRatio(newScale) - 1)
+    zoomToPage(_.find(images, function (img) { return img === firstVisible }), newScale)
   } else {
-    newScale = 1 / 1.5 * viewScale;
+    newScale = 1.5 * viewScale;
     smoothZoom(newScale, { x: viewport.width() / 2, y: viewport.height() / 2 });
   }
 }
@@ -421,7 +428,6 @@ const zoomIn = () => {
 const zoomOut = () => {
   // behavior of the "zoom out" button
   // Page zoom over 100%, smooth zoom under 100%
-  console.log("zoomOut!")
   let viewport = $("div.viewport-content")
   let newScale = scale * viewScale;
   if (newScale <= 1) {
@@ -455,6 +461,7 @@ const zoomToPage = (page, thisScale) => {
   let laneOffset
   scale = thisScale
 
+  console.log(`scaleDelta: ${scaleDelta}`)
   const pinnedPageOrigin = (page) => {
     if (!page) {
       return {
@@ -536,7 +543,6 @@ const zoomToPage = (page, thisScale) => {
     // 1. animate the view scale in to 100%
     let pageOrigin = pinnedPageOrigin(page);
     scaleView(scaleDelta, true, pageOrigin);
-
     setTimeout(() => {
       // reset other values for 1 column
       pagePlaceholder.css({ width: '0%' });
@@ -562,6 +568,30 @@ const zoomToPage = (page, thisScale) => {
     recalculateVisible();
   }, 300);
 
+}
+
+// Mouse drag when magnified
+const startDrag = (e) => {
+  if (e.which !== 1 || (e.which !== 3 && currentTool !== 'magnify'))
+    return;
+  dragPosition = { x: e.clientX, y: e.clientY }
+  $(document).on('mousemove', doDrag)
+  $(document).one('mouseup', endDrag)
+  e.preventDefault();
+}
+
+const endDrag = (e) => {
+  dragPosition = null
+  $(document).off('mousemove', doDrag)
+}
+
+const doDrag = (e) => {
+  let oldPosition = dragPosition
+  let newPosition = { x: e.clientX, y: e.clientY }
+  let viewport = $("div.viewport-content")
+  viewport.scrollLeft(viewport.scrollLeft() + oldPosition.x - newPosition.x)
+  viewport.scrollTop(viewport.scrollTop() + oldPosition.y - newPosition.y)
+  dragPosition = newPosition
 }
 
 // Main entry point
@@ -653,8 +683,10 @@ const main = () => {
     height: '1px',
   }).prependTo(layout);
 
-  viewport.on('scroll', () => { recalculateVisible() })
+  viewport.on('scroll', () => { console.log("scroll!"); recalculateVisible() })
   viewport.on('resize', () => { recalculateVisible() })
+  viewport.on('mousedown', startDrag)
+
   recalculateVisible()
   setFirstVisible(images[0])
 }
