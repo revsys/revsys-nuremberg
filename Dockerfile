@@ -74,6 +74,8 @@ RUN apt update; apt -y install curl
 
 RUN  tar -xzC /node --strip-components=1 -f <( curl -sL https://nodejs.org/dist/v18.12.1/node-v18.12.1-linux-x64.tar.gz )
 
+RUN pip install -U pip
+
 RUN --mount=type=bind,source=web/requirements.txt,target=/requirements.txt \
     pip install -r /requirements.txt
 
