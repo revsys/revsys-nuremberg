@@ -164,8 +164,8 @@ jobs:
       -
         name: run tests
         run: |
-          egrep -q '\[[[:blank:]]*notest[[:blank:]]*\]' <( git log -1 --format=%B ) &&
-          echo 'skipping tests (notest in msg body)' ||
+          #egrep -q '\[[[:blank:]]*notest[[:blank:]]*\]' <( git log -1 --format=%B ) &&
+          #echo 'skipping tests (notest in msg body)' ||
           #NO_CACHE_TO=1 just test
       -
         name: push version updates to repo
