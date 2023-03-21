@@ -110,10 +110,26 @@ const yearRangeControls = () => {
     }
     href = href.replace(/([\?&])page=\d+&?/, function (m, c) { return c });
     href = "/search/new-search" + href
-    console.log(href)
-    //gotoResults(href);
-    window.location.href = href
+    gotoResults(href);
   })
+}
+
+const scrollToTop = () => {
+  const results = document.querySelector(".results-count")
+  results.scrollIntoView();
+}
+
+const submitForm = (form) => {
+  let action = form.attr('action')
+  if (!action || action == location.pathname) {
+    gotoResults('?' + form.serialize())
+    return false
+  }
+  return true
+}
+
+const tabClicking = (e) => {
+  return (e.ctrlKey || e.metaKey || (e.button && e.button == 1));
 }
 
 /* **********************************************************************
@@ -131,11 +147,24 @@ const main = () => {
   // Setup facet toggles
   toggleFacetCollapse()
 
+  /* FIXME adjust new_search template to allow React search.jsx to stay on the
+     page !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
+
   // Handle year range inputs
   yearRangeControls()
 
   // Handle show all facets
   toggleShowAllFacets()
+
+  // Handle scrolling to top
+  document.querySelector("a.page-number").addEventListener("click", scrollToTop)
+
+  // Handle form submission
+  $(document).on('submit', 'form', function (e) {
+    if (tabClicking(e)) return;
+    var $form = $(this);
+    return submitForm($form);
+  });
 }
 
 document.addEventListener('DOMContentLoaded', main)

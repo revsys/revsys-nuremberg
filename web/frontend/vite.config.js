@@ -23,6 +23,8 @@ export default defineConfig({
         author: path.resolve(__dirname, './src/vanilla/authorHover.js'),
         search: path.resolve(__dirname, './src/search.jsx'),
         vanillasearch: path.resolve(__dirname, './src/vanilla/search.js'),
+        vanillatranscripts: path.resolve(__dirname, './src/vanilla/transcripts.js'),
+        vanilladocuments: path.resolve(__dirname, './src/vanilla/documents.js'),
       },
       output: {
         chunkFileNames: undefined,
