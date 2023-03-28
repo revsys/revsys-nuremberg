@@ -166,6 +166,7 @@ HAYSTACK_CONNECTIONS = {
 }
 
 HAYSTACK_DEFAULT_OPERATOR = 'AND'
+HAYSTACK_CUSTOM_HIGHLIGHTER = 'nuremberg.core.highlighter.NurembergHighlighter'
 
 LOGGING = {
     'version': 1,
