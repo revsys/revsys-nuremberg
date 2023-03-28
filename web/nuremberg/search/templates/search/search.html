@@ -55,7 +55,11 @@
         </div>
         <div class="results-count">
           <p class="hint" data-test="search-result-pages-summary">
+            {% if paginator.count %}
             Results {{page_obj.start_index}}-{{page_obj.end_index}} of {{paginator.count}}
+            {% else %}
+            No results
+            {% endif %}
             {% if form.auto_query or form.field_queries %}for{% endif %}
             {% if form.auto_query %}<strong>{{form.auto_query}}</strong>{% endif %}
             {% for field_query in form.field_queries %}
