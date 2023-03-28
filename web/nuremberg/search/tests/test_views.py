@@ -178,19 +178,28 @@ def test_keyword_search(query):
 def count_results(query):
     def _count(q, count=None, page_count=15, first_count=1):
         page = query(q)
-        matches = re.findall(
-            r'Results (\d+)-(\d+) of (\d+)',
-            page('.results-count').text(),
-        )
-        assert len(matches) == 1
-        [(first, page_size, total)] = matches
-        assert int(first) == first_count
-        assert int(page_size) == page_count
-        if count is None:
-            assert int(total) > 0
+        results_count = page('.results-count').text()
+        if count == 0:
+            matches = re.findall(r'No results', results_count)
         else:
-            assert int(total) == count
-        return int(total)
+            matches = re.findall(
+                r'Results (\d+)-(\d+) of (\d+)', results_count
+            )
+        assert len(matches) == 1
+
+        if count == 0:
+            total = 0
+        else:
+            [(first, page_size, total)] = matches
+            assert int(first) == first_count
+            assert int(page_size) == page_count
+            total = int(total)
+            if count is None:
+                assert total > 0
+            else:
+                assert total == count
+
+        return total
 
     return _count
 
