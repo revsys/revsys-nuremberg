@@ -376,6 +376,16 @@ class DocumentDate(models.Model):
         )
 
     def as_date_flexible(self):
+        """Return the best string representation for this date.
+
+        Use as much as possible of this date's values to provide a string
+        representation of the date. If all three day, month and year are valid,
+        build a date, format it and and return it 
+
+        If day is invalid, return month and year, formatted. If day and month
+        are invalid, return the year. If all three are invalid, return None.
+
+        """
         parsed_date = self.as_date()
         if parsed_date is not None:
             return parsed_date.strftime('%d %B %Y')
