@@ -12,7 +12,7 @@
 {{ object.material_type }}
 
 {% if object.date %}
-  {{object.date|date:'d F Y'}}
+  {{ object.date.as_date_flexible }}
 {% else %}
   Date Unknown
 {% endif %}

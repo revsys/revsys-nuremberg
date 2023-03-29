@@ -67,13 +67,15 @@ def parse_date(year, month, day, reference=None):
     try:
         result = datetime.date(year, month, day)
     except (TypeError, ValueError) as e:
-        logger.debug(
-            'Error parsing date for %s (got year %r, month %r, day %r): %s',
-            reference,
-            year,
-            month,
-            day,
-            e,
-        )
+        msg = 'Error parsing date for %s (got year %r, month %r, day %r): %s'
+        if reference:
+            logger.debug(
+                msg,
+                reference,
+                year,
+                month,
+                day,
+                e,
+            )
         result = None
     return result
