@@ -38,21 +38,21 @@ def test_document_date_valid_as_date():
     assert d.as_date() == today
 
 
-def test_document_date_as_date_flexible():
+def test_document_date_as_str_flexible():
     today = datetime.date.today()
     d = DocumentDate.objects.create(
         day=today.day, month=today.month, year=today.year
     )
-    assert d.as_date_flexible() == today.strftime('%d %B %Y')
+    assert d.as_str_flexible() == today.strftime('%d %B %Y')
 
     d = DocumentDate.objects.create(day=32, month=today.month, year=today.year)
-    assert d.as_date_flexible() == today.strftime('%B %Y')
+    assert d.as_str_flexible() == today.strftime('%B %Y')
 
     d = DocumentDate.objects.create(day=today.day, month=13, year=today.year)
-    assert d.as_date_flexible() == today.strftime('%Y')
+    assert d.as_str_flexible() == today.strftime('%Y')
 
     d = DocumentDate.objects.create(day=today.day, month=today.month, year=0)
-    assert d.as_date_flexible() is None
+    assert d.as_str_flexible() is None
 
 
 def test_document_total_pages():

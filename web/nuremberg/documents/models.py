@@ -375,7 +375,7 @@ class DocumentDate(models.Model):
             self.year, self.month, self.day, reference=f'document {doc_id}'
         )
 
-    def as_date_flexible(self):
+    def as_str_flexible(self):
         """Return the best string representation for this date.
 
         Use as much as possible of this date's values to provide a string
