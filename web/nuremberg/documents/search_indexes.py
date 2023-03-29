@@ -103,7 +103,7 @@ class DocumentIndex(indexes.SearchIndex, indexes.Indexable):
     def prepare_date(self, document):
         date = document.date()
         if date:
-            return date.strftime('%d %B %Y')
+            return date.as_str_flexible()
 
     def prepare_date_year(self, document):
         date = document.date()

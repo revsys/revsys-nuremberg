@@ -143,7 +143,7 @@
 
       <div class="document-details-block">
         <p class="date"><strong>Date:</strong>
-          {% with document.date.as_date_flexible as date %}
+          {% with document.date.as_str_flexible as date %}
           {% if date %}
             <a href="{% search_query date=date %}">{{ date }}</a>
           {% else %}
