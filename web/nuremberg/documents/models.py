@@ -83,9 +83,7 @@ class Document(models.Model):
             return "no images"
 
     def date(self):
-        date = self.dates.first()
-        if date:
-            return date.as_date()
+        return self.dates.first()
 
     def slug(self):  # pragma: no cover
         # Try to extract the "genre term" from the descriptive title
@@ -376,6 +374,23 @@ class DocumentDate(models.Model):
         return parse_date(
             self.year, self.month, self.day, reference=f'document {doc_id}'
         )
+
+    def as_date_flexible(self):
+        parsed_date = self.as_date()
+        if parsed_date is not None:
+            return parsed_date.strftime('%d %B %Y')
+
+        # Some of the fields are invalid, try to build a date only with the
+        # valid ones (see issue #220).
+        parsed_date = parse_date(self.year, self.month, 1)
+        if parsed_date is not None:
+            return parsed_date.strftime('%B %Y')
+
+        parsed_date = parse_date(self.year, 1, 1)
+        if parsed_date is not None:
+            return parsed_date.strftime('%Y')
+
+        return None
 
 
 class DocumentPersonalAuthorQuerySet(models.QuerySet):
