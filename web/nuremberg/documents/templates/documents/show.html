@@ -143,9 +143,9 @@
 
       <div class="document-details-block">
         <p class="date"><strong>Date:</strong>
-          {% with document.date as date %}
+          {% with document.date.as_date_flexible as date %}
           {% if date %}
-            <a href="{% search_query date=date|date:'d F Y' %}">{{date|date:'d F Y'}}</a>
+            <a href="{% search_query date=date %}">{{ date }}</a>
           {% else %}
             <a href="{% search_query date='unknown' %}">Date Unknown</a>
           {% endif %}
