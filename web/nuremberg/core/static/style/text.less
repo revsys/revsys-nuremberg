@@ -156,12 +156,15 @@ a {
     border: inherit !important;
   }
 
-  mark {
-    color: @dark-blue;
-    border-bottom: 1px solid @dark-blue;
-    padding-bottom: 0px;
-  }
+}
 
+/* Text highlights within an `a` tag and inside the document viewport will
+   show the underline like other links (but not link within search results
+   for example) */
+#document-viewport a mark {
+  color: @dark-blue;
+  border-bottom: 1px solid @dark-blue;
+  padding-bottom: 0px;
 }
 
 ul:extend(p) {
