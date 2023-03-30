@@ -380,7 +380,7 @@ class DocumentDate(models.Model):
 
         Use as much as possible of this date's values to provide a string
         representation of the date. If all three day, month and year are valid,
-        build a date, format it and and return it 
+        build a date, format it and and return it.
 
         If day is invalid, return month and year, formatted. If day and month
         are invalid, return the year. If all three are invalid, return None.
