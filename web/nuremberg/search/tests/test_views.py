@@ -400,8 +400,8 @@ def test_sort(query):
             page('select option').with_text('Earliest Date').val()
         )
     )
-    earliest_date = '15 May 1871'
-    latest_date = '03 September 1948'
+    earliest_date = '1793'
+    latest_date = '18 March 1965'
     assert earliest_date in page.text()
     page = follow_link(page('[data-test="search-result-last-page"]'))
     assert latest_date in page.text()
