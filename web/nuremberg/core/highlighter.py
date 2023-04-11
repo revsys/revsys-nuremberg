@@ -33,12 +33,21 @@ class NurembergHighlighter(Highlighter):
 
     def process_word(self, word):
         # If `query` contains special search syntax like "type:transcript" or
-        # "evidence:NOKW-192", the following will drop "type:" or "evidence:"
-        # and will highlight "transcript" and "NOKW-192" if present in the text
+        # "evidence:NOKW-192", the following will drop that word completely.
+
+        # This follows the following request from Paul:
+        # So, after consideration, let's drop the search-term value
+        # highlighting completely. I think it confuses things for the user if
+        # we return highlighted strings in the text which correspond to
+        # search-syntax values (the values following search type and colon,
+        # such as "1937" in "date:1937" or "1839" in "hlsl:1839" or "milch" in
+        # "defendant:milch" or "no-1994" in "evidence:no-1994") instead of
+        # corresponding only to full-text string matches on keyword searches,
+        # the latter of which is the expectation in full-text keyword
+        # searching, the only context in which highlighting is used in our app.
         word = word.strip().lower()
-        matches = FIELD_SEARCH_RE.findall(word)
-        if matches:
-            result = matches
+        if FIELD_SEARCH_RE.match(word):
+            result = []
         else:
             result = [word]
         return result
