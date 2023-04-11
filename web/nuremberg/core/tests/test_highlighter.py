@@ -16,15 +16,21 @@ def test_query_words():
 def test_query_words_search_terms():
     h = NurembergHighlighter(query='  foo evidence:PS-62 "exact phrase"  bar ')
 
-    assert sorted(h.query_words) == ['bar', 'exact phrase', 'foo', 'ps-62']
+    assert sorted(h.query_words) == ['bar', 'exact phrase', 'foo']
+
+
+def test_query_words_all_search_terms():
+    h = NurembergHighlighter(
+        query='date:1937 hlsl:1839 defendant:milch evidence:no-1994'
+    )
+
+    assert sorted(h.query_words) == []
 
 
 def test_highlight_skips_html_tags():
     # Mimics real case for
     # /transcripts/4?seq=351&q=german+evidence:NOKW-192+LATERNSER+speaker
-    h = NurembergHighlighter(
-        query='german evidence:NOKW-192 LATERNSER speaker'
-    )
+    h = NurembergHighlighter(query='german NOKW-192 LATERNSER speaker')
 
     assert sorted(h.query_words) == [
         'german',
@@ -71,12 +77,7 @@ def test_highlight_skips_html_tags_multiple_locations():
     # /transcripts/7?seq=4012&q=trial:imt+type:transcript+January+speaker
     h = NurembergHighlighter(query='trial:imt type:transcript January speaker')
 
-    assert sorted(h.query_words) == [
-        'imt',
-        'january',
-        'speaker',
-        'transcript',
-    ]
+    assert sorted(h.query_words) == ['january', 'speaker']
 
     text = (
         '<p>'
