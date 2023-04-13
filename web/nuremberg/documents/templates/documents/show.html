@@ -184,7 +184,6 @@
             {% endfor %}
           </p>
         {% endif %}
-        {% with document.exhibit_codes.all as exhibit_codes %}
         {% if exhibit_codes %}
           <p>
             <strong>Exhibit Code{{ exhibit_codes|length|pluralize }}:</strong>
@@ -209,7 +208,6 @@
           </p>
           {% endif %}
         {% endfor %}
-        {% endwith %}
 
         {% if citations %}
         <p>
