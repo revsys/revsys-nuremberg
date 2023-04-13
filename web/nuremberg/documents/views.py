@@ -44,7 +44,11 @@ class Show(View):
             full_text = document.full_texts().first()
             evidence_codes = document.evidence_codes.all()
             hlsl_item_id = document_id
+            exhibit_codes = document.exhibit_codes.all()
 
+        print("CODES!!!")
+        print(exhibit_codes)
+        print(exhibit_codes[0].pk)
         return render(
             request,
             self.template_name,
@@ -54,6 +58,7 @@ class Show(View):
                 'hlsl_item_id': hlsl_item_id,
                 'mode': mode,
                 'evidence_codes': evidence_codes,
+                'exhibit_codes': exhibit_codes,
                 'citations': [
                     c for c in document.citations.all() if c.transcript_link
                 ],
