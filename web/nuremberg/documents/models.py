@@ -1025,9 +1025,12 @@ class DocumentCitation(models.Model):
         result = None
         if transcript is not None:
             qs = None
-            if self.transcript_seq_number is None:
+            if (
+                self.transcript_seq_number is None
+                and self.transcript_page_number
+            ):
                 qs = {'page': self.transcript_page_number}
-            elif self.transcript_seq_number > 0:
+            elif self.transcript_seq_number:
                 qs = {'seq': self.transcript_seq_number}
             if qs:
                 result = (

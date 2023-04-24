@@ -88,7 +88,6 @@
     <div class="sidebar-column document-info">
       <div class="material-icon small material-documents"></div>
 
-      {% with cases=document.cases.all %}
       {% if cases %}
       <p class="trial-flags">
         {% for case in document.cases.all %}
@@ -97,7 +96,7 @@
         &nbsp;
       </p>
       {% endif %}
-      {% endwith %}
+
       {% if mode == 'image' and full_text %}
       <p class="trial-flags">
         <a data-test="full-text-view" href="{% url 'documents:show' document_id=full_text.id slug=full_text.slug %}?mode=text{% if query %}&q={% encode_string query %}{% endif %}">Full-text View</a>
@@ -188,7 +187,9 @@
           <p>
             <strong>Exhibit Code{{ exhibit_codes|length|pluralize }}:</strong>
             {% for code in exhibit_codes %}
-              {% if code.prosecution_number or code.defense_number %}
+              {% if code.prosecution_number %}
+                <a href="{% search_query exhibit=code trial=cases.first.code_name %}">{{code}}</a>{% if not forloop.last %}, {% endif %}
+              {% elif code.defense_number %}
                 <a href="{% search_query exhibit=code %}">{{code}}</a>{% if not forloop.last %}, {% endif %}
               {% endif %}
             {% endfor %}
@@ -225,7 +226,7 @@
 
         {% if document.description %}
         <p>
-          <strong>Notes:</strong>
+          <strong>Notes:</strong>{{ document.description|stringformat:'r' }}
           {{ document.description }}
         </p>
         {% endif %}
