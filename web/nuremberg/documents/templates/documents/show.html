@@ -225,7 +225,7 @@
 
         {% if document.description %}
         <p>
-          <strong>Notes:</strong>
+          <strong>Notes:</strong>{{ document.description|stringformat:'r' }}
           {{ document.description }}
         </p>
         {% endif %}
