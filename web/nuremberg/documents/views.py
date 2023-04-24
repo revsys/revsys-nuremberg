@@ -20,6 +20,7 @@ class Show(View):
             full_text = get_object_or_404(DocumentText, id=document_id)
             document = full_text.documents().first()
             evidence_codes = [full_text.evidence_code]
+            exhibit_codes = cases = None
             if document is None:
                 # For texts without a matching document, ignore `HLSL Item No.`
                 document = full_text
@@ -45,10 +46,8 @@ class Show(View):
             evidence_codes = document.evidence_codes.all()
             hlsl_item_id = document_id
             exhibit_codes = document.exhibit_codes.all()
+            cases = document.cases.all()
 
-        print("CODES!!!")
-        print(exhibit_codes)
-        print(exhibit_codes[0].pk)
         return render(
             request,
             self.template_name,
@@ -59,6 +58,7 @@ class Show(View):
                 'mode': mode,
                 'evidence_codes': evidence_codes,
                 'exhibit_codes': exhibit_codes,
+                'cases': cases,
                 'citations': [
                     c for c in document.citations.all() if c.transcript_link
                 ],

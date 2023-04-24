@@ -183,6 +183,38 @@ def test_document_citations_transcript_link_none():
     assert doc.citations.get().transcript_link is None
 
 
+def test_document_citations_transcript_link_page_number_none():
+    doc = baker.make('Document')
+    citation = baker.make(
+        'DocumentCitation',
+        document=doc,
+        transcript_seq_number=None,
+        transcript_page_number=None,
+    )
+    transcript = baker.make('Transcript', case=citation.case)
+
+    assert citation.case is not None
+    assert getattr(citation.case, 'transcript', None) is transcript
+    assert doc.citations.all().count() == 1
+    assert doc.citations.get().transcript_link is None
+
+
+def test_document_citations_transcript_link_page_number_zero():
+    doc = baker.make('Document')
+    citation = baker.make(
+        'DocumentCitation',
+        document=doc,
+        transcript_seq_number=None,
+        transcript_page_number=0,
+    )
+    transcript = baker.make('Transcript', case=citation.case)
+
+    assert citation.case is not None
+    assert getattr(citation.case, 'transcript', None) is transcript
+    assert doc.citations.all().count() == 1
+    assert doc.citations.get().transcript_link is None
+
+
 def test_document_citations_transcript_link_page_number():
     doc = baker.make('Document')
     citation = baker.make(
