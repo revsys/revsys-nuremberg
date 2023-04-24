@@ -16,9 +16,6 @@
             <a href="{% sort_results 'relevance' %}" {% if form.sort_results == 'relevance' %}class="active"{% endif %}>Order by Relevance</a>
           {% endif %}
         </form>
-        <div class="return-link">
-          <a href="{% search_url query %}"> &larr; Back to all results </a>
-        </div>
       </div>
       <hr />
     {% endif %}
