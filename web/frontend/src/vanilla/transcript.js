@@ -168,11 +168,12 @@ const highlightEl = (el, query) => {
     return;
 
   let rx = new RegExp('\\b(' + terms.join('|') + ')(s|ing|ed|ment)?\\b', 'ig');
+  /*
   el.find('p, span, a').contents().filter(function () { return this.nodeType == 3; }).replaceWith(function (n, text) {
     return this.textContent.replace(rx, function (m, term, stem) {
       return '<mark>' + term + (stem || '') + '</mark>';
     });
-  });
+  });*/
 };
 
 const rehighlight = () => {
