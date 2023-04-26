@@ -150,12 +150,12 @@ ENTRYPOINT ["/bin/sh", "-c"]
 CMD ["rsync -varHpDtSl --exclude=/.cache/keep /.cache/* /mnt/. || true"]
 
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
-FROM solr:8.11-slim as solr
+FROM solr:9.2.0 as solr
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
 
 ENV SOLR_CORE nuremberg_dev
 
-COPY solr_conf /opt/solr-8.11.2/solr_conf
+COPY solr_conf /opt/solr-9.2.0/solr_conf
 
 ENV IMAGE_VERSION v0.5.63-solr
 

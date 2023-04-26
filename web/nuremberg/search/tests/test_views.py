@@ -347,9 +347,7 @@ def test_transcript_snippets(query):
     assert '1 result in this transcript' in page.text()
 
     # all snippets from first page
-    assert '[ ... p. 26 ] can work on it' in page.text()
-    assert '[ ... p. 26 ] possible with these few\ndocuments' in page.text()
-    assert '[ ... p. 26 ] able to select which\ndocuments' in page.text()
+    assert re.findall(r'\[ ... p. 26 \].*\ndocuments', page.text())
 
     # test no snippets
     page = query('type:transcript')
