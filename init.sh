@@ -50,8 +50,8 @@ then
 	echo "Solr ready!!!"
 
 	echo "Setting up solr config"
-	$DOCKER_COMPOSE cp solr_conf ${solr}:/opt/solr-8.11.2/ && \
-	$DOCKER_COMPOSE_EXEC -u0 ${solr} cp -Rp /opt/solr-8.11.2/solr_conf /var/solr/data/nuremberg_dev && \
+	$DOCKER_COMPOSE cp solr_conf ${solr}:/opt/solr-9.2.0/ && \
+	$DOCKER_COMPOSE_EXEC -u0 ${solr} cp -Rp /opt/solr-9.2.0/solr_conf /var/solr/data/nuremberg_dev && \
 	$DOCKER_COMPOSE_EXEC -u0 ${solr} chown -R solr:solr /var/solr/data solr_conf || exit 1
 	$DOCKER_COMPOSE_EXEC ${solr} solr create_core -c $SOLR_CORE -d solr_conf || echo 'Solr core already exists'
 
