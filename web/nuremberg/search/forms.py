@@ -215,13 +215,14 @@ class FieldedSearchForm(SearchForm):
             hlq = AutoQuery(self.highlight_query).prepare(sqs.query)
             sqs = sqs.highlight(
                 **{
+                    'hl.method': 'unified',
                     'hl.snippets': highlight_snippets,
-                    'hl.fragsize': 150,
+                    'hl.fragsize': 100,
                     'hl.q': f'material_type:transcripts AND highlight:({hlq})',
                     'hl.fl': 'highlight',
                     'hl.requireFieldMatch': 'true',
-                    'hl.simple.pre': '<mark>',
-                    'hl.simple.post': '</mark>',
+                    'hl.tag.pre': '<mark>',
+                    'hl.tag.post': '</mark>',
                 }
             )
 
