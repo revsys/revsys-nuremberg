@@ -158,8 +158,9 @@ class FieldedSearchForm(SearchForm):
     material_types = ('documents', 'transcripts', 'photographs')
 
     def __init__(self, *args, **kwargs):
-        self.sort_results = kwargs.pop('sort_results')
+        self.sort_results = kwargs.pop('sort_results', 'relevance')
         self.transcript_id = kwargs.pop('transcript_id', None)
+        self.has_keyword_search = False  # will be calculated when searching
 
         super().__init__(*args, **kwargs)
         if 'm' in self.data:
@@ -279,6 +280,20 @@ class FieldedSearchForm(SearchForm):
         field_key = self.search_fields.get(field)
         if field_key == True:
             field_key = field
+
+        # Store state to allow the view/UI render differently when there was
+        # a search including "keywords". For further details, see:
+        # https://github.com/revsys/revsys-nuremberg/issues/253
+        # "Full-text document search-results snippets should be suppressed
+        #  when not doing keyword search"
+        # Keyword search are, for example:
+        # type:documents hitler "freezing experiments"
+        # letter type:documents
+        # NOT keyword search are, for example:
+        # type:documents year:1940 hitler
+        # evidence:NOKW-71
+        if field_key == 'text':
+            self.has_keyword_search = True
 
         # the solr backend aggressively quotes OR queries, so we must build an
         # OR query manually to keep our loose keyword search
