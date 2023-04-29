@@ -1,9 +1,39 @@
 import pytest
 
-from nuremberg.search.forms import AdvancedDocumentSearchForm
+from nuremberg.search.forms import (
+    AdvancedDocumentSearchForm,
+    FieldedSearchForm,
+)
+from nuremberg.search.lib.solr_grouping_backend import GroupedSearchQuerySet
 
 
 pytestmark = pytest.mark.django_db
+
+
+form_cases = [
+    (None, False),
+    ('', False),
+    ('type:document', False),
+    ('hitler', True),
+    ('hitler type:document', True),
+    ('type:document hitler', True),
+    ('hitler type:document "freezing experiments" year:1940', True),
+    ('type:document "freezing experiments" year:1940', True),
+    ('type:document year:1940', False),
+]
+
+
+@pytest.mark.parametrize('q, expected', form_cases)
+def test_search_form_has_keyword_search(q, expected):
+    if q is None:
+        data = {}
+    else:
+        data = {'q': q}
+    queryset = GroupedSearchQuerySet()
+    form = FieldedSearchForm(data=data, searchqueryset=queryset)
+    assert form.is_valid(), form.errors
+    form.search()
+    assert form.has_keyword_search is expected
 
 
 def test_advanced_search_form_errors():

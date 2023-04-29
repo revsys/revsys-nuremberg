@@ -123,7 +123,9 @@ class Search(FacetedSearchView):
                 )
             context.update({'labeled_facets': labeled_facets})
 
-        if context['form']:
+        form = context['form']
+        if form:
+            context['has_keyword_search'] = form.has_keyword_search
             context['facet_lookup'] = {}
             for (field, value, facet) in context['form'].applied_filters:
                 context['facet_lookup'][facet] = True
