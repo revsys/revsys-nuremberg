@@ -1,4 +1,6 @@
 {% load search_url %}
+{% load highlight %}
+
 <tr class="document-row {% if result.authors|length <= 2 %}extra-padding{% endif %}">
   <td>
     <p class="trial-flags">
@@ -10,7 +12,7 @@
     </p>
     {% if result.material_type == 'Document' %}
       <a class="unstyled" href="{% url 'documents:show' document_id=result.pk slug=result.slug %}?mode={{ result.mode }}{% if query %}&q={% encode_string query %}{% endif %}">
-        <div class="h3">{{result.title}}</div>
+        <div class="h3">{% if result.title %}{% highlight result.title with query %}{% else %}{{ result.title }}{% endif %}</div>
         {% if result.literal_title %}
           <p>{{result.literal_title|truncatewords:35|truncatechars:300}}</p>
         {% endif %}
