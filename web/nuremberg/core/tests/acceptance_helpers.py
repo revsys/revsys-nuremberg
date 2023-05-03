@@ -52,7 +52,8 @@ class PyQuery(pyquery.PyQuery):
         Filter the selection to elements containing `text`.
         """
         return self.filter(
-            lambda n, el: text.lower() in PyQuery(el).text().lower()
+            lambda n, el: text.lower()
+            in PyQuery(el).text().lower().replace('</mark>', '')
         )
 
     def with_regex(self, rx):
