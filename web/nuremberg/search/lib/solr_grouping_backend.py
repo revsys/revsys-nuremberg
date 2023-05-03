@@ -121,9 +121,19 @@ class GroupedSearchResult(object):
                     if string_key in index.fields and hasattr(
                         index.fields[string_key], 'convert'
                     ):
-                        additional_fields[string_key] = index.fields[
-                            string_key
-                        ].convert(value)
+                        try:
+                            additional_fields[string_key] = index.fields[
+                                string_key
+                            ].convert(value)
+                        except Exception:
+                            logging.error(
+                                'Error converting field',
+                                extra={
+                                    "string_key": string_key,
+                                    "value": str(value),
+                                },
+                            )
+                            additional_fields[string_key] = str(value)
                     else:
                         additional_fields[string_key] = conn._to_python(value)
 
