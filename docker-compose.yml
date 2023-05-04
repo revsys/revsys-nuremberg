@@ -4,28 +4,44 @@ services:
 
   solr:
     image: solr:9.2.0
+    ports:
+      - "127.0.0.1:8983:8983"
     volumes:
       # NAMED VOLUMES
       - solr_data:/var/solr
 
   web:
     build:
-      context: ./web
+      context: .
       target: release
     tty: true
     working_dir: /nuremberg
     command: python manage.py runserver 0.0.0.0:8000
+    ports:
+      - "127.0.0.1:8000:8000"
     volumes:
       # BIND MOUNTS
       - ./web:/nuremberg
+      - ./media:/media
     environment:
       # let Django load Docker-specific settings conditionally
       - DOCKERIZED=True
       - DEBUG=True
       - SECRET_KEY=top-secret-1234
+      - LOCAL_DEVELOPMENT=True
     depends_on:
       - solr
     stop_signal: SIGKILL
+
+  selenium:
+    image: selenium/standalone-chrome:3.141.59
+    ports:
+      - "4444:4444"
+    environment:
+      PORT: 4444
+      SCREEN_WIDTH: 1200
+      SCREEN_HEIGHT: 900
+      SCREEN_DEPTH: 24
 
 volumes:
   solr_data:
