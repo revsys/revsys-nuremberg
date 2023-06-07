@@ -50,7 +50,6 @@ registry:
         --entrypoint= \
         --rm web \
             bash -c "pip-compile {{ ARGS }} ./requirements.in \
-                --generate-hashes \
                 --resolver=backtracking \
                 --output-file ./requirements.txt"
 
@@ -122,7 +121,7 @@ _solr-compose:
 
 # shortcut for interacting w/ the CI docker-compose project
 @ci-dc *args='ps':
-    docker compose -f ./docker-compose.yml -f ./docker-compose.override.yml -f ./docker-compose.ci.yml -p ci {{args}}
+    docker compose -f ./docker-compose.yml -f ./docker-compose.ci.yml -p ci {{args}}
 
 # target for running tests IN CI
 test:
