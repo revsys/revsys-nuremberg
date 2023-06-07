@@ -1,8 +1,8 @@
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.views.generic import View
-
 from nuremberg.core.highlighter import NurembergHighlighter
+
 from .models import Document, DocumentPersonalAuthor, DocumentText
 
 
@@ -48,6 +48,14 @@ class Show(View):
             exhibit_codes = document.exhibit_codes.all()
             cases = document.cases.all()
 
+        citations = []
+        try:
+            for c in document.citations.all():
+                if c.transcript_link:
+                    citations.append(c)
+        except Exception as e:
+            print(e)
+            print("Could not process citations for document")
         return render(
             request,
             self.template_name,
@@ -59,9 +67,7 @@ class Show(View):
                 'evidence_codes': evidence_codes,
                 'exhibit_codes': exhibit_codes,
                 'cases': cases,
-                'citations': [
-                    c for c in document.citations.all() if c.transcript_link
-                ],
+                'citations': citations,
                 'query': query,
             },
         )
