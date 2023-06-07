@@ -50,7 +50,6 @@ registry:
         --entrypoint= \
         --rm web \
             bash -c "pip-compile {{ ARGS }} ./requirements.in \
-                --generate-hashes \
                 --resolver=backtracking \
                 --output-file ./requirements.txt"
 
