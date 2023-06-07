@@ -147,9 +147,6 @@ const main = () => {
   // Setup facet toggles
   toggleFacetCollapse()
 
-  /* FIXME adjust new_search template to allow React search.jsx to stay on the
-     page !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
-
   // Handle year range inputs
   yearRangeControls()
 
