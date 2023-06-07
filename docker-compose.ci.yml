@@ -7,6 +7,7 @@ services:
 
   web:
     image: registry.revsys.com/nuremberg:v0.5.67-tester
+
     entrypoint: /bin/bash
     command: ""
     volumes:
