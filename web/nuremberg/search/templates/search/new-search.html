@@ -13,13 +13,22 @@
       window.$RefreshSig$ = () => (type) => type
       window.__vite_plugin_react_preamble_installed__ = true
   </script>
-  {% vite_asset 'src/search.jsx' %}
   {% vite_asset 'src/vanilla/search.js' %}
   <!-- foo bar baz -->
 {% endblock extra_head_js %}
 
 {% block content %}
-<section id="search" role="search" aria-label="Search the archive" class="theme-beige thin"></section>
+<section id="search" role="search" aria-label="Search the archive" class="theme-beige thin">
+  <h1 class="h4">Search the archive
+    <!-- <a class="h5" tabindex="1" href="#results">Jump to results</a> -->
+  </h1>
+  <div class="full-width">
+    <form class="results-search" role="search" aria-label="full-text search" action='{% url 'search:search' %}' method='GET'>
+      {% include 'search/search-bar.html' with hide_icon=True %}
+    </form>
+    <div class="show-advanced-search"><a>Advanced Search</a></div>
+    <p>{% include 'search/advanced-search-form.html' with form=advanced_search_form %}</p>
+</section>
 <section class="theme-light results">
   <div class="sidebar-layout">
     <div class="sidebar-column search-facets">

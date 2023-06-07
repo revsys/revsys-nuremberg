@@ -19,7 +19,6 @@ export default defineConfig({
     target: 'es2015',
     rollupOptions: {
       input: {
-        main: path.resolve(__dirname, './src/main.jsx'),
         author: path.resolve(__dirname, './src/vanilla/authorHover.js'),
         search: path.resolve(__dirname, './src/search.jsx'),
         vanillasearch: path.resolve(__dirname, './src/vanilla/search.js'),
