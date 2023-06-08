@@ -17,6 +17,7 @@
           <p>{{result.literal_title|truncatewords:35|truncatechars:300}}</p>
         {% endif %}
         {% with result.text|trim_snippet as text %}
+        <p>{{group.hits}} result{{ group.hits|pluralize }} in this document</p>
         {% if text and has_keyword_search %}
         <p class="snippets">
             {% for snippet in result.highlighted.highlight %}
