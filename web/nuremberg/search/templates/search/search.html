@@ -36,7 +36,7 @@
     <!-- <a class="h5" tabindex="1" href="#results">Jump to results</a> -->
   </h1>
   <div class="full-width">
-    <form class="results-search" role="search" aria-label="full-text search" action='{% url 'search:search' %}' method='GET'>
+    <form class="results-search" role="search" aria-label="full-text search" id="main-search-form" action='{% url 'search:search' %}' method='GET'>
       {% include 'search/search-bar.html' with hide_icon=True %}
     </form>
     <div class="show-advanced-search"><a>Advanced Search</a></div>
