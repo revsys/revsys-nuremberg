@@ -44,7 +44,10 @@ const main = () => {
     // Setup subsequent hover handling on form updates
     const form = document.getElementById("main-search-form")
     if (form) {
-        form.addEventListener("submit", () => {
+        console.log("Found form")
+        form.addEventListener("submit", (event) => {
+            console.log("Firing")
+            const authorLinks = document.getElementsByClassName("author-hover-link")
             handleHover(authorLinks)
         })
     }
