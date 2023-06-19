@@ -41,6 +41,11 @@ const yearRangeControls = () => {
   let fromYear = document.querySelector("input[name='year_min']")
   let toYear = document.querySelector("input[name='year_max']")
 
+  // We aren't on a search page
+  if (!fromYear || !toYear) {
+    return;
+  }
+
   // Handle restricting to the values in the facets
   if (!fromYear.value || !toYear.value) {
     // Handle finding the facet years
@@ -139,10 +144,13 @@ const main = () => {
 
   // Handle sort by select box
   let resultSort = document.getElementById('results-sort');
-  resultSort.addEventListener('change', (e) => {
-    let sort = e.target.value;
-    window.location.href = sort;
-  });
+
+  if (resultSort) {
+    resultSort.addEventListener('change', (e) => {
+      let sort = e.target.value;
+      window.location.href = sort;
+    });
+  }
 
   // Setup facet toggles
   toggleFacetCollapse()
@@ -154,7 +162,11 @@ const main = () => {
   toggleShowAllFacets()
 
   // Handle scrolling to top
-  document.querySelector("a.page-number").addEventListener("click", scrollToTop)
+  let scrollToTopButton = document.querySelector("a.page-number")
+
+  if (scrollToTopButton) {
+    scrollToTopButton.addEventListener("click", scrollToTop)
+  }
 
   // Handle form submission
   $(document).on('submit', 'form', function (e) {

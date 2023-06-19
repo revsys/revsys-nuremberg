@@ -10,12 +10,12 @@
     "src": "src/vanilla/documents.js"
   },
   "src/vanilla/search.js": {
-    "file": "vanillasearch-4ac325a1.js",
+    "file": "vanillasearch-d42de711.js",
     "isEntry": true,
     "src": "src/vanilla/search.js"
   },
   "src/vanilla/transcript.js": {
-    "file": "vanillatranscripts-dc426f49.js",
+    "file": "vanillatranscripts-c1c31ef3.js",
     "isEntry": true,
     "src": "src/vanilla/transcript.js"
   }
