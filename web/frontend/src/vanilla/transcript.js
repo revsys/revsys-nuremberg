@@ -281,14 +281,15 @@ if (toSeq >= totalPages) {
 }
 
 $viewport.on('click', 'a.view-image', (e) => {
-  var $handle = $(this).closest('.page-handle')
+  var $handle = $(e.target).closest('.page-handle')
   var href = $handle.find('.download-image').attr('href');
   if (!$handle.hasClass('has-image')) {
+    console.log("Adding image")
     $handle
       .addClass('has-image')
       .after('<div class="page-image hide"><img src="' + href + '" /></div>');
   }
-  $img = $handle.next('.page-image');
+  let $img = $handle.next('.page-image');
   $img.toggleClass('hide');
   if ($img.hasClass('hide')) {
     $handle.removeClass('show');
