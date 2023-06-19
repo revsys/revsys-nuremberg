@@ -99,7 +99,7 @@ ENV BASE_DIR=/code
 ENV IMAGE_VERSION v0.5.73
 
 
-RUN ln -s /node/node_modules/less/bin/lessc /bin/lessc
+#RUN ln -s /node/node_modules/less/bin/lessc /bin/lessc
 
 COPY dumps/nuremberg_prod_dump_latest.sqlite3.zip /code/data/
 

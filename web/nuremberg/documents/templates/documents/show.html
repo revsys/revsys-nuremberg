@@ -171,10 +171,12 @@
           <strong>Language of Text:</strong>
           {{document.language_name}}
         </p>
+        {% if full_text.source_name %}
         <p>
           <strong>Source of Text:</strong>
-          {{document.source_name}}
+          {{full_text.source_name}}
         </p>
+        {% endif %}
         {% if evidence_codes %}
           <p>
             <strong>Evidence Code{{ evidence_codes|length|pluralize }}:</strong>
@@ -184,16 +186,18 @@
           </p>
         {% endif %}
         {% if exhibit_codes %}
-          <p>
-            <strong>Exhibit Code{{ exhibit_codes|length|pluralize }}:</strong>
-            {% for code in exhibit_codes %}
-              {% if code.prosecution_number %}
-                <a href="{% search_query exhibit=code trial=cases.first.code_name %}">{{code}}</a>{% if not forloop.last %}, {% endif %}
-              {% elif code.defense_number %}
-                <a href="{% search_query exhibit=code %}">{{code}}</a>{% if not forloop.last %}, {% endif %}
-              {% endif %}
-            {% endfor %}
-          </p>
+          {% if all_evidence_codes_not_empty %}
+            <p>
+              <strong>Exhibit Code{{ exhibit_codes|length|pluralize }}:</strong>
+              {% for code in exhibit_codes %}
+                {% if code.prosecution_number %}
+                  <a href="{% search_query exhibit=code trial=cases.first.code_name %}">{{code}}</a>{% if not forloop.last %}, {% endif %}
+                {% elif code.defense_number %}
+                  <a href="{% search_query exhibit=code %}">{{code}}</a>{% if not forloop.last %}, {% endif %}
+                {% endif %}
+              {% endfor %}
+            </p>
+          {% endif %}
         {% endif %}
         {% for exhibit_code in exhibit_codes %}
           {% if exhibit_code.book_code %}
