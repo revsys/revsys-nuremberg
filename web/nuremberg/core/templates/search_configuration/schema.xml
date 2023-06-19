@@ -77,89 +77,13 @@
         </analyzer>
     </fieldType>
 
-    <field name="id" type="string" indexed="true" stored="true" multiValued="false" required="true"/>
-    <field name="django_ct" type="string" indexed="true" stored="true" multiValued="false"/>
-    <field name="django_id" type="string" indexed="true" stored="true" multiValued="false"/>
-    
-    <field name="text" type="text_en" indexed="true" stored="true" multiValued="false" />
-    
-    <field name="highlight" type="text_en" indexed="true" stored="true" multiValued="false" />
-    
-    <field name="material_type" type="text_en" indexed="true" stored="true" multiValued="false" />
-    
-    <field name="material_type_exact" type="string" indexed="true" stored="true" multiValued="false" />
-    
-    <field name="grouping_key" type="string" indexed="true" stored="true" multiValued="false" />
-    
-    <field name="slug" type="string" indexed="false" stored="true" multiValued="false" />
-    
-    <field name="title" type="text_en" indexed="true" stored="true" multiValued="false" />
-    
-    <field name="literal_title" type="text_en" indexed="true" stored="true" multiValued="false" />
-    
-    <field name="description" type="text_en" indexed="true" stored="true" multiValued="false" />
-    
-    <field name="total_pages" type="long" indexed="true" stored="true" multiValued="false" />
-    
-    <field name="date" type="text_en" indexed="true" stored="true" multiValued="false" />
-    
-    <field name="date_exact" type="string" indexed="true" stored="true" multiValued="false" />
-    
-    <field name="date_year" type="text_en" indexed="true" stored="true" multiValued="false" />
-    
-    <field name="date_year_exact" type="string" indexed="true" stored="true" multiValued="false" />
-    
-    <field name="date_sort" type="date" indexed="true" stored="true" multiValued="false" />
-    
-    <field name="language" type="text_en" indexed="true" stored="true" multiValued="false" />
-    
-    <field name="language_exact" type="string" indexed="true" stored="true" multiValued="false" />
-    
-    <field name="source" type="text_en" indexed="true" stored="true" multiValued="false" />
-    
-    <field name="source_exact" type="string" indexed="true" stored="true" multiValued="false" />
-    
-    <field name="authors" type="text_en" indexed="true" stored="true" multiValued="true" />
-    
-    <field name="authors_exact" type="string" indexed="true" stored="true" multiValued="true" />
-    
-    <field name="authors_properties" type="string" indexed="false" stored="true" multiValued="false" />
-    
-    <field name="defendants" type="text_en" indexed="true" stored="true" multiValued="true" />
-    
-    <field name="defendants_exact" type="string" indexed="true" stored="true" multiValued="true" />
-    
-    <field name="case_names" type="text_en" indexed="true" stored="true" multiValued="true" />
-    
-    <field name="case_names_exact" type="string" indexed="true" stored="true" multiValued="true" />
-    
-    <field name="case_tags" type="text_en" indexed="true" stored="true" multiValued="true" />
-    
-    <field name="case_tags_exact" type="string" indexed="true" stored="true" multiValued="true" />
-    
-    <field name="evidence_codes" type="text_en" indexed="true" stored="true" multiValued="true" />
-    
-    <field name="exhibit_codes" type="text_en" indexed="true" stored="true" multiValued="true" />
-    
-    <field name="book_codes" type="text_en" indexed="true" stored="true" multiValued="true" />
-    
-    <field name="trial_activities" type="text_en" indexed="true" stored="true" multiValued="true" />
-    
-    <field name="trial_activities_exact" type="string" indexed="true" stored="true" multiValued="true" />
-    
-    <field name="transcript_id" type="text_en" indexed="true" stored="true" multiValued="false" />
-    
-    <field name="seq_number" type="long" indexed="true" stored="true" multiValued="false" />
-    
-    <field name="volume_number" type="text_en" indexed="true" stored="true" multiValued="false" />
-    
-    <field name="volume_seq_number" type="text_en" indexed="true" stored="true" multiValued="false" />
-    
-    <field name="page_label" type="text_en" indexed="true" stored="true" multiValued="false" />
-    
-    <field name="thumb_url" type="string" indexed="false" stored="true" multiValued="false" />
-    
-    <uniqueKey>id</uniqueKey>
+    <field name="{{ ID }}" type="string" indexed="true" stored="true" multiValued="false" required="true"/>
+    <field name="{{ DJANGO_CT }}" type="string" indexed="true" stored="true" multiValued="false"/>
+    <field name="{{ DJANGO_ID }}" type="string" indexed="true" stored="true" multiValued="false"/>
+    {% for field in fields %}
+    <field name="{{ field.field_name }}" type="{{ field.type }}" indexed="{{ field.indexed }}" stored="{{ field.stored }}" multiValued="{{ field.multi_valued }}" />
+    {% endfor %}
+    <uniqueKey>{{ ID }}</uniqueKey>
 
     <!--
     ######################## django-haystack specifics end ########################
