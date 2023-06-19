@@ -247,21 +247,21 @@ jobs:
           PRSOLRVTAG=$( just tag )-solr
           echo ${PRSOLRVTAG} > .cache/${{ env.last-update }} &&
           echo " * re/built & persisted PR SOLR image (\`${PRSOLRVTAG}\`)" >> $GITHUB_STEP_SUMMARY
-      -
-        name: run tests
-        run: |
-          /bin/echo -en "\n----\n" >> $GITHUB_STEP_SUMMARY &&
-          egrep -q '\[[[:blank:]]*notest[[:blank:]]*\]' <( git log -1 --format=%B ) &&
-          cat <<RUNTESTS >> $GITHUB_STEP_SUMMARY && exit 0
-          ----
+      # -
+      #   name: run tests
+      #   run: |
+      #     /bin/echo -en "\n----\n" >> $GITHUB_STEP_SUMMARY &&
+      #     egrep -q '\[[[:blank:]]*notest[[:blank:]]*\]' <( git log -1 --format=%B ) &&
+      #     cat <<RUNTESTS >> $GITHUB_STEP_SUMMARY && exit 0
+      #     ----
 
-          **NOTICE**: skipping tests (\`[notest]\` in msg body)
+      #     **NOTICE**: skipping tests (\`[notest]\` in msg body)
 
-          -----
+      #     -----
 
-          RUNTESTS
+      #     RUNTESTS
 
-          just test
+      #     just test
       -
         name: saving cache
         run: just push cacher

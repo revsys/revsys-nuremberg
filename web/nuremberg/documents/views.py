@@ -16,6 +16,12 @@ class Show(View):
         mode = request.GET.get('mode', 'image')
         query = request.GET.get('q')
 
+        # Occasionally exhibit_codes stringify to empty strings because of
+        # missing data.  If ALL of the exhibit codes on a Document are this
+        # way we need this sentinel value to avoid showing an empty sidebar
+        # header 'Exhibit Code(s):'
+        all_exhibit_codes_empty = True
+
         if mode == 'text':
             full_text = get_object_or_404(DocumentText, id=document_id)
             document = full_text.documents().first()
@@ -46,6 +52,10 @@ class Show(View):
             evidence_codes = document.evidence_codes.all()
             hlsl_item_id = document_id
             exhibit_codes = document.exhibit_codes.all()
+            for e in exhibit_codes:
+                if str(e) != "":
+                    all_exhibit_codes_empty = False
+
             cases = document.cases.all()
 
         citations = []
@@ -66,6 +76,7 @@ class Show(View):
                 'mode': mode,
                 'evidence_codes': evidence_codes,
                 'exhibit_codes': exhibit_codes,
+                'all_exhibit_codes_empty': all_exhibit_codes_empty,
                 'cases': cases,
                 'citations': citations,
                 'query': query,

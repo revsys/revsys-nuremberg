@@ -304,3 +304,4 @@ For deployment to Heroku, these static files will be served by the WhiteNoise
 server. In other environments it may be appropriate to serve them directly with
 Nginx or Apache. If necessary, the output directory can be controlled with an
 environment-specific override of the `STATIC_ROOT` settings variable.
+
