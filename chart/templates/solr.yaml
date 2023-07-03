@@ -68,30 +68,30 @@ spec:
               memory: 1Gi
             requests:
               memory: 1Gi
-          livenessProbe:
-            failureThreshold: 6
-            initialDelaySeconds: 40
-            timeoutSeconds: 15
-            periodSeconds: 10
-            successThreshold: 1
-            exec:
-              command:
-              - /bin/bash
-              - -ec
-              - |
-                curl --silent --connect-timeout 15000  http://127.0.0.1:8983/api/node/ | grep --quiet 'status.*:0'
-          readinessProbe:
-            failureThreshold: 6
-            initialDelaySeconds: 60
-            periodSeconds: 10
-            successThreshold: 1
-            timeoutSeconds: 15
-            exec:
-              command:
-              - /bin/bash
-              - -ec
-              - |
-                curl --silent --connect-timeout 15000  http://127.0.0.1:8983/api/node/ | grep --quiet 'status.*:0'
+          # livenessProbe:
+          #   failureThreshold: 6
+          #   initialDelaySeconds: 90
+          #   timeoutSeconds: 30
+          #   periodSeconds: 10
+          #   successThreshold: 1
+          #   exec:
+          #     command:
+          #     - /bin/bash
+          #     - -ec
+          #     - |
+          #       curl --silent --connect-timeout 15000  http://127.0.0.1:8983/api/node/ | grep --quiet 'status.*:0'
+          # readinessProbe:
+          #   failureThreshold: 6
+          #   initialDelaySeconds: 60
+          #   periodSeconds: 10
+          #   successThreshold: 1
+          #   timeoutSeconds: 15
+          #   exec:
+          #     command:
+          #     - /bin/bash
+          #     - -ec
+          #     - |
+          #       curl --silent --connect-timeout 15000  http://127.0.0.1:8983/api/node/ | grep --quiet 'status.*:0'
 
 ---
 
