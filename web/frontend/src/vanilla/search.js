@@ -21,6 +21,7 @@ const toggleShowAllFacets = () => {
     let toggle = facet.getElementsByClassName("show-all")[0]
     if (toggle) {
       toggle.addEventListener("click", (e) => {
+        console.log("Checked show all")
         e.preventDefault()
         facet.classList.toggle("show-all")
         let innerFacets = facet.getElementsByTagName("p")
