@@ -119,6 +119,8 @@
     
     <field name="source_exact" type="string" indexed="true" stored="true" multiValued="false" />
     
+    <field name="hlsl" type="text_en" indexed="true" stored="true" multiValued="false" />
+    
     <field name="authors" type="text_en" indexed="true" stored="true" multiValued="true" />
     
     <field name="authors_exact" type="string" indexed="true" stored="true" multiValued="true" />
