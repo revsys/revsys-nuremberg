@@ -10,7 +10,7 @@
     "src": "src/vanilla/documents.js"
   },
   "src/vanilla/search.js": {
-    "file": "vanillasearch-d42de711.js",
+    "file": "vanillasearch-64c12ebc.js",
     "isEntry": true,
     "src": "src/vanilla/search.js"
   },
