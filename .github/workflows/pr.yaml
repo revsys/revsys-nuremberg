@@ -44,7 +44,7 @@ jobs:
       HEAD_REF: ${{ github.event.pull_request.head.ref }}
 
     strategy:
-      max-parallel: 5
+      max-parallel: 1
       fail-fast: true
 
     steps:
@@ -138,7 +138,7 @@ jobs:
   run:
     runs-on: ubuntu-latest
     strategy:
-      max-parallel: 10
+      max-parallel: 1
       fail-fast: true
 
     needs:
