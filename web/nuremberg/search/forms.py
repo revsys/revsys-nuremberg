@@ -8,7 +8,6 @@ from django.utils.functional import lazy
 from django.utils.translation import gettext_lazy as _
 from haystack.forms import SearchForm
 from haystack.inputs import AutoQuery
-
 from nuremberg.documents.models import (
     EVIDENCE_CODE_RE,
     EXHIBIT_CODE_RE,
@@ -138,7 +137,7 @@ class FieldedSearchForm(SearchForm):
         'authors': True,
         'defendant': 'defendants',
         'defendants': True,
-        'hlsl': 'django_id',
+        'hlsl': 'hlsl',
         'case': 'case_names',
         'trial': 'case_names',
         'type': 'material_type',
@@ -197,7 +196,7 @@ class FieldedSearchForm(SearchForm):
             )
             highlight_snippets = 3
 
-        if not self.is_valid() or not 'q' in self.cleaned_data:
+        if not self.is_valid() or 'q' not in self.cleaned_data:
             return sqs
 
         (self.auto_query, self.field_queries) = self.parse_query_keywords(
@@ -278,7 +277,7 @@ class FieldedSearchForm(SearchForm):
             exclude = False
 
         field_key = self.search_fields.get(field)
-        if field_key == True:
+        if field_key is True:
             field_key = field
 
         # Store state to allow the view/UI render differently when there was

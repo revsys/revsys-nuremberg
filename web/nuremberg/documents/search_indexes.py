@@ -42,7 +42,7 @@ class DocumentIndex(indexes.SearchIndex, indexes.Indexable):
     source = indexes.CharField(
         model_attr='source__name', faceted=True, null=True
     )
-
+    hlsl = indexes.CharField(null=True)
     authors = indexes.MultiValueField(faceted=True, null=True)
     authors_properties = JsonField(null=True, indexed=False)
     defendants = indexes.MultiValueField(faceted=True, null=True)
@@ -137,6 +137,9 @@ class DocumentIndex(indexes.SearchIndex, indexes.Indexable):
             for code in document.exhibit_codes.all()
             if code.book_code
         ]
+
+    def prepare_hlsl(self, document):
+        return document.pk
 
 
 class DocumentTextIndex(indexes.SearchIndex, indexes.Indexable):
