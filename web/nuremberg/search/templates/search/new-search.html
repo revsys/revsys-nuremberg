@@ -26,8 +26,9 @@
     <form class="results-search" role="search" aria-label="full-text search" action='{% url 'search:search' %}' method='GET'>
       {% include 'search/search-bar.html' with hide_icon=True %}
     </form>
-    <div class="show-advanced-search"><a>Advanced Search</a></div>
-    <p>{% include 'search/advanced-search-form.html' with form=advanced_search_form %}</p>
+    <div class="show-advanced-search"><a href="{% url 'search:advanced' %}">Advanced Search</a></div>
+    <div class=""><a href="{% url 'search:help' %}" target="_blank">Search Help</a></div>
+  </div>
 </section>
 <section class="theme-light results">
   <div class="sidebar-layout">

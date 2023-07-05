@@ -126,7 +126,9 @@ const scrollToTop = () => {
 }
 
 const submitForm = (form) => {
+  console.log("in submitForm JS")
   let action = form.attr('action')
+  console.log(action)
   if (!action || action == location.pathname) {
     gotoResults('?' + form.serialize())
     return false
@@ -170,11 +172,12 @@ const main = () => {
   }
 
   // Handle form submission
+  /*
   $(document).on('submit', 'form', function (e) {
     if (tabClicking(e)) return;
     var $form = $(this);
     return submitForm($form);
-  });
+  });*/
 }
 
 document.addEventListener('DOMContentLoaded', main)
