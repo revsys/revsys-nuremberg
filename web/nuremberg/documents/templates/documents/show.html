@@ -28,19 +28,24 @@
 {% endblock %}
 
 {% block content %}
-<section class="theme-light flush">
-  {% block document_tools %}
     {% if query %}
-      <div class="document-tools">
-        <form class="document-search-inline" action="{% url 'search:search' %}" method='GET'>
-          {% include 'search/search-bar.html' %}
+    <section id="search" role="search" aria-label="Search the archive" class="theme-beige thin">
+      <h1 class="h4">Search the archive
+        <!-- <a class="h5" tabindex="1" href="#results">Jump to results</a> -->
+      </h1>
+      <div class="full-width">
+        <form class="results-search" role="search" aria-label="full-text search" action='{% url 'search:search' %}' method='GET'>
+          {% include 'search/search-bar.html' with hide_icon=True %}
         </form>
+        <div class="show-advanced-search"><a href="{% url "search:advanced" %}">Advanced Search</a></div>
+        <div class=""><a href="{% url 'search:help' %}" target="_blank">Search Help</a></div>
         <div class="return-link">
           <a href="{% search_url query %}"> &larr; Back to search results </a>
         </div>
-      </div>
-      <hr />
+    </section>
     {% endif %}
+<section class="theme-light flush">
+  {% block document_tools %}
     {% if mode != 'text' %}
     <div class="document-tools">
       {% block document_controls %}
