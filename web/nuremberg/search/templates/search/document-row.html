@@ -69,7 +69,7 @@
               {% if document.highlighted %}
                 {{ document.highlighted.highlight.0|trim_snippet }}
               {% else %}
-                {{ document.text|slice:":150"|trim_snippet }}
+                {{ document.text|striptags|slice:":150"|trim_snippet }}
               {% endif %}
             {% endfor %}
           {% endif %}
