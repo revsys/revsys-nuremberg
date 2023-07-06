@@ -68,6 +68,9 @@ FROM runner as builder
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
 
 
+ENV PYTHONDONTWRITEBYTECODE=true
+ENV PYTHONUNBUFFERED 1
+
 SHELL ["/bin/bash", "-c"]
 
 RUN python -m venv /.venv; \
@@ -94,6 +97,8 @@ WORKDIR /code
 FROM builder as release
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
 
+ENV PYTHONDONTWRITEBYTECODE=true
+ENV PYTHONUNBUFFERED 1
 ENV DJANGO_SETTINGS_MODULE nuremberg.settings
 ENV BASE_DIR=/code
 ENV IMAGE_VERSION v0.5.81
@@ -123,6 +128,8 @@ FROM release as tester
 
 USER 0
 
+ENV PYTHONDONTWRITEBYTECODE=true
+ENV PYTHONUNBUFFERED 1
 ENV SECRET_KEY xx
 ENV SOLR_URL http://solr:8983/solr/nuremberg_dev
 ENV DJANGO_SETTINGS_MODULE nuremberg.test_settings
