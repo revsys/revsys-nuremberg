@@ -50,11 +50,9 @@ jobs:
 
           echo "${head} (head) vs. ${lastUpdate} (lastUpdate)"
 
-          DUMP_LINK_TGT=$( find dumps -inum $( stat -t -L dumps/*latest.sqlite3.zip | cut -d' ' -f8 ) )
-
           echo "## solr-check"
           [[ "${head}" == "${lastUpdate}" ]] &&
-             echo " * found new data: \`${DUMP_LINK_TGT}\`" >> $GITHUB_STEP_SUMMARY || \
+             echo " * found new data" >> $GITHUB_STEP_SUMMARY || \
              echo " * no new data" >> $GITHUB_STEP_SUMMARY
 
   run:
