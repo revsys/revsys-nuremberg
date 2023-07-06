@@ -207,6 +207,7 @@ update-db-dump mysqldump='' dump_name=`date --utc +%FT%T`:
 
 # Rebuild the symlink to the latest dump to force Solr to rebuild
 force-solr-regen:
-    git rm dumps/nuremberg_prod_dump_latest.sqlite3.zip
-    ln -s dumps/nuremberg_prod_dump_2023-02-23T21:04:25.sqlite3.zip dumps/nuremberg_prod_dump_latest.sqlite3.zip
-    git add dumps/nuremberg_prod_dump_latest.sqlite3.zip
+    cd dumps
+    git rm nuremberg_prod_dump_latest.sqlite3.zip
+    ln -s nuremberg_prod_dump_2023-02-23T21:04:25.sqlite3.zip nuremberg_prod_dump_latest.sqlite3.zip
+    git add nuremberg_prod_dump_latest.sqlite3.zip
