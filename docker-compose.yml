@@ -29,6 +29,7 @@ services:
       - DEBUG=True
       - SECRET_KEY=top-secret-1234
       - LOCAL_DEVELOPMENT=True
+      - DJANGO_VITE_DEV_MODE=True
     depends_on:
       - solr
     stop_signal: SIGKILL
