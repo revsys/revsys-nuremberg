@@ -19,11 +19,9 @@
     padding-right: 50px;
     display: inline-block;
   }
+
   button.search-button {
     display: none;
-  }
-  button.clear-search {
-    margin-right: 15px;
   }
 
   a {
@@ -45,6 +43,7 @@
       margin-right: 15px;
     }
   }
+
   .return-link {
     .make-md-column(2);
     .pull-right();
@@ -73,12 +72,14 @@
     .sans-serif(normal, 14px, 14px);
     color: @dark-gray;
   }
+
   input[type="text"] {
     width: 50px;
     margin: 0 5px;
   }
 
-  button, a.download-page {
+  button,
+  a.download-page {
     &:extend(.hide-text);
 
     display: inline-block;
@@ -93,15 +94,19 @@
     &.first-page {
       background-image: url('@{image_url}/icon-first-page.png');
     }
+
     &.prev-page {
       background-image: url('@{image_url}/icon-prev-page.png');
     }
+
     &.next-page {
       background-image: url('@{image_url}/icon-next-page.png');
     }
+
     &.last-page {
       background-image: url('@{image_url}/icon-last-page.png');
     }
+
     &.download-page {
       margin-left: 10px;
       background-image: url('@{image_url}/icon-download-page.png');
@@ -114,13 +119,15 @@ hr {
 }
 
 html.touchevents & {
+
   // .viewport-content, #document-viewport{
   //   height: inherit;
   //
   //   background-color: @white;
   //   overflow: visible;
   // };
-  .document-tools-overlay, .zoom-buttons {
+  .document-tools-overlay,
+  .zoom-buttons {
     display: none;
   }
 }
@@ -132,7 +139,8 @@ html.touchevents & {
   overflow: scroll;
 }
 
-.sidebar-layout, .full-width {
+.sidebar-layout,
+.full-width {
   margin-top: 26px;
 
   .main-column {
@@ -162,12 +170,14 @@ html.touchevents & {
   p {
     .sans-serif(normal, 16px, 20px);
     margin: 5px 0 0;
+
     &.trial-flags {
       margin: 14px 0;
     }
   }
 
-  h6, .h6 {
+  h6,
+  .h6 {
     .sans-serif(bold, 14px, 14px);
 
     margin: 10px 0;
@@ -189,10 +199,12 @@ html.touchevents & {
   top: 20px;
   right: 10px;
   background-color: white;
-  > div {
+
+  >div {
     height: 24px;
     margin-bottom: 5px;
   }
+
   .print-document {
     .sans-serif(@light, 14px, 24px);
     height: 24px;
@@ -203,10 +215,12 @@ html.touchevents & {
     background-position: right;
 
     opacity: 0.5;
+
     &:hover {
       opacity: 1;
     }
   }
+
   .download-pdf {
     .print-document();
     padding-right: 28px;
@@ -214,6 +228,7 @@ html.touchevents & {
     clear: both;
     background-image: url('@{image_url}/icon-download.png');
   }
+
   .download-options {
     .transition(~"max-width 0.3s");
     max-width: 250px;
@@ -225,15 +240,18 @@ html.touchevents & {
     white-space: nowrap;
 
     &.hide {
-      display:block;
+      display: block;
       max-width: 0px;
     }
   }
+
   input.page-range {
     width: 25px;
     padding: 4px;
   }
-  .do-download, .do-print {
+
+  .do-download,
+  .do-print {
     .sans-serif(normal, 14px, 10px);
     text-decoration: underline;
     color: @dark-blue;
@@ -242,11 +260,13 @@ html.touchevents & {
   }
 }
 
-.photograph-title, .photograph-date {
+.photograph-title,
+.photograph-date {
   display: block;
 }
-.photograph-date {
-}
+
+.photograph-date {}
+
 .photograph-inscription {
   margin-bottom: 150px;
 }
