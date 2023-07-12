@@ -1,7 +1,7 @@
 <div class="search-bar-wrapper">
   <input type="search" name="q" title="Search query" value="{{ query|default:"" }}" oninvalid="event.preventDefault(); $(this).closest('form').submit()" required />
   <div class="button-wrapper">
-    <button class="clear-search" type="reset">Clear</button>
+    <button class="button search-button clear-search" type="reset">Clear</button>
     <button class="button search-button" type="submit">Search</button>
   </div>
 </div>
