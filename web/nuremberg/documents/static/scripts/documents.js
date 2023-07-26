@@ -1,7 +1,7 @@
 modulejs.define('documents', ['DocumentViewport', 'DocumentTools', 'DownloadPDF'], function (DocumentViewport, DocumentTools, DownloadPDF) {
   var viewportView = new DocumentViewport;
-  var toolbarView = new DocumentTools({el: $('.document-tools')});
-  var overlayView = new DocumentTools({el: $('.document-tools-overlay')});
+  var toolbarView = new DocumentTools({ el: $('.document-tools') });
+  var overlayView = new DocumentTools({ el: $('.document-tools-overlay') });
 
   toolbarView.on('zoomIn', viewportView.zoomIn);
   toolbarView.on('zoomOut', viewportView.zoomOut);
@@ -23,13 +23,13 @@ modulejs.define('documents', ['DocumentViewport', 'DocumentTools', 'DownloadPDF'
     }
     toolbarView.setPage(page);
     toolbarView.setPageDownload(viewportView.model.attributes.currentImage.attributes.urls.full || viewportView.model.attributes.currentImage.attributes.urls.screen,
-    'HLSL Nuremberg Document #' + viewportView.model.attributes.id + ' page ' + viewportView.model.attributes.currentImage.attributes.page + '.jpg');
+      'HLSL Nuremberg Document #' + viewportView.model.attributes.id + ' page ' + viewportView.model.attributes.currentImage.attributes.page + '.jpg');
   });
 
   if (location.hash) {
     var match = location.hash.match(/p\.(\d+)/);
     if (match)
-    viewportView.goToPage(match[1]);
+      viewportView.goToPage(match[1]);
   }
 
   $('.download-pdf').on('click', function () {
@@ -61,7 +61,7 @@ modulejs.define('documents', ['DocumentViewport', 'DocumentTools', 'DownloadPDF'
     $(this).closest('form').find('input[type="search"]').val('');
   });
 
-  $('.document-viewer .clear-search').on('click', function (e) {
+  /*$('.document-viewer .clear-search').on('click', function (e) {
     $(this).closest('.document-tools').hide().next('hr').hide();
-  });
+  });*/
 });
