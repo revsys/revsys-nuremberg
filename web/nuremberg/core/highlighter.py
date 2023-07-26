@@ -2,9 +2,8 @@ import re
 
 from haystack.utils import Highlighter
 
-
 EXACT_PHRASE_RE = re.compile(r'"([^"]*)"|([^"]*)')
-FIELD_SEARCH_RE = re.compile(r'[a-zA-Z0-9_-]+:([^:]*)')
+FIELD_SEARCH_RE = re.compile(r'[a-zA-Z0-9_-]+:')
 
 
 class NurembergHighlighter(Highlighter):
