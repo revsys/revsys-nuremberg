@@ -140,6 +140,17 @@ const tabClicking = (e) => {
   return (e.ctrlKey || e.metaKey || (e.button && e.button == 1));
 }
 
+const handleSearchClear = () => {
+  let clearButton = document.getElementById("search-bar-clear")
+  let searchInput = document.getElementById("search-query")
+  if (clearButton) {
+    clearButton.addEventListener("click", (e) => {
+      e.preventDefault()
+      searchInput.value = ""
+    })
+  }
+}
+
 /* **********************************************************************
    Main Entry Point
    ********************************************************************* */
@@ -170,6 +181,9 @@ const main = () => {
   if (scrollToTopButton) {
     scrollToTopButton.addEventListener("click", scrollToTop)
   }
+
+  // Clear search form
+  handleSearchClear()
 
   // Handle form submission
   /*
