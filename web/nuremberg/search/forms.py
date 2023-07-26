@@ -614,8 +614,13 @@ class AdvancedDocumentSearchForm(forms.Form):
             'title',
             'notes',
         ):
-            values = data.get(term, '').split(' ')
-            terms.extend(f'{term}:{value}' for value in values if value)
+            # Handle exact searchs differently
+            value = data.get(term, '').strip()
+            if value.startswith('"') and value.endswith('"'):
+                terms.append(f'{term}:{value}')
+            else:
+                values = data.get(term, '').split(' ')
+                terms.extend(f'{term}:{value}' for value in values if value)
 
         # choice field entries
         for term in (
