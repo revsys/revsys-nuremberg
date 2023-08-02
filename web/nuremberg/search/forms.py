@@ -513,6 +513,7 @@ class AdvancedDocumentSearchForm(forms.Form):
         ],
         list,
     )
+    m = forms.CharField(required=False)
     keywords = forms.CharField(required=False, widget=forms.TextInput(attrs={"class": "large"}))
     title = forms.CharField(required=False, widget=forms.TextInput(attrs={"class": "large"}))
     notes = forms.CharField(required=False, widget=forms.TextInput(attrs={"class": "large"}))
@@ -664,6 +665,11 @@ class AdvancedDocumentSearchForm(forms.Form):
             value = data.get(f'{term}_code')
             if value:
                 terms.append(f'{term}:"{value}"')
+
+        m = data.getlist('m')
+        if m:
+            types = "|".join(m)
+            terms.append(f'type:"{types}"')
 
         # This assumes AND operation between search fields
         q = ' '.join(terms)

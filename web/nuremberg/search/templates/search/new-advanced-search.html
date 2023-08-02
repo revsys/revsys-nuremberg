@@ -37,7 +37,7 @@
         </label>
         </p>
         {% for field in form %}
-          {% if field.name != 'evidence' and field.name != 'exhibit' and field.name != 'book' and '_' not in field.name %}
+          {% if field.name != 'evidence' and field.name != 'exhibit' and field.name != 'book' and field.name != 'm' and '_' not in field.name %}
           <div class="{% if field.errors %}has-error{% endif %}">
           <p>{{ field.label_tag }} {{ field }}</p>
           {% for error in field.errors %}
