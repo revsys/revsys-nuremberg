@@ -5,17 +5,6 @@
 
 {% block body_class %}document-search{% endblock %}
 
-{% block extra_head_js %}
-  <script type="module">
-      import RefreshRuntime from 'http://localhost:5173/static/@react-refresh'
-      RefreshRuntime.injectIntoGlobalHook(window)
-      window.$RefreshReg$ = () => {}
-      window.$RefreshSig$ = () => (type) => type
-      window.__vite_plugin_react_preamble_installed__ = true
-  </script>
-  {% vite_asset 'src/vanilla/search.js' %}
-{% endblock extra_head_js %}
-
 {% block content %}
 <section id="search" role="search" aria-label="Search the archive" class="theme-beige thin">
   <h1 class="h4">Search the archive &mdash; Advanced</h1>
@@ -32,8 +21,23 @@
 
       <form class="advanced-search" role="search" aria-label="advanced search" action="{% url 'search:advanced' %}" method="POST">
         <p>{% trans 'Match all entered search terms below' %}</p>
+        <p style="margin-top: 10px; margin-bottom: 10px">
+          <label style="margin-right: 50px;">Material Types:</label>
+        <label style="margin-right: 10px">
+          <input type="checkbox" name="m" value="document" checked />
+          Documents
+        </label>
+        <label style="margin-right: 10px">
+          <input type="checkbox" name="m" value="transcript" checked />
+          Transcripts
+        </label>
+        <label style="margin-right: 10px">
+          <input type="checkbox" name="m" value="photograph" checked />
+          Photographs
+        </label>
+        </p>
         {% for field in form %}
-          {% if field.name != 'evidence' and field.name != 'exhibit' and field.name != 'book' and '_' not in field.name %}
+          {% if field.name != 'evidence' and field.name != 'exhibit' and field.name != 'book' and field.name != 'm' and '_' not in field.name %}
           <div class="{% if field.errors %}has-error{% endif %}">
           <p>{{ field.label_tag }} {{ field }}</p>
           {% for error in field.errors %}
