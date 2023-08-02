@@ -54,6 +54,10 @@ const yearRangeControls = () => {
     let years = []
     Array.from(facetYears).forEach((facetYear) => {
       if (facetYear.dataset.year) {
+        if (facetYear.dataset.year == 0) {
+          console.log("Skipping 0 year")
+          return
+        }
         years.push(facetYear.dataset.year)
       }
     })
@@ -70,7 +74,7 @@ const yearRangeControls = () => {
 
   $('.date-slider').slider({
     range: true,
-    min: 1898,
+    min: 1793,
     max: 1948,
     values: [$('input[name="year_min"]').val(), $('input[name="year_max"]').val()],
     slide: function (e, ui) {
