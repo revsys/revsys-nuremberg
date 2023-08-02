@@ -92,11 +92,11 @@ const yearRangeControls = () => {
     e.stopPropagation()
 
     // Handle out of bounds years
-    if (fromYear.value < 1895 || fromYear.value > 1950 || toYear.value < 1895 || toYear.value > 1950) {
+    if (fromYear.value < 1793 || fromYear.value > 2015 || toYear.value < 1793 || toYear.value > 2015) {
       let currentFrom = fromYear.value
       let currentTo = toYear.value
-      fromYear.value = min([max([currentFrom, 1895]), 1950])
-      toYear.value = min([max([currentTo, 1895]), 1950])
+      fromYear.value = min([max([currentFrom, 1793]), 2015])
+      toYear.value = min([max([currentTo, 1793]), 2015])
     }
 
     if (fromYear.value > toYear.value) {

@@ -32,6 +32,21 @@
 
       <form class="advanced-search" role="search" aria-label="advanced search" action="{% url 'search:advanced' %}" method="POST">
         <p>{% trans 'Match all entered search terms below' %}</p>
+        <p style="margin-top: 10px; margin-bottom: 10px">
+          <label style="margin-right: 50px;">Material Types:</label>
+        <label style="margin-right: 10px">
+          <input type="checkbox" name="m" value="document" checked />
+          Documents
+        </label>
+        <label style="margin-right: 10px">
+          <input type="checkbox" name="m" value="transcript" checked />
+          Transcripts
+        </label>
+        <label style="margin-right: 10px">
+          <input type="checkbox" name="m" value="photograph" checked />
+          Photographs
+        </label>
+        </p>
         {% for field in form %}
           {% if field.name != 'evidence' and field.name != 'exhibit' and field.name != 'book' and '_' not in field.name %}
           <div class="{% if field.errors %}has-error{% endif %}">
