@@ -390,10 +390,13 @@ class YearRangeField(forms.MultiValueField):
         )
 
     def compress(self, data_list):
-        # The list of years [start, end] is exactly what we need, though remove
-        # empty values from it
-        return sorted(i for i in data_list if i)
+        return data_list
 
+    def validate(self, value):
+        if value[0] and value[1]:
+            if int(value[1]) < int(value[0]):
+                raise ValidationError("Year range must be in order, please reverse these.")
+        return value
 
 class AdvancedDocumentSearchForm(forms.Form):
 
