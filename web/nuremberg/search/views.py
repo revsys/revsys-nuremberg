@@ -206,6 +206,8 @@ def advanced_search(request):
             # the error encoded as JSON. This will be rendered in the `search.html`
             # template as <script> blocks to allow for more fancy error showing,
             # in a potentail future improvement of the UI.
+            print("Form Errors!!!!!!!!!")
+            print(form.errors)
             for field, error in form.errors.items():
                 messages.error(request, error.as_json(), extra_tags=field)
 

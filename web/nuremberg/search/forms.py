@@ -406,6 +406,7 @@ class YearRangeField(forms.MultiValueField):
         if (value[0] and not value[1]) or (value[1] and not value[0]):
             raise ValidationError("You must enter a to and a from year.  If you wish to search within a single year, please just duplicate the value.")
 
+
         return value
 
 class AdvancedDocumentSearchForm(forms.Form):
