@@ -1,10 +1,16 @@
 from django.urls import path
+
 from .views import ContentView, LandingView, ReportDetailView, TrialsView
 
 app_name = 'content'
 urlpatterns = [
     path(
         '',
+        LandingView.as_view(),
+        name="landing",
+    ),
+    path(
+        'nuremberg/php/docs_swi.php',
         LandingView.as_view(),
         name="landing",
     ),
