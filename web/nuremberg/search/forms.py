@@ -394,8 +394,18 @@ class YearRangeField(forms.MultiValueField):
 
     def validate(self, value):
         if value[0] and value[1]:
+            try:
+                int(value[0])
+                int(value[1])
+            except ValueError:
+                raise ValidationError("Years must be integers")
+
             if int(value[1]) < int(value[0]):
                 raise ValidationError("Year range must be in order, please reverse these.")
+
+        if (value[0] and not value[1]) or (value[1] and not value[0]):
+            raise ValidationError("You must enter a to and a from year.  If you wish to search within a single year, please just duplicate the value.")
+
         return value
 
 class AdvancedDocumentSearchForm(forms.Form):
@@ -641,8 +651,13 @@ class AdvancedDocumentSearchForm(forms.Form):
         # year range for document creation date
         year_range = data.get('year_range')
         if year_range:
-            years = [str(i) for i in range(year_range[0], year_range[-1] + 1)]
-            terms.append(f'date:{"|".join(years)}')
+            try:
+                years = [str(i) for i in range(year_range[0], year_range[-1] + 1)]
+                terms.append(f'date:{"|".join(years)}')
+            except TypeError:
+                print("Year Range:")
+                print(year_range)
+                pass
 
         # special treatment, uses `_code` suffix for field name
         for term in ('evidence', 'exhibit', 'book'):
