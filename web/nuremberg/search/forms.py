@@ -513,9 +513,9 @@ class AdvancedDocumentSearchForm(forms.Form):
         ],
         list,
     )
-    keywords = forms.CharField(required=False)
-    title = forms.CharField(required=False)
-    notes = forms.CharField(required=False)
+    keywords = forms.CharField(required=False, widget=forms.TextInput(attrs={"class": "large"}))
+    title = forms.CharField(required=False, widget=forms.TextInput(attrs={"class": "large"}))
+    notes = forms.CharField(required=False, widget=forms.TextInput(attrs={"class": "large"}))
     author = forms.ChoiceField(required=False, choices=AUTHOR_CHOICES)
     defendant = forms.ChoiceField(required=False, choices=DEFENDANT_CHOICES)
     issue = forms.ChoiceField(
