@@ -6,6 +6,10 @@
 t
 {% block javascript_module %}transcript-viewer{% endblock %}
 
+{% block extra_head_js %}
+  {% vite_asset 'src/vanilla/transcript.js' %}
+{% endblock extra_head_js %}
+
 {% block document_controls %}
   <div class="zoom-buttons pull-left">
     <form action="" method="GET">

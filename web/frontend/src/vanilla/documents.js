@@ -194,7 +194,7 @@ const smoothZoom = (thisViewScale, scaleOrigin) => {
 
     let targetOrigin = {
       x: Math.max(0, currentOrigin.x + scaleOrigin.x - scaleOrigin.x / scaleDelta),
-      y: Math.max(0, currentOrigin.y + scaleOrigin.y - scaleOrigin.y / scaleDelta)
+      y: Math.max(0, currentOrigin.y + scaleOrigin.y - scaleOrigin.y / scaleDelta),
     }
 
     viewScale = newViewScale
@@ -207,7 +207,6 @@ const smoothZoom = (thisViewScale, scaleOrigin) => {
 let zoomTimeout = null
 
 const scaleView = (scale, animate, scaleOrigin) => {
-  console.log(`scaleView: ${scale} ${animate} ${scaleOrigin}`)
   let viewport = $("div.viewport-content")
   let scaleDelta = scale / (prevViewScale || 1)
   prevViewScale = scale
@@ -217,7 +216,6 @@ const scaleView = (scale, animate, scaleOrigin) => {
     x: scaleOrigin.x * scaleDelta,
     y: scaleOrigin.y * scaleDelta,
   }
-
   if (animate) {
     currentOrigin = transformedOrigin
 
@@ -248,6 +246,7 @@ const scaleView = (scale, animate, scaleOrigin) => {
         'margin-bottom': Math.max(0, (transformedOrigin.y + viewport[0].clientHeight) - $('.document-image-layout').height()) + 'px',
         transition: 'none',
       });
+
       viewport.scrollLeft(transformedOrigin.x);
       viewport.scrollTop(transformedOrigin.y);
 
@@ -353,7 +352,6 @@ const magnifyTool = (e) => {
     x: e.pageX - viewport.offset().left,
     y: e.pageY - viewport.offset().top
   }
-
   let newScale;
 
   let $page = $(e.target).closest('.document-image')
@@ -385,11 +383,9 @@ const magnifyTool = (e) => {
       // on left-click, view scale for 100% and page zoom under 100%
       if (scale == 1) {
         newScale = 1.5 * viewScale;
-        console.log("Click here1")
         smoothZoom(newScale, scaleOrigin);
       } else {
         newScale = 1;
-        console.log("Click here2")
         zoomToPage(page, newScale);
       }
     } else if (e.type === 'contextmenu' || e.ctrlKey || e.metaKey || e.shiftKey) {
@@ -453,15 +449,12 @@ const zoomToPage = (page, thisScale) => {
 
   // All animation happens in "view scale", which is complicated, but it stops pages from visibly
   // bouncing around when the number of columns changes.
-  console.log("Page!")
-  console.dir(page)
   let viewport = $("div.viewport-content")
   let scaleDelta = thisScale / scale
   let previousScale = scale
   let laneOffset
   scale = thisScale
 
-  console.log(`scaleDelta: ${scaleDelta}`)
   const pinnedPageOrigin = (page) => {
     if (!page) {
       return {
@@ -649,10 +642,6 @@ const main = () => {
       }
     }))
   })
-
-  // Debugging
-  console.log("Page Images:")
-  console.dir(page_images)
 
   // Initialize images
   images.forEach((i) => { i.init() })
