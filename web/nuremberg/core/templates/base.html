@@ -29,6 +29,7 @@
     {% vite_asset 'src/vanilla/search.js' %}
 
     {% block extra_head_js %}{% endblock extra_head_js %}
+    {% block extra_head_css %}{% endblock extra_head_css %}
   </head>
   <body class="{% block body_class %}{% endblock %} {% if show_mockup %}mockups{% endif %}">
     <nav aria-labelledby="bypass-link">

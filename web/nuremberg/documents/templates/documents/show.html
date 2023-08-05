@@ -11,6 +11,33 @@
   {% vite_asset 'src/vanilla/documents.js' %}
 {% endblock extra_head_js %}
 
+{% block extra_head_css %}
+<style media="print" type="text/css">
+  @media print {
+    section#search {
+      display: none;
+    }
+
+    div#content {
+      margin-bottom: 25px;
+    }
+
+    div.author-hover-content {
+      width: 0;
+      height: 0;
+      margin: 0;
+      padding: 0;
+      display: none;
+    }
+    div.author-hover-content img {
+      display: none;
+    }
+    a.see-more-details {
+      display: none;
+    }
+</style>
+{% endblock extra_head_css %}
+
 {% block javascript %}
   {{ block.super }}
   <script>
