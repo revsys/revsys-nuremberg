@@ -5,12 +5,12 @@
     "src": "src/vanilla/authorHover.js"
   },
   "src/vanilla/documents.js": {
-    "file": "vanilladocuments-026662eb.js",
+    "file": "vanilladocuments-75bb9597.js",
     "isEntry": true,
     "src": "src/vanilla/documents.js"
   },
   "src/vanilla/search.js": {
-    "file": "vanillasearch-17d40aa1.js",
+    "file": "vanillasearch-51b53fa7.js",
     "isEntry": true,
     "src": "src/vanilla/search.js"
   },
