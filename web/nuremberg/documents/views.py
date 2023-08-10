@@ -33,8 +33,6 @@ class Show(View):
                 hlsl_item_id = None
             else:
                 hlsl_item_id = document.id
-            if query:
-                full_text.text = self.highlight_query(full_text.text, query)
         else:
             document = get_object_or_404(
                 Document.objects.prefetch_related(
@@ -56,10 +54,13 @@ class Show(View):
             for e in exhibit_codes:
                 if str(e) != "":
                     all_exhibit_codes_empty = False
-            if mode == 'search-text':
+            if mode == 'search-text' and full_text:
                 # When coming from a search result matching a doc full-text,
                 # always show the text version by default (#237).
                 mode = 'text'
+
+        if query and full_text:
+            full_text.text = self.highlight_query(full_text.text, query)
 
         citations = []
         try:
