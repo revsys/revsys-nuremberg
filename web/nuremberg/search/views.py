@@ -17,6 +17,7 @@ from nuremberg.search.forms import (
 )
 from nuremberg.search.lib.digg_paginator import DiggPaginator
 from nuremberg.search.lib.solr_grouping_backend import GroupedSearchQuerySet
+from nuremberg.search.templatetags.search_url import trim_snippet
 
 ADVANCED_SEARCH_FORM_ERRORS = 'advanced_search_form_errors'
 
@@ -143,9 +144,17 @@ class Search(FacetedSearchView):
                     ap['author']['id']
                     for ap in (result.authors_properties or [])
                 )
-                # Results for full-text docs without a matching document image
-                # should point to the mode=text doc details URL
-                if result.model_name.lower() == 'documenttext':
+                if result.material_type.lower() != 'document':
+                    continue
+
+                result.full_text = trim_snippet(result.text)
+                if result.full_text:
+                    # For results including a doc full-text, always show the
+                    # text version when visiting the details page (#237). This
+                    # is achieved by passing the special qs "mode=search-text"
+                    # in the details link.
+                    result.mode = 'search-text'
+                elif result.model_name.lower() == 'documenttext':
                     result.mode = 'text'
                 else:
                     result.mode = 'image'
