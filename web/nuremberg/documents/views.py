@@ -51,12 +51,15 @@ class Show(View):
             full_text = document.full_texts().first()
             evidence_codes = document.evidence_codes.all()
             hlsl_item_id = document_id
+            cases = document.cases.all()
             exhibit_codes = document.exhibit_codes.all()
             for e in exhibit_codes:
                 if str(e) != "":
                     all_exhibit_codes_empty = False
-
-            cases = document.cases.all()
+            if mode == 'search-text':
+                # When coming from a search result matching a doc full-text,
+                # always show the text version by default (#237).
+                mode = 'text'
 
         citations = []
         try:
