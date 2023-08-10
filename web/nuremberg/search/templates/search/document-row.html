@@ -9,6 +9,9 @@
       {% for case in result.case_tags %}
         <span class="trial-flag trial-{{case|slugify}}">{{case}}</span>
       {% endfor %}
+      {% if result.full_text %}
+        <span class="full-text">Full Text</span>
+      {% endif %}
     </p>
     {% if result.material_type == 'Document' %}
       <a class="unstyled" href="{% url 'documents:show' document_id=result.pk slug=result.slug %}?mode={{ result.mode }}{% if query %}&q={% encode_string query %}{% endif %}">
