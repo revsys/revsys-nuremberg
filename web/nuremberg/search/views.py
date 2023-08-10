@@ -148,14 +148,14 @@ class Search(FacetedSearchView):
                     continue
 
                 result.full_text = trim_snippet(result.text)
-                if result.full_text:
+                if result.model_name.lower() == 'documenttext':
+                    result.mode = 'text'
+                elif result.full_text:
                     # For results including a doc full-text, always show the
                     # text version when visiting the details page (#237). This
                     # is achieved by passing the special qs "mode=search-text"
                     # in the details link.
                     result.mode = 'search-text'
-                elif result.model_name.lower() == 'documenttext':
-                    result.mode = 'text'
                 else:
                     result.mode = 'image'
 
