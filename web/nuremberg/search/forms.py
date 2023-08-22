@@ -518,7 +518,7 @@ class AdvancedDocumentSearchForm(forms.Form):
     keywords = forms.CharField(required=False, widget=forms.TextInput(attrs={"class": "large"}))
     title = forms.CharField(required=False, widget=forms.TextInput(attrs={"class": "large"}))
     notes = forms.CharField(required=False, widget=forms.TextInput(attrs={"class": "large"}))
-    author = forms.ChoiceField(required=False, choices=AUTHOR_CHOICES)
+    author = forms.MultipleChoiceField(required=False, choices=AUTHOR_CHOICES)
     defendant = forms.ChoiceField(required=False, choices=DEFENDANT_CHOICES)
     issue = forms.ChoiceField(
         label=_('Trial Issues'), required=False, choices=ISSUE_CHOICES
@@ -646,9 +646,9 @@ class AdvancedDocumentSearchForm(forms.Form):
             'language',
             'source',
         ):
-            value = data.get(term)
-            if value:
-                terms.append(f'{term}:"{value}"')
+            values = _getlist(data, term)
+            if values:
+                terms.extend(f'{term}:"{value}"' for value in values if value)
 
         # year range for document creation date
         year_range = data.get('year_range')
@@ -667,7 +667,7 @@ class AdvancedDocumentSearchForm(forms.Form):
             if value:
                 terms.append(f'{term}:"{value}"')
 
-        m = data.getlist('m')
+        m = _getlist(data, 'm')
         if m:
             types = "|".join(m)
             terms.append(f'type:"{types}"')
@@ -739,3 +739,13 @@ class AdvancedDocumentSearchForm(forms.Form):
                 result.add_error(field, error)
 
         return result
+
+
+def _getlist(data, key):
+    try:
+        values = data.getlist(key)
+    except AttributeError:
+        values = data.get(key)
+    if values and not isinstance(values, list):
+        values = [values]
+    return values
