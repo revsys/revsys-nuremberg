@@ -40,7 +40,7 @@ def test_advanced_search_form_errors():
     data = {
         'keywords': 'foo bar|baz',
         'title': 'Some Title',
-        'author': 'Adolf Hitlerrrr',  # Not a valid author
+        'author': ['Adolf Hitlerrrr'],  # Not a valid author
         'defendant': 'Not a Defendant',  # Not a valid defendant
         'issue': 'A Trial Issue',  # Not a valid issue
         'trial': 'CASE',  # Not a valid trial
@@ -65,7 +65,7 @@ def test_advanced_search_form_as_search_qs_simple():
     data = {
         'keywords': 'foo bar|baz',
         'title': 'Some Title',
-        'author': 'Adolf Hitler',
+        'author': ['Adolf Hitler'],
         'defendant': 'Rose',
         'issue': 'A Trial Issue',
         'trial': 'IMT',
@@ -83,11 +83,34 @@ def test_advanced_search_form_as_search_qs_simple():
     assert form.as_search_qs(data) == expected
 
 
+def test_advanced_search_form_as_search_qs_author_list():
+    data = {
+        'keywords': 'foo bar|baz',
+        'title': 'Some Title',
+        'author': ['Adolf Hitler', 'Karl Weiss'],
+        'defendant': 'Rose',
+        'issue': 'A Trial Issue',
+        'trial': 'IMT',
+        'language': 'Croatian',
+        'notes': 'something',
+        'source': 'Photostat',
+    }
+    form = AdvancedDocumentSearchForm()
+    expected = (
+        'keywords:foo keywords:bar|baz title:Some title:Title notes:something '
+        'author:"Adolf Hitler" author:"Karl Weiss" '
+        'defendant:"Rose" '
+        'issue:"A Trial Issue" trial:"IMT" '
+        'language:"Croatian" source:"Photostat"'
+    )
+    assert form.as_search_qs(data) == expected
+
+
 def test_advanced_search_form_as_search_qs_cleaned_data():
     data = {
         'keywords': 'bar|baz',
         'title': 'Some Title',
-        'author': 'Adolf Hitler',
+        'author': ['Adolf Hitler'],
         'defendant': 'Rose',
         'trial': 'IMT',
         'language': 'english',
@@ -114,9 +137,11 @@ def test_advanced_search_form_as_search_qs_year_range():
 
     data['year_range_start'] = '1948'
     form = AdvancedDocumentSearchForm(data)
-    assert form.is_valid(), form.errors
-
-    assert form.as_search_qs() == 'date:1948'
+    error = (
+        'You must enter a to and a from year.  If you wish to search within a '
+        'single year, please just duplicate the value.')
+    assert not form.is_valid()
+    assert form.errors == {'year_range': [error]}
 
     data['year_range_end'] = '1948'  # start was already set to 1948
     form = AdvancedDocumentSearchForm(data)
