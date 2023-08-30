@@ -83,7 +83,7 @@
 
     <field name="text" type="text_en" indexed="true" stored="true" multiValued="false" />
 
-    <field name="highlight" type="highlight" indexed="true" stored="true" multiValued="false" />
+    <field name="highlight" type="text_en" indexed="true" stored="true" multiValued="false" />
 
     <field name="material_type" type="text_en" indexed="true" stored="true" multiValued="false" />
 
@@ -494,7 +494,6 @@
     <dynamicField name="*_txt_en" type="text_en"  indexed="true"  stored="true"/>
     <fieldType name="text_en" class="solr.TextField" positionIncrementGap="100">
         <analyzer type="index">
-            <charFilter class="solr.HTMLStringFilterFactory" />
             <tokenizer class="solr.StandardTokenizerFactory"/>
             <!-- in this example, we will only use synonyms at query time
             <filter class="solr.SynonymFilterFactory" synonyms="index_synonyms.txt" ignoreCase="true" expand="false"/>
