@@ -5,6 +5,18 @@
 
 {% block body_class %}document-search{% endblock %}
 
+{% block extra_head_js %}
+{% comment %} {% vite_asset 'src/vanilla/advancedSearch.js' %} {% endcomment %}
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js" defer></script>
+  <script>
+    $(document).ready(function() {
+      $('#id_author').select2();
+    });
+  </script>
+{% endblock extra_head_js %}
+
 {% block content %}
 <section id="search" role="search" aria-label="Search the archive" class="theme-beige thin">
   <h1 class="h4">Search the archive &mdash; Advanced</h1>
