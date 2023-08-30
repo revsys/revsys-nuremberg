@@ -109,7 +109,7 @@ class Search(FacetedSearchView):
         context['query'] = context['form'].data.get('q') or ''
         if context['facets']:
             labeled_facets = []
-            for (label, field) in self.facet_labels:
+            for label, field in self.facet_labels:
                 counts = context['facets']['fields'].get(field, [])
                 # missing ignores mincount and sorting
                 if (None, 0) in counts:
@@ -127,7 +127,7 @@ class Search(FacetedSearchView):
         if form:
             context['has_keyword_search'] = form.has_keyword_search
             context['facet_lookup'] = {}
-            for (field, value, facet) in context['form'].applied_filters:
+            for field, value, facet in context['form'].applied_filters:
                 context['facet_lookup'][facet] = True
 
         if self.request.GET.get('partial') and not self.advanced_search:
@@ -182,7 +182,6 @@ class NewSearch(Search):
 
 @csrf_exempt
 def advanced_search(request):
-
     if request.method == "GET":
         form = AdvancedDocumentSearchForm()
         return render(

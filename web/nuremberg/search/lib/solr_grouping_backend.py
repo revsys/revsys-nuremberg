@@ -194,7 +194,7 @@ class GroupedSolrSearchBackend(SolrSearchBackend):
         group_kwargs = [
             (i, kwargs[i]) for i in kwargs.keys() if i.startswith("group")
         ]
-        for (i, ki) in group_kwargs:
+        for i, ki in group_kwargs:
             del kwargs[i]
 
         res = super(GroupedSolrSearchBackend, self).build_search_kwargs(

@@ -15,7 +15,6 @@ class ContentView(TemplateView):
 
 
 class LandingView(ContentView):
-
     template_name = 'content/landing.html'
     context = {
         'query': '',
@@ -25,7 +24,6 @@ class LandingView(ContentView):
 
 
 class TrialsView(ContentView):
-
     template_name = 'content/trials.html'
     context = {
         'cases': DocumentCase.objects.all().order_by('id'),
@@ -33,7 +31,6 @@ class TrialsView(ContentView):
 
 
 class ReportDetailView(DetailView):
-
     model = AnalystReport
     template_name = 'content/report.html'
 
