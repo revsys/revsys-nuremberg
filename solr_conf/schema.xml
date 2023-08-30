@@ -500,10 +500,14 @@
             -->
             <!-- Case insensitive stop word removal.
             -->
+            <filter class="solr.PatternReplaceFilterFactory" pattern="([nN][oO])" replacement="_NO_"/>
             <filter class="solr.StopFilterFactory"
                     ignoreCase="true"
                     words="stopwords.txt"
             />
+            <!-- in order to properly tokenize codes like NO-080b -->
+            <filter class="solr.WordDelimiterFilterFactory" splitOnNumerics="1" generateWordParts="1" generateNumberParts="1" catenateWords="0" catenateNumbers="0" catenateAll="0" splitOnCaseChange="0"/>
+            <filter class="solr.PatternReplaceFilterFactory" pattern="(^0+)" replacement=""/>
             <filter class="solr.LowerCaseFilterFactory"/>
             <filter class="solr.EnglishPossessiveFilterFactory"/>
             <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.txt"/>
@@ -517,10 +521,14 @@
             <filter class="solr.SynonymGraphFilterFactory" synonyms="synonyms.txt"
              format="solr" ignoreCase="false" expand="true"
              tokenizerFactory="solr.WhitespaceTokenizerFactory"/>
+            <filter class="solr.PatternReplaceFilterFactory" pattern="([nN][oO])" replacement="_NO_"/>
             <filter class="solr.StopFilterFactory"
                     ignoreCase="true"
                     words="stopwords.txt"
             />
+            <!-- in order to properly tokenize codes like NO-080b -->
+            <filter class="solr.WordDelimiterFilterFactory" splitOnNumerics="1" generateWordParts="1" generateNumberParts="1" catenateWords="0" catenateNumbers="0" catenateAll="0" splitOnCaseChange="0"/>
+            <filter class="solr.PatternReplaceFilterFactory" pattern="(^0+)" replacement=""/>
             <filter class="solr.LowerCaseFilterFactory"/>
             <filter class="solr.EnglishPossessiveFilterFactory"/>
             <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.txt"/>
