@@ -208,7 +208,6 @@ def count_results(query):
     reason="This test is taking too much time and making the test suite fail"
 )
 def test_field_search(count_results):
-
     count_results('workers')
     count_results('workers author:fritz')
     count_results('workers date:january')

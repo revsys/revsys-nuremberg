@@ -5,7 +5,6 @@ from nuremberg.documents.models import Document, DocumentText
 
 
 class JsonField(indexes.CharField):
-
     # ToDo: redefine prepare as well?
     # https://django-haystack.readthedocs.io/en/latest/searchfield_api.html#prepare
 

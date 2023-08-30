@@ -172,7 +172,6 @@ class Document(models.Model):
 
 
 class DocumentImage(models.Model):
-
     THUMB = 't'
     HALF = 'h'
     SCREEN = 's'
@@ -1052,7 +1051,6 @@ class DocumentCitation(models.Model):
 
 
 class DocumentExternalMetadataSource(models.Model):
-
     id = models.AutoField(db_column='SourceID', primary_key=True)
     name = models.CharField(db_column='SourceLabel', max_length=300)
     description = models.TextField(db_column='Source')
@@ -1067,7 +1065,6 @@ class DocumentExternalMetadataSource(models.Model):
 
 
 class DocumentExternalMetadata(models.Model):
-
     id = models.AutoField(db_column='RecordID', primary_key=True)
     source = models.ForeignKey(
         DocumentExternalMetadataSource,

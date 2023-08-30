@@ -342,7 +342,6 @@ CHOICE_EMPTY = ('', _('Choose one...'))
 
 
 class YearRangeWidget(forms.MultiWidget):
-
     template_name = 'search/year_range_widget.html'
 
     def __init__(self, attrs=None):
@@ -368,7 +367,6 @@ class YearRangeWidget(forms.MultiWidget):
 
 
 class YearRangeField(forms.MultiValueField):
-
     ERROR_MSG = _('Enter a valid year range for document creation date.')
 
     def __init__(self, **kwargs):
@@ -401,16 +399,19 @@ class YearRangeField(forms.MultiValueField):
                 raise ValidationError("Years must be integers")
 
             if int(value[1]) < int(value[0]):
-                raise ValidationError("Year range must be in order, please reverse these.")
+                raise ValidationError(
+                    "Year range must be in order, please reverse these."
+                )
 
         if (value[0] and not value[1]) or (value[1] and not value[0]):
-            raise ValidationError("You must enter a to and a from year.  If you wish to search within a single year, please just duplicate the value.")
-
+            raise ValidationError(
+                "You must enter a to and a from year.  If you wish to search within a single year, please just duplicate the value."
+            )
 
         return value
 
-class AdvancedDocumentSearchForm(forms.Form):
 
+class AdvancedDocumentSearchForm(forms.Form):
     AUTHOR_CHOICES = lazy(
         lambda: [CHOICE_EMPTY]
         + sorted(
@@ -515,9 +516,15 @@ class AdvancedDocumentSearchForm(forms.Form):
         list,
     )
     m = forms.CharField(required=False)
-    keywords = forms.CharField(required=False, widget=forms.TextInput(attrs={"class": "large"}))
-    title = forms.CharField(required=False, widget=forms.TextInput(attrs={"class": "large"}))
-    notes = forms.CharField(required=False, widget=forms.TextInput(attrs={"class": "large"}))
+    keywords = forms.CharField(
+        required=False, widget=forms.TextInput(attrs={"class": "large"})
+    )
+    title = forms.CharField(
+        required=False, widget=forms.TextInput(attrs={"class": "large"})
+    )
+    notes = forms.CharField(
+        required=False, widget=forms.TextInput(attrs={"class": "large"})
+    )
     author = forms.MultipleChoiceField(required=False, choices=AUTHOR_CHOICES)
     defendant = forms.ChoiceField(required=False, choices=DEFENDANT_CHOICES)
     issue = forms.ChoiceField(
@@ -654,7 +661,9 @@ class AdvancedDocumentSearchForm(forms.Form):
         year_range = data.get('year_range')
         if year_range:
             try:
-                years = [str(i) for i in range(year_range[0], year_range[-1] + 1)]
+                years = [
+                    str(i) for i in range(year_range[0], year_range[-1] + 1)
+                ]
                 terms.append(f'date:{"|".join(years)}')
             except TypeError:
                 print("Year Range:")

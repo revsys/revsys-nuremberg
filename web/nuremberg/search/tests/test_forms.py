@@ -139,7 +139,8 @@ def test_advanced_search_form_as_search_qs_year_range():
     form = AdvancedDocumentSearchForm(data)
     error = (
         'You must enter a to and a from year.  If you wish to search within a '
-        'single year, please just duplicate the value.')
+        'single year, please just duplicate the value.'
+    )
     assert not form.is_valid()
     assert form.errors == {'year_range': [error]}
 
