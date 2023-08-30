@@ -9,18 +9,20 @@
       {% for case in result.case_tags %}
         <span class="trial-flag trial-{{case|slugify}}">{{case}}</span>
       {% endfor %}
-      {% if result.full_text %}
-        <span class="full-text">Full Text</span>
+      {% if result.mode == "text" %}
+        <span class="mode-flag">Text</span>
+      {% elif result.mode == "image" %}
+        <span class="mode-flag">Image</span>
       {% endif %}
     </p>
     {% if result.material_type == 'Document' %}
       <a class="unstyled" href="{% url 'documents:show' document_id=result.pk slug=result.slug %}?mode={{ result.mode }}{% if query %}&q={% encode_string query %}{% endif %}">
-        <div class="h3">{% if result.title %}{% highlight result.title with query %}{% else %}{{ result.title }}{% endif %}</div>
+        <div class="h3">{% if result.title %}{% highlight result.title with query %}{% else %}Untitled{% endif %}</div>
         {% if result.literal_title %}
           <p>{{result.literal_title|truncatewords:35|truncatechars:300}}</p>
         {% endif %}
         <p>{{group.hits}} result{{ group.hits|pluralize }} in this document</p>
-        {% if result.full_text and has_keyword_search %}
+        {% if result.mode == "text" and has_keyword_search %}
         <p class="snippets">
             {% for snippet in result.highlighted.highlight %}
               <span class="ellipsis">[ ... ]</span>
@@ -32,7 +34,9 @@
           <span class="ellipsis">[ ... ]</span>
         </p>
         {% endif %}
-        <p><strong>HLSL Item No.:</strong> {{result.pk}}</p>
+        {% if result.hlsl %}
+        <p><strong>HLSL Item No.:</strong> {{ result.hlsl }}</p>
+        {% endif %}
       </a>
     {% elif result.material_type == 'Photograph' %}
       <a class="unstyled" href="{% url 'photographs:show' photograph_id=result.pk slug=result.slug %}{% if query %}?q={% encode_string query %}{% endif %}">

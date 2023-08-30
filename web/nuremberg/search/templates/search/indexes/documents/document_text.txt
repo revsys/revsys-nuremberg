@@ -1,8 +1,3 @@
-{{ object.text|safe }}
-
-{# this is a sentinel value used to hide these terms from highlighting snippets #}
-<end of text>
-
 {{ object.title }}
 
 {{ object.literal_title|default:"" }}
