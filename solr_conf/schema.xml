@@ -149,6 +149,8 @@
 
     <field name="trial_activities_exact" type="string" indexed="true" stored="true" multiValued="true" />
 
+    <field name="related_document_ids" type="text_en" indexed="true" stored="true" multiValued="true" />
+
     <field name="transcript_id" type="text_en" indexed="true" stored="true" multiValued="false" />
 
     <field name="seq_number" type="long" indexed="true" stored="true" multiValued="false" />

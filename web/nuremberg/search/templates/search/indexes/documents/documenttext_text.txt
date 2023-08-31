@@ -5,6 +5,8 @@
 
 {{ object.title }}
 
+{{ object.document.title }}
+
 {{ object.material_type }}
 
 {{ object.source_name }}

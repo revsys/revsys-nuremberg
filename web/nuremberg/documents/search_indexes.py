@@ -17,7 +17,7 @@ class JsonField(indexes.CharField):
 
 class DocumentIndex(indexes.SearchIndex, indexes.Indexable):
     text = indexes.CharField(document=True, use_template=True)
-    highlight = indexes.CharField(model_attr='text')
+    highlight = indexes.CharField(model_attr='title', null=True)
     material_type = indexes.CharField(default='Document', faceted=True)
     grouping_key = indexes.FacetCharField(
         facet_for='grouping_key'
@@ -53,6 +53,7 @@ class DocumentIndex(indexes.SearchIndex, indexes.Indexable):
     book_codes = indexes.MultiValueField(null=True)
 
     trial_activities = indexes.MultiValueField(faceted=True, null=True)
+    related_document_ids = indexes.MultiValueField(null=True)
 
     def get_model(self):
         return Document
@@ -140,6 +141,9 @@ class DocumentIndex(indexes.SearchIndex, indexes.Indexable):
     def prepare_hlsl(self, document):
         return document.pk
 
+    def prepare_related_document_ids(self, document):
+        return [t.id for t in document.full_texts()]
+
 
 class DocumentTextIndex(indexes.SearchIndex, indexes.Indexable):
     text = indexes.CharField(document=True, use_template=True)
@@ -150,12 +154,17 @@ class DocumentTextIndex(indexes.SearchIndex, indexes.Indexable):
     )  # XXX: needed???
 
     slug = indexes.CharField(model_attr='slug', indexed=False)
-    title = indexes.CharField(model_attr='title', default='')
+    # The title of the most relevant DocumentImage linked with this text
+    title = indexes.CharField(model_attr='document__title', default='')
+    # The actual title of the document full text, which is usually less nice
+    # (e.g. TRANSLATION OF DOCUMENT 2115-PS)
+    literal_title = indexes.CharField(model_attr='title', default='')
     source = indexes.CharField(model_attr='source_citation')
 
     total_pages = indexes.IntegerField(model_attr='total_pages')
 
     evidence_codes = indexes.MultiValueField()  # Match what DocumentIndex has
+    related_document_ids = indexes.MultiValueField(null=True)
 
     def get_model(self):
         return DocumentText
@@ -164,10 +173,7 @@ class DocumentTextIndex(indexes.SearchIndex, indexes.Indexable):
         return 'load_timestamp'
 
     def index_queryset(self, using=None):
-        # Filter those DocumentText that have no matching document. The ones
-        # with at least one matching document will be indexed along with the
-        # class above DocumentIndex
-        return DocumentText.objects.no_matching_document()
+        return DocumentText.objects.all()
 
     def prepare_grouping_key(self, obj):
         # This is a hack to group transcripts but not other objects.
@@ -175,3 +181,6 @@ class DocumentTextIndex(indexes.SearchIndex, indexes.Indexable):
 
     def prepare_evidence_codes(self, obj):
         return [obj.evidence_code]
+
+    def prepare_related_document_ids(self, obj):
+        return [i.id for i in obj.documents()]
