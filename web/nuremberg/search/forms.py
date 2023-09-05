@@ -154,7 +154,6 @@ class FieldedSearchForm(SearchForm):
         'issue': 'trial_activities',
         'issues': 'trial_activities',
     }
-    material_types = ('documents', 'transcripts', 'photographs')
 
     def __init__(self, *args, **kwargs):
         self.sort_results = kwargs.pop('sort_results', 'relevance')
@@ -165,8 +164,7 @@ class FieldedSearchForm(SearchForm):
         if 'm' in self.data:
             included = self.data.getlist('m')
             self.data = self.data.copy()
-            if len(included) < 3:
-                self.data['q'] += ' type:{}'.format('|'.join(included))
+            self.data['q'] += f' type:"{"|".join(included)}"'
 
     def search(self):
         sort = self.sort_fields.get(self.sort_results, 'score')

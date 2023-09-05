@@ -37,15 +37,19 @@
           <label style="margin-right: 50px;">Material Types:</label>
         <label style="margin-right: 10px">
           <input type="checkbox" name="m" value="document" checked />
-          Documents
+          Document Full Text
+        </label>
+        <label style="margin-right: 10px">
+          <input type="checkbox" name="m" value="documenttext" checked />
+          Document Descriptive Information
         </label>
         <label style="margin-right: 10px">
           <input type="checkbox" name="m" value="transcript" checked />
-          Transcripts
+          Trial Transcript Full Text
         </label>
         <label style="margin-right: 10px">
           <input type="checkbox" name="m" value="photograph" checked />
-          Photographs
+          Photograph Descriptive Information
         </label>
         </p>
         {% for field in form %}
