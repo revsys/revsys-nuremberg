@@ -15,7 +15,8 @@
         <span class="mode-flag">Image</span>
       {% endif %}
     </p>
-    {% if result.material_type == 'Document' %}
+    <p>
+    {% if result.model_name == 'Document' or result.model_name == 'DocumentText' %}
       <a class="unstyled" href="{% url 'documents:show' document_id=result.pk slug=result.slug %}?mode={{ result.mode }}{% if query %}&q={% encode_string query %}{% endif %}">
         <div class="h3">{% if result.title %}{% highlight result.title with query %}{% else %}Untitled{% endif %}</div>
         {% if result.literal_title %}
@@ -82,6 +83,7 @@
         </p>
       </a>
     {% endif %}
+    </p>
 
     {% if result.material_type == 'Photograph' %}
       <p>

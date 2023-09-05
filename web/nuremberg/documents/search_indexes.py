@@ -148,7 +148,9 @@ class DocumentIndex(indexes.SearchIndex, indexes.Indexable):
 class DocumentTextIndex(indexes.SearchIndex, indexes.Indexable):
     text = indexes.CharField(document=True, use_template=True)
     highlight = indexes.CharField(model_attr='text')
-    material_type = indexes.CharField(default='Document', faceted=True)
+    material_type = indexes.CharField(
+        default='Document Full Text', faceted=True
+    )
     grouping_key = indexes.FacetCharField(
         facet_for='grouping_key'
     )  # XXX: needed???
