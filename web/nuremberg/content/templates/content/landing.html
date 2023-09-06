@@ -128,8 +128,8 @@
     </div>
     <div class="column trial-links">
       <a class="button tag-button" href="{% url 'content:'|add:case.code_name %}">Overview</a>
-      <a class="button tag-button" href="/search/?q=trial:{{ case.code_name }}&m=documents">Documents</a>
-      <a class="button tag-button" href="/transcripts/{{ case.transcript.id }}?seq=1&q=+type:transcripts">Transcripts</a>
+      <a class="button tag-button" href="/search/?q=trial:{{ case.code_name }}&m=document">Documents</a>
+      <a class="button tag-button" href="/transcripts/{{ case.transcript.id }}?seq=1">Transcripts</a>
       <a class="button tag-button" href="{% url 'content:'|add:case.code_name %}#persons">Defendants</a>
     </div>
     <div class="column trial-summary">
