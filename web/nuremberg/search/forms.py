@@ -163,8 +163,11 @@ class FieldedSearchForm(SearchForm):
         super().__init__(*args, **kwargs)
         if 'm' in self.data:
             included = self.data.getlist('m')
-            self.data = self.data.copy()
-            self.data['q'] += f' type:"{"|".join(included)}"'
+            if len(included) < 4:
+                # Override the query only if not *all* material types were
+                # requested
+                self.data = self.data.copy()
+                self.data['q'] += f' type:"{"|".join(included)}"'
 
     def search(self):
         sort = self.sort_fields.get(self.sort_results, 'score')
