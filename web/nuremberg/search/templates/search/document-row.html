@@ -152,10 +152,14 @@
         <img src="{{result.thumb_url}}" alt="Thumbnail of a photograph: {{result.literal_title}}" />
       </a>
     {% else %}
-      {% for author_prop in result.authors_properties %}
-        {% get_item authors_metadata author_prop.author.id fallback=author_prop as author_prop %}
-        {% include 'documents/_author_properties_hover.html' with author_prop=author_prop include_title=False %}
-        {% if not forloop.last %}<br />{% endif %}
+      {% for author_kind, author_list in result.authors_properties.items %}
+        {% for author_prop in author_list %}
+          {% if author_kind == "person" %}
+            {% get_item personal_authors_metadata author_prop.author.id fallback=author_prop as author_prop %}
+          {% endif %}
+          {% include 'documents/_author_properties_hover.html' with author_prop=author_prop include_title=False %}
+          {% if not forloop.last %}<br />{% endif %}
+        {% endfor %}
       {% endfor %}
     {% endif %}
   </td>
