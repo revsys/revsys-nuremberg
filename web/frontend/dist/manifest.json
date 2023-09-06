@@ -1,6 +1,6 @@
 {
   "src/vanilla/authorHover.js": {
-    "file": "author-9826c0a1.js",
+    "file": "author-6185b00e.js",
     "isEntry": true,
     "src": "src/vanilla/authorHover.js"
   },
@@ -15,7 +15,7 @@
     "src": "src/vanilla/search.js"
   },
   "src/vanilla/transcript.js": {
-    "file": "vanillatranscripts-c1c31ef3.js",
+    "file": "vanillatranscripts-decdc947.js",
     "isEntry": true,
     "src": "src/vanilla/transcript.js"
   }
