@@ -13,7 +13,7 @@ services:
       - SOLR_JAVA_MEM=-Xms1536m -Xmx1536m
 
   solr-loader:
-    image: registry.revsys.com/nuremberg:v0.5.100-r3
+    image: registry.revsys.com/nuremberg:v0.5.101
 
     build:
       context: ./web
