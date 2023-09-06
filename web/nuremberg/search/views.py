@@ -134,15 +134,15 @@ class Search(FacetedSearchView):
         else:
             context['base_template'] = None
 
-        # Lastly, fetch author metadata (once per author), and flag text-only
-        # results so we can customize details links and improve title
+        # Lastly, fetch personal author metadata (once per author)
         author_ids = set()
         for i in context['object_list']:
             for result in i.documents or []:
                 author_ids.update(
                     ap['author']['id']
-                    for ap in (result.authors_properties or [])
+                    for ap in (result.authors_properties or {}).get('person')
                 )
+                # Set the viewing mode accordingly (text/image)
                 if result.model_name.lower() in (
                     'documenttext',
                     'transcriptpage',
@@ -151,7 +151,7 @@ class Search(FacetedSearchView):
                 elif result.model_name.lower() in ('document', 'photograph'):
                     result.mode = 'image'
 
-        context['authors_metadata'] = {
+        context['personal_authors_metadata'] = {
             metadata['author']['id']: metadata
             for metadata in DocumentPersonalAuthor.objects.filter(
                 id__in=author_ids

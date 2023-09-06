@@ -91,9 +91,10 @@ class DocumentIndex(indexes.SearchIndex, indexes.Indexable):
         ] + [author.full_name() for author in document.personal_authors.all()]
 
     def prepare_authors_properties(self, document):
-        result = [
-            author.metadata() for author in document.group_authors.all()
-        ] + document.personal_authors.all().metadata(minimal=True)
+        result = {
+            'group': [a.metadata() for a in document.group_authors.all()],
+            'person': document.personal_authors.all().metadata(minimal=True),
+        }
         # json modifiers for the most compact json representation
         return json.dumps(result, indent=None, separators=(',', ':'))
 
