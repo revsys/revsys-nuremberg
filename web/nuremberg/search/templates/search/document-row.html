@@ -16,7 +16,7 @@
       {% endif %}
     </p>
     <p>
-    {% if result.model_name == 'Document' or result.model_name == 'DocumentText' %}
+    {% if result.model_name == 'document' or result.model_name == 'documenttext' %}
       <a class="unstyled" href="{% url 'documents:show' document_id=result.pk slug=result.slug %}?mode={{ result.mode }}{% if query %}&q={% encode_string query %}{% endif %}">
         <div class="h3">{% if result.title %}{% highlight result.title with query %}{% else %}Untitled{% endif %}</div>
         {% if result.literal_title %}
@@ -39,7 +39,7 @@
         <p><strong>HLSL Item No.:</strong> {{ result.hlsl }}</p>
         {% endif %}
       </a>
-    {% elif result.material_type == 'Photograph' %}
+    {% elif result.model_name == 'photograph' %}
       <a class="unstyled" href="{% url 'photographs:show' photograph_id=result.pk slug=result.slug %}{% if query %}?q={% encode_string query %}{% endif %}">
         <div class="h3">{{result.title}}</div>
         <p>
@@ -56,7 +56,7 @@
           {% endif %}
         </p>
       </a>
-    {% elif result.material_type == 'Transcript' %}
+    {% elif result.model_name == 'transcriptpage' %}
       <a class="unstyled" href="{% url 'transcripts:search' transcript_id=result.transcript_id slug=result.slug %}{% if query %}?q={% encode_string query %}{% endif %}">
         <div class="h3">{{result.title}}</div>
         <p>{{group.hits}} result{{ group.hits|pluralize }} in this transcript</p>
