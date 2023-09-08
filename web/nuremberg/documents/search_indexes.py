@@ -17,7 +17,7 @@ class JsonField(indexes.CharField):
 
 class DocumentIndex(indexes.SearchIndex, indexes.Indexable):
     text = indexes.CharField(document=True, use_template=True)
-    highlight = indexes.CharField(model_attr='title', null=True)
+    highlight = indexes.CharField(null=True)
     material_type = indexes.CharField(default='Document', faceted=True)
     grouping_key = indexes.FacetCharField(
         facet_for='grouping_key'
