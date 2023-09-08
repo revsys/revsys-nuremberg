@@ -177,7 +177,7 @@ class FieldedSearchForm(SearchForm):
             sqs = sqs.filter(
                 material_type='Transcript', transcript_id=self.transcript_id
             ).order_by(sort)
-            # use snippets to count "occurrences" of a match in transcript
+            # use snippets to count "occurrences" of a match in per-transcript
             # search results
             highlight_snippets = 10
         else:
@@ -195,7 +195,8 @@ class FieldedSearchForm(SearchForm):
                     'sort': sort,
                 },
             )
-            highlight_snippets = 3
+            # use snippets to count "occurrences" of a match in main search results
+            highlight_snippets = 5
 
         if not self.is_valid() or 'q' not in self.cleaned_data:
             return sqs

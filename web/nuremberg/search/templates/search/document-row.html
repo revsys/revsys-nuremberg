@@ -22,7 +22,11 @@
         {% if result.literal_title %}
           <p>{{result.literal_title|truncatewords:35|truncatechars:300}}</p>
         {% endif %}
-        <p>{{group.hits}} result{{ group.hits|pluralize }} in this document</p>
+        {% with snippets_len=result.highlighted.highlight|length %}
+        {% if snippets_len > 0 %}
+        <p>{% if snippets_len >= 5 %}At least {% endif %}{{ snippets_len}} result{{ snippets|pluralize }} in this document</p>
+        {% endif %}
+        {% endwith %}
         {% if result.mode == "text" and has_keyword_search %}
         <p class="snippets">
             {% for snippet in result.highlighted.highlight %}
