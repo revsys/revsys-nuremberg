@@ -12,7 +12,7 @@ urlpatterns = [
     path(
         'nuremberg/php/docs_swi.php',
         LandingView.as_view(),
-        name="landing",
+        name="landing-two",
     ),
     path(
         'trials',
