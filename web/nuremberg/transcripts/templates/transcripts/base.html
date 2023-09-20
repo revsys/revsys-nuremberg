@@ -8,8 +8,9 @@
   {% block document_tools %}
     {% if query or show_search_bar %}
       <div class="document-tools">
-        <form class="document-search-inline" method='GET' action={% url 'transcripts:search' transcript_id=transcript.id slug=transcript.slug %}>
+        <form class="document-search-inline" style="width: 100%" method='GET' action={% url 'transcripts:search' transcript_id=transcript.id slug=transcript.slug %}>
           {% include 'search/search-bar.html' %}
+          <label><strong>Seach in Transcript</strong></label>
           {% if page_obj %}
             <label><strong>{{ paginator.count }}</strong> page{{ paginator.count|pluralize }} with results</label>
             <a href="{% sort_results 'page' %}" {% if form.sort_results == 'page' %}class="active"{% endif %}>Order by Page</a>
