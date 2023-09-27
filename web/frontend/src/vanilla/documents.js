@@ -611,16 +611,12 @@ const main = () => {
   let magToolButton = document.querySelector("div.tool-buttons button.magnify")
   let scrollToolButton = document.querySelector("div.tool-buttons button.scroll")
   let expandToolButton = document.querySelector("div.tool-buttons button.expand")
-  let zoomInButton = document.querySelector("div.zoom-buttons button.zoom-in")
-  let zoomOutButton = document.querySelector("div.zoom-buttons button.zoom-out")
 
   let viewport = $("div.viewport-content")
 
   magToolButton.addEventListener('click', () => { setTool(viewport, 'magnify') })
   scrollToolButton.addEventListener('click', () => { setTool(viewport, 'scroll') })
   expandToolButton.addEventListener('click', () => { toggleExpand(viewport) })
-  zoomInButton.addEventListener('click', () => { zoomIn() })
-  zoomOutButton.addEventListener('click', () => { zoomOut() })
 
   // Handle images
   let page_images = viewport.find('.document-image')
