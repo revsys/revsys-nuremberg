@@ -1,6 +1,12 @@
 {
+  "_popper-c02d395e.js": {
+    "file": "popper-c02d395e.js"
+  },
   "src/vanilla/authorHover.js": {
-    "file": "author-6185b00e.js",
+    "file": "author-b51903f6.js",
+    "imports": [
+      "_popper-c02d395e.js"
+    ],
     "isEntry": true,
     "src": "src/vanilla/authorHover.js"
   },
@@ -13,6 +19,14 @@
     "file": "vanillasearch-51b53fa7.js",
     "isEntry": true,
     "src": "src/vanilla/search.js"
+  },
+  "src/vanilla/toolHover.js": {
+    "file": "tool-0eb3cc1b.js",
+    "imports": [
+      "_popper-c02d395e.js"
+    ],
+    "isEntry": true,
+    "src": "src/vanilla/toolHover.js"
   },
   "src/vanilla/transcript.js": {
     "file": "vanillatranscripts-decdc947.js",
