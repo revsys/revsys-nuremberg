@@ -20,6 +20,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         author: path.resolve(__dirname, './src/vanilla/authorHover.js'),
+        tool: path.resolve(__dirname, './src/vanilla/toolHover.js'),
         vanillasearch: path.resolve(__dirname, './src/vanilla/search.js'),
         vanillatranscripts: path.resolve(__dirname, './src/vanilla/transcript.js'),
         vanilladocuments: path.resolve(__dirname, './src/vanilla/documents.js'),

@@ -9,9 +9,22 @@
 
 {% block extra_head_js %}
   {% vite_asset 'src/vanilla/documents.js' %}
+  {% vite_asset 'src/vanilla/toolHover.js' %}
 {% endblock extra_head_js %}
 
 {% block extra_head_css %}
+<style>
+  .tooltip {
+    display: none;
+    background: #333;
+    color: white;
+    font-weight: bold;
+    padding: 10px;
+    font-size: 14px;
+    border-radius: 4px;
+    text-align: center;
+  }
+</style>
 <style media="print" type="text/css">
   @media print {
     section#search {
@@ -346,9 +359,12 @@
       {% block tools_overlay %}
         <div class="document-tools-overlay">
           <div class="tool-buttons">
-            <button class="magnify">magnify</button>
-            <button class="scroll">scroll</button>
-            <button class="expand">expand</button>
+            <button class="magnify tool-button" data-name="magnify">magnify</button>
+            <div class="tooltip magnify-tooltip"><p>Use the mouse wheel to zoom, click to drag/move</p></div>
+            <button class="scroll tool-button" data-name="scroll">scroll</button>
+            <div class="tooltip scroll-tooltip"><p>Use the mouse wheel to scroll, click to zoom</p></div>
+            <button class="expand tool-button" data-name="expand">expand</button>
+            <div class="tooltip expand-tooltip"><p>Click to expand image full screen</p></div>
           </div>
         </div>
       {% endblock %}
