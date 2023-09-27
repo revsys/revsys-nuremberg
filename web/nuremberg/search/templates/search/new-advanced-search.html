@@ -1199,7 +1199,9 @@ ul.select2-results__options li {
   </style>
   <script>
     $(document).ready(function() {
-      $('#id_author').select2();
+      $('#id_author').select2({
+        placeholder: 'Choose one or more...',
+      });
     });
   </script>
 {% endblock extra_head_js %}

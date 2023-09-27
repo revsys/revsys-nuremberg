@@ -190,6 +190,26 @@ class GroupedSearchQuerySet(SearchQuerySet):
 
 
 class GroupedSolrSearchBackend(SolrSearchBackend):
+    RESERVED_CHARACTERS = (
+        "\\",
+        "+",
+        "-",
+        "&&",
+        "||",
+        "!",
+        "(",
+        ")",
+        "{",
+        "}",
+        "[",
+        "]",
+        "^",
+        '"',
+        "~",
+        ":",
+        "/",
+    )
+
     def build_search_kwargs(self, *args, **kwargs):
         group_kwargs = [
             (i, kwargs[i]) for i in kwargs.keys() if i.startswith("group")
