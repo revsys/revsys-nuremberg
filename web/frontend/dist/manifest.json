@@ -11,7 +11,7 @@
     "src": "src/vanilla/authorHover.js"
   },
   "src/vanilla/documents.js": {
-    "file": "vanilladocuments-75bb9597.js",
+    "file": "vanilladocuments-d6bb5f9d.js",
     "isEntry": true,
     "src": "src/vanilla/documents.js"
   },
@@ -21,7 +21,7 @@
     "src": "src/vanilla/search.js"
   },
   "src/vanilla/toolHover.js": {
-    "file": "tool-0eb3cc1b.js",
+    "file": "tool-6d41292e.js",
     "imports": [
       "_popper-c02d395e.js"
     ],

@@ -4,13 +4,10 @@ import { createPopper } from '@popperjs/core'
 const showEvents = ['mouseenter', 'focus']
 const hideEvents = ['mouseleave', 'blur']
 
-const handleHover = (buttons) => {
+const handleToolHover = (buttons) => {
     Array.from(buttons).forEach(button => {
-        console.log(`Name: ${button.dataset.name}`)
         const queryString = `div.${button.dataset.name}-tooltip`
-        console.log(queryString)
         const content = document.querySelector(queryString);
-        console.log(button, content)
         const instance = createPopper(button, content, {
             placement: 'bottom',
             modifiers: [
@@ -39,13 +36,13 @@ const handleHover = (buttons) => {
 
 }
 
-const main = () => {
+const toolMain = () => {
     const buttons = document.getElementsByClassName("tool-button")
     console.log("Loading!")
     // Handle initial hover on page load
-    handleHover(buttons)
+    handleToolHover(buttons)
 
 }
 
 
-document.addEventListener('DOMContentLoaded', main)
+document.addEventListener('DOMContentLoaded', toolMain)
