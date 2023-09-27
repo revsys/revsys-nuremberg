@@ -75,16 +75,6 @@
   {% block document_tools %}
     {% if mode != 'text' %}
     <div class="document-tools">
-      {% block document_controls %}
-        <div class="zoom-buttons">
-          <button class="zoom-in">
-            Zoom In
-          </button>
-          <button class="zoom-out">
-            Zoom Out
-          </button>
-        </div>
-      {% endblock %}
       <div class="page-buttons">
         {% block page_selection %}
           <select title="Jump to document page" id="page-selector">
