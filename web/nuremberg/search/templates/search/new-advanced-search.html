@@ -1200,8 +1200,14 @@ ul.select2-results__options li {
   </style>
   <script>
     $(document).ready(function() {
+      // Turn on select2
       $('#id_author').select2({
         placeholder: 'Choose one or more...',
+      });
+
+      // clear the selection when button pressed
+      $('#clear-button').click(function() {
+        $('#id_author').val(null).trigger('change');
       });
     });
   </script>
@@ -1282,7 +1288,7 @@ ul.select2-results__options li {
 
           <div class="advanced-search-button-group">
             <button class="button search-button" type="submit">Advanced Search</button>
-            <button class="button search-button" type="reset">Clear</button>
+            <button class="button search-button" type="reset" id="clear-button">Clear</button>
           </div>
 
       </form>
