@@ -67,7 +67,6 @@
         <p class="snippets">
           {% if group.hits == 1 %}
             {% for snippet in result.highlighted.highlight %}
-              <span class="ellipsis">[ ... p. {{ result.page_label|default:"unlabeled" }} ]</span>
               {{ snippet|trim_snippet }}
             {% empty %}
               <span class="ellipsis">[ p. {{ result.page_label|default:"unlabeled" }} ]</span>
