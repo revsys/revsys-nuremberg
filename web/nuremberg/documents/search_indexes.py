@@ -18,7 +18,7 @@ class JsonField(indexes.CharField):
 class DocumentIndex(indexes.SearchIndex, indexes.Indexable):
     text = indexes.CharField(document=True, use_template=True)
     highlight = indexes.CharField(null=True)
-    material_type = indexes.CharField(default='Document', faceted=True)
+    material_type = indexes.CharField(default='Document Image', faceted=True)
     grouping_key = indexes.FacetCharField(
         facet_for='grouping_key'
     )  # not really a facet, just an exact key
