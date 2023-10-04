@@ -15,8 +15,8 @@
         {% if result.highlighted %}<div class="occurrence-count">{{ result.highlighted.highlight|length }} occurrence{{ result.highlighted.highlight|length|pluralize }}</div>{% endif %}
           <p>
             {% if result.highlighted %}
-              {% for snippet in result.highlighted.highlight|slice:":2" %}
               <span class="ellipsis">[ ... ]</span>
+              {% for snippet in result.highlighted.highlight|slice:":2" %}
                 {{ snippet|trim_snippet }}
               {% endfor %}
             {% else %}
