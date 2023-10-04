@@ -161,13 +161,12 @@ class FieldedSearchForm(SearchForm):
         self.has_keyword_search = False  # will be calculated when searching
 
         super().__init__(*args, **kwargs)
+
+        # Always specifically include the material types we're searching for
         if 'm' in self.data:
             included = self.data.getlist('m')
-            if len(included) < 4:
-                # Override the query only if not *all* material types were
-                # requested
-                self.data = self.data.copy()
-                self.data['q'] += f' type:"{"|".join(included)}"'
+            self.data = self.data.copy()
+            self.data['q'] += f' type:"{"|".join(included)}"'
 
     def search(self):
         sort = self.sort_fields.get(self.sort_results, 'score')
@@ -175,7 +174,7 @@ class FieldedSearchForm(SearchForm):
 
         if self.transcript_id:
             sqs = sqs.filter(
-                material_type='Transcript', transcript_id=self.transcript_id
+                material_type='Transcript Full Text', transcript_id=self.transcript_id
             ).order_by(sort)
             # use snippets to count "occurrences" of a match in per-transcript
             # search results
