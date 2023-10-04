@@ -1,6 +1,5 @@
 # encoding: utf-8
 """Experimental Solr Grouping / Field Collapsing backend for Haystack 2.0"""
-# NOTE: You must be running the latest Pysolr master - no PyPI release yet!
 # See https://gist.github.com/3750774 for the current version of this code
 # See http://wiki.apache.org/solr/FieldCollapsing for the Solr feature documentation
 from __future__ import absolute_import
@@ -41,6 +40,9 @@ class GroupedSearchQuery(SolrSearchQuery):
 
     def post_process_facets(self, results):
         # FIXME: remove this hack once https://github.com/toastdriven/django-haystack/issues/750 lands
+        # Update 2023: This was updated in this PR that was not merged in 2014 so I doubt it ever will be
+        # https://github.com/django-haystack/django-haystack/pull/925
+
         # See matches dance in _process_results below:
         total = 0
 
