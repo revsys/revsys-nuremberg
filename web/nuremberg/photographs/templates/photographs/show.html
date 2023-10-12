@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load search_url static cache %}
+{% load search_url static cache image_url %}
 
 {% block title %} Photographs - {{document.title}} {% endblock %}
 
@@ -38,7 +38,7 @@
     </p>
     <div id="content"></div>
     <p>
-      <img src="{{document.image_url}}" alt="{{document.description}}" />
+      <img src="{{document.image_url|ssl_url }}" alt="{{document.description}}" />
     </p>
     <div class="photograph-inscription">
       <h6>Inscription</h6>
@@ -48,7 +48,7 @@
         {{ document.via_id }}
       </p>
       <p>
-        <a href="{{document.image_url}}" download="HLSL NTP Photographic Archive #{{ document.id }}">
+        <a href="{{document.image_url|ssl_url }}" download="HLSL NTP Photographic Archive #{{ document.id }}">
           Download Image
         </a>
         <p>
