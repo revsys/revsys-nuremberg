@@ -129,7 +129,7 @@ class Search(FacetedSearchView):
             for field, value, facet in context['form'].applied_filters:
                 context['facet_lookup'][facet] = True
 
-        if self.request.GET.get('partial') and not self.advanced_search:
+        if self.request.GET.get('partial'):
             context['base_template'] = 'search/partial.html'
         else:
             context['base_template'] = None
