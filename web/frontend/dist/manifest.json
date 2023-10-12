@@ -16,7 +16,7 @@
     "src": "src/vanilla/documents.js"
   },
   "src/vanilla/search.js": {
-    "file": "vanillasearch-16485559.js",
+    "file": "vanillasearch-a4ab23f2.js",
     "isEntry": true,
     "src": "src/vanilla/search.js"
   },
