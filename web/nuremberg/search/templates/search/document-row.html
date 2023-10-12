@@ -63,7 +63,7 @@
     {% elif result.model_name == 'transcriptpage' %}
       <a class="unstyled" href="{% url 'transcripts:search' transcript_id=result.transcript_id slug=result.slug %}{% if query %}?q={% encode_string query %}{% endif %}">
         <div class="h3">{{result.title}}</div>
-        <p>{{group.hits}} result{{ group.hits|pluralize }} in this transcript</p>
+        <p>{{group.hits}} page{{ group.hits|pluralize }} found</p>
         <p class="snippets">
           {% if group.hits == 1 %}
             {% for snippet in result.highlighted.highlight %}
