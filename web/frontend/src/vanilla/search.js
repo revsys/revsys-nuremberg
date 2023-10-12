@@ -75,7 +75,7 @@ const yearRangeControls = () => {
   $('.date-slider').slider({
     range: true,
     min: 1793,
-    max: 1948,
+    max: 2015,
     values: [$('input[name="year_min"]').val(), $('input[name="year_max"]').val()],
     slide: function (e, ui) {
       $('input[name="year_min"]').val(ui.values[0]);
@@ -107,20 +107,10 @@ const yearRangeControls = () => {
       console.log(`Flipping years`)
     }
 
-    let href = window.location.href
-    let range = 'f=date_year:' + fromYear.value + '-' + toYear.value;
-    if (location.search && location.search.indexOf('date_year') > -1) {
-      href = location.search.replace(/f=date_year:\d+-?\d+/, range)
-    }
-    else if (location.search.indexOf('?') > -1) {
-      href = location.search + '&' + range;
-    }
-    else {
-      href = '?' + range;
-    }
-    href = href.replace(/([\?&])page=\d+&?/, function (m, c) { return c });
-    href = "/search/new-search" + href
-    gotoResults(href);
+    const url = new URL(window.location)
+    url.searchParams.set('year_min', fromYear.value)
+    url.searchParams.set('year_max', toYear.value)
+    window.location.href = url.toString();
   })
 }
 
