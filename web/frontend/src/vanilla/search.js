@@ -110,7 +110,7 @@ const yearRangeControls = () => {
     const url = new URL(window.location)
     url.searchParams.set('year_min', fromYear.value)
     url.searchParams.set('year_max', toYear.value)
-    window.location.href = url.toString();
+    dateForm.submit()
   })
 }
 
