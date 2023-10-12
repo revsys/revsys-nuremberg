@@ -212,14 +212,14 @@ TRANSCRIPTS_BUCKET = env(
     default='harvard-law-library-nuremberg-transcripts',
 )
 
-# if not LOCAL_DEVELOPMENT:
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-# AWS_S3_ACCESS_KEY_ID = env('AWS_S3_ACCESS_KEY_ID')
-# AWS_S3_SECRET_ACCESS_KEY = env('AWS_S3_SECRET_ACCESS_KEY')
-AWS_S3_REGION_NAME = 'sfo2'
-AWS_S3_ENDPOINT_URL = f'https://{AWS_S3_REGION_NAME}.digitaloceanspaces.com'
-AWS_S3_ACCESS_KEY_ID = "DO009RAC74APK2TP96HN"
-AWS_S3_SECRET_ACCESS_KEY = "FNGAi9oZSHwBUuhcv+gFrKwgO1nmAJzZftMd2w/IQCk"
+if not LOCAL_DEVELOPMENT:
+    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+    # AWS_S3_ACCESS_KEY_ID = env('AWS_S3_ACCESS_KEY_ID')
+    # AWS_S3_SECRET_ACCESS_KEY = env('AWS_S3_SECRET_ACCESS_KEY')
+    AWS_S3_REGION_NAME = 'sfo2'
+    AWS_S3_ENDPOINT_URL = (
+        f'https://{AWS_S3_REGION_NAME}.digitaloceanspaces.com'
+    )
 
 # Look for images in AWS S3
 # DOCUMENTS_URL = f'http://s3.amazonaws.com/nuremberg-documents/'
@@ -254,10 +254,10 @@ if LOCAL_DEVELOPMENT:
 
     # MIDDLEWARE_CLASSES.append('django_cprofile_middleware.middleware.ProfilerMiddleware')
 
-    #    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
     # Absolute filesystem path to the directory that will hold user-uploaded files.
-    #    MEDIA_ROOT = os.path.abspath(os.path.join(BASE_DIR, 'media'))
-    #    MEDIA_URL = '/media/'
+    MEDIA_ROOT = os.path.abspath(os.path.join(BASE_DIR, 'media'))
+    MEDIA_URL = '/media/'
 
     LOGGING['loggers']['nuremberg'] = {
         'handlers': ['console'],
