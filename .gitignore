@@ -20,4 +20,4 @@ dumps/old
 .bin/
 !.cache/keep
 .cache/
-
+.vscode/
