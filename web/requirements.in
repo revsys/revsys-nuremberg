@@ -8,6 +8,7 @@
 Django
 
 django-environ
+django-cors-headers
 
 # DB
 dj-database-url

@@ -627,6 +627,7 @@ const main = () => {
       $el: container,
       page: container.data('page'),
       alt: container.data('alt'),
+      crossorigin: "anonymous",
       urls: {
         full: container.data('full-url'),
         screen: container.data('screen-url'),

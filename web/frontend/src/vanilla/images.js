@@ -15,7 +15,7 @@ export default class Image {
   }
 
   init() {
-    let img = $('<img></img>').appendTo(this.$el)
+    let img = $('<img crossorigin="anonymous"></img>').appendTo(this.$el)
     this.img = img[0];
 
     let aspectRatio = this.size.height / this.size.width
@@ -113,7 +113,7 @@ export default class Image {
       }
     })
       .fail((error) => {
-        console.log("preloadImage failed")
+        console.log("preloadImage failed!")
         console.dir(this)
         this.loader = null
       })

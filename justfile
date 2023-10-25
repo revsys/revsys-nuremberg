@@ -49,7 +49,7 @@ registry:
     docker compose run \
         --entrypoint= \
         --rm web \
-            bash -c "pip-compile {{ ARGS }} ./requirements.in \
+            bash -c "PIP_TOOLS_CACHE_DIR=/nuremberg/.cache/ pip-compile {{ ARGS }} ./requirements.in \
                 --resolver=backtracking \
                 --output-file ./requirements.txt"
 
