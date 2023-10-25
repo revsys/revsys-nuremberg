@@ -10,14 +10,12 @@ from django.db.models.functions import Concat
 from django.urls import reverse
 from django.utils.functional import cached_property
 from django.utils.text import slugify
-
 from nuremberg.core.storages import AuthorStorage, DocumentStorage
 from nuremberg.documents.helpers import (
     build_image_path,
     download_and_store_image,
     parse_date,
 )
-
 
 EVIDENCE_CODE_RE = re.compile(r'^([A-Z]+)-([0-9]+)([a-z]{0,1})$')
 EXHIBIT_CODE_RE = re.compile(r'^([A-Za-z\,\./\s]+) ([0-9\s]+)$')
@@ -245,13 +243,15 @@ class DocumentImage(models.Model):
                 return None
 
     def thumb_url(self):
-        return self.find_url(self.THUMB)
+        # return self.find_url(self.THUMB)
+        return self.find_url(self.SCREEN)
 
     def screen_url(self):
         return self.find_url(self.SCREEN)
 
     def full_url(self):
-        return self.find_url(self.FULL)
+        # return self.find_url(self.FULL)
+        return self.find_url(self.SCREEN)
 
     def image_tag(self):
         return (
