@@ -59,6 +59,7 @@ django==4.1.7
     #   -r ./requirements.in
     #   dj-database-url
     #   django-appconf
+    #   django-cors-headers
     #   django-haystack
     #   django-static-precompiler
     #   django-storages
@@ -67,6 +68,8 @@ django==4.1.7
 django-appconf==1.0.5
     # via django-compressor
 django-compressor==4.3.1
+    # via -r ./requirements.in
+django-cors-headers==4.3.0
     # via -r ./requirements.in
 django-coverage-plugin==3.0.0
     # via -r ./requirements.in
@@ -138,7 +141,7 @@ pickleshare==0.7.5
     # via ipython
 pillow==9.4.0
     # via -r ./requirements.in
-pip-tools==6.12.3
+pip-tools==6.13.0
     # via -r ./requirements.in
 platformdirs==3.1.1
     # via virtualenv

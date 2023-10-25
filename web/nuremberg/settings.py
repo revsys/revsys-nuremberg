@@ -49,11 +49,12 @@ INSTALLED_APPS = [
     'haystack',
     'static_precompiler',
     'django_vite',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'nuremberg.core.middlewares.crawler.BlockCrawlerMiddleware',
-    'django.middleware.cache.UpdateCacheMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -63,7 +64,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.gzip.GZipMiddleware',
-    'django.middleware.cache.FetchFromCacheMiddleware',
 ]
 
 ROOT_URLCONF = 'nuremberg.core.urls'
@@ -198,6 +198,9 @@ LOGGING = {
 # Deployed Settings
 ##############################################################################
 
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ORIGIN_WHITELIST = ['http://localhost:8000']
+
 # file storage using django-storages
 # https://django-storages.readthedocs.io/en/latest/backends/amazon-S3.html
 
@@ -211,6 +214,8 @@ TRANSCRIPTS_BUCKET = env(
     "TRANSCRIPTS_BUCKET",
     default='harvard-law-library-nuremberg-transcripts',
 )
+
+AWS_QUERYSTRING_AUTH = False
 
 if not LOCAL_DEVELOPMENT:
     DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
