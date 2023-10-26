@@ -199,7 +199,6 @@ LOGGING = {
 ##############################################################################
 
 CORS_ALLOW_ALL_ORIGINS = True
-CORS_ORIGIN_WHITELIST = ['http://localhost:8000']
 
 # file storage using django-storages
 # https://django-storages.readthedocs.io/en/latest/backends/amazon-S3.html
@@ -214,8 +213,6 @@ TRANSCRIPTS_BUCKET = env(
     "TRANSCRIPTS_BUCKET",
     default='harvard-law-library-nuremberg-transcripts',
 )
-
-AWS_QUERYSTRING_AUTH = False
 
 if not LOCAL_DEVELOPMENT:
     DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
