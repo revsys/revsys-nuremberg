@@ -199,7 +199,6 @@ LOGGING = {
 ##############################################################################
 
 CORS_ALLOW_ALL_ORIGINS = True
-CORS_ORIGIN_WHITELIST = ['http://localhost:8000']
 
 # file storage using django-storages
 # https://django-storages.readthedocs.io/en/latest/backends/amazon-S3.html
