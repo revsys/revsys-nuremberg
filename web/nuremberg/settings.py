@@ -214,6 +214,8 @@ TRANSCRIPTS_BUCKET = env(
     default='harvard-law-library-nuremberg-transcripts',
 )
 
+AWS_QUERYSTRING_AUTH = False
+
 if not LOCAL_DEVELOPMENT:
     DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
     # AWS_S3_ACCESS_KEY_ID = env('AWS_S3_ACCESS_KEY_ID')
