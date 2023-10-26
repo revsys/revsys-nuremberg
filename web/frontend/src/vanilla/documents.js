@@ -669,7 +669,7 @@ const main = () => {
     height: '1px',
   }).prependTo(layout);
 
-  viewport.on('scroll', () => { console.log("scroll!"); recalculateVisible() })
+  viewport.on('scroll', () => { recalculateVisible() })
   viewport.on('resize', () => { recalculateVisible() })
   viewport.on('mousedown', startDrag)
 
