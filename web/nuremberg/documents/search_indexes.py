@@ -162,9 +162,16 @@ class DocumentTextIndex(indexes.SearchIndex, indexes.Indexable):
     # The actual title of the document full text, which is usually less nice
     # (e.g. TRANSLATION OF DOCUMENT 2115-PS)
     literal_title = indexes.CharField(model_attr='title', default='')
+    total_pages = indexes.IntegerField(model_attr='total_pages')
+
+    date = indexes.CharField(faceted=True, null=True)
+    date_year = indexes.CharField(faceted=True, null=True)
+    date_sort = indexes.DateTimeField(model_attr='document__date', null=True)
+
     source = indexes.CharField(model_attr='source_citation')
 
-    total_pages = indexes.IntegerField(model_attr='total_pages')
+    authors = indexes.MultiValueField(faceted=True, null=True)
+    authors_properties = JsonField(null=True, indexed=False)
 
     evidence_codes = indexes.MultiValueField()  # Match what DocumentIndex has
     related_document_ids = indexes.MultiValueField(null=True)
@@ -181,6 +188,37 @@ class DocumentTextIndex(indexes.SearchIndex, indexes.Indexable):
     def prepare_grouping_key(self, obj):
         # This is a hack to group transcripts but not other objects.
         return 'DocumentText_{}'.format(obj.id)
+
+    def prepare_authors(self, obj):
+        document = obj.document
+        if document is None:
+            return []
+
+        return [
+            author.short_name() for author in document.group_authors.all()
+        ] + [author.full_name() for author in document.personal_authors.all()]
+
+    def prepare_authors_properties(self, obj):
+        document = obj.document
+        if document is None:
+            result = {}
+        else:
+            result = {
+                'group': [a.metadata() for a in document.group_authors.all()],
+                'person': document.personal_authors.all().metadata(minimal=True),
+            }
+        # json modifiers for the most compact json representation
+        return json.dumps(result, indent=None, separators=(',', ':'))
+
+    def prepare_date(self, obj):
+        date = obj.document and obj.document.date()
+        if date:
+            return date.as_str_flexible()
+
+    def prepare_date_year(self, obj):
+        date = obj.document and obj.document.date()
+        if date:
+            return date.year
 
     def prepare_evidence_codes(self, obj):
         return [obj.evidence_code]
