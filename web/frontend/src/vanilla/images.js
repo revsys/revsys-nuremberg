@@ -56,7 +56,6 @@ export default class Image {
   }
 
   preloadImage(size) {
-    console.log(`Loading with ${size}`)
     if (this.loader) {
       if (this.loader.size == size) {
         DownloadQueue.refresh(this.loader)
