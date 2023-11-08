@@ -15,7 +15,7 @@ export default class Image {
   }
 
   init() {
-    let img = $('<img crossorigin="anonymous"></img>').appendTo(this.$el)
+    let img = $('<img></img>').appendTo(this.$el)
     this.img = img[0];
 
     let aspectRatio = this.size.height / this.size.width
@@ -56,7 +56,7 @@ export default class Image {
   }
 
   preloadImage(size) {
-
+    console.log(`Loading with ${size}`)
     if (this.loader) {
       if (this.loader.size == size) {
         DownloadQueue.refresh(this.loader)

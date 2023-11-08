@@ -262,7 +262,7 @@ if LOCAL_DEVELOPMENT:
     # Absolute filesystem path to the directory that will hold user-uploaded files.
     MEDIA_ROOT = os.path.abspath(os.path.join(BASE_DIR, 'media'))
     MEDIA_URL = '/media/'
-
+    MEDIA_URL = "https://sfo2.digitaloceanspaces.com/harvard-law-library-nuremberg-documents/"
     LOGGING['loggers']['nuremberg'] = {
         'handlers': ['console'],
         'level': 'INFO',
