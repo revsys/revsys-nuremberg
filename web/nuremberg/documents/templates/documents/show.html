@@ -339,9 +339,9 @@
               <div class="no-image-block"><p class="no-image-note">Images for this document are not yet available.</p></div>
             {% else %}
               {% for image in document.images_screen %}
-                <div data-screen-url="{{image.url}}" data-thumb-url="{{image.thumb_url|default_if_none:""}}"  data-full-url="{{image.full_url|default_if_none:""}}" data-width="{{image.width}}" data-height="{{image.height}}" class="document-image {% if not image.url %}image-missing loading{% else %}loaded{% endif %}" data-page="{{forloop.counter}}" style="width: {{image.width}}px; height: {{image.height}}px;" data-alt="Document page {{forloop.counter}}">
+                <div data-screen-url="{{image.url}}" data-thumb-url="{{image.url}}"  data-full-url="{{image.url}}" data-width="{{image.width}}" data-height="{{image.height}}" class="document-image {% if not image.url %}image-missing loading{% else %}loaded{% endif %}" data-page="{{forloop.counter}}" style="width: {{image.width}}px; height: {{image.height}}px;" data-alt="Document page {{forloop.counter}}">
                   {% if image.url %}
-                    <noscript><img src="{{image.url}}" alt="Scanned document page {{forloop.counter}}" /></noscript>
+                    <img src="{{image.url}}" alt="Scanned document page {{forloop.counter}}" />
                     <div class="image-label">
                       {{image.page_number}}
                     </div>

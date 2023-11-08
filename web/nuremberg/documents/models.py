@@ -243,15 +243,15 @@ class DocumentImage(models.Model):
                 return None
 
     def thumb_url(self):
-        # return self.find_url(self.THUMB)
-        return self.find_url(self.SCREEN)
+        return self.find_url(self.THUMB)
+        # return self.find_url(self.SCREEN)
 
     def screen_url(self):
         return self.find_url(self.SCREEN)
 
     def full_url(self):
-        # return self.find_url(self.FULL)
-        return self.find_url(self.SCREEN)
+        return self.find_url(self.FULL)
+        # return self.find_url(self.SCREEN)
 
     def image_tag(self):
         return (
