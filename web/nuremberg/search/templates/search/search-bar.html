@@ -1,7 +1,7 @@
 <div class="search-bar-wrapper {% if transcript %}search-bar-transcript{% endif %}">
   <input id="search-query" type="search" name="q" title="Search query" value="{{ query|default:"" }}" />
   <div class="button-wrapper">
-    <button class="button search-button" type="submit">Search</button>
+    <button class="button search-button" type="submit">{% if transcript %}Search in Transcript{% else %}Search{% endif %}</button>
     <button class="button search-button" type="reset" id="search-bar-clear">Clear</button>
   </div>
 </div>
