@@ -161,7 +161,7 @@
             {% get_item personal_authors_metadata author_prop.author.id fallback=author_prop as author_prop %}
           {% endif %}
           {% include 'documents/_author_properties_hover.html' with author_prop=author_prop include_title=False %}
-          {% if not forloop.last %}<br />{% endif %}
+          <br />
         {% endfor %}
       {% endfor %}
     {% endif %}
