@@ -647,7 +647,7 @@ class AdvancedDocumentSearchForm(forms.Form):
                 terms.append(f'{term}:{value}')
             else:
                 values = data.get(term, '').split(' ')
-                terms.extend(f'{term}:{value}' for value in values if value)
+                terms.extend(f'{term}:"{value}"' for value in values if value)
 
         # choice field entries
         for term in (
