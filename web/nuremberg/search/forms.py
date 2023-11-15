@@ -174,7 +174,8 @@ class FieldedSearchForm(SearchForm):
 
         if self.transcript_id:
             sqs = sqs.filter(
-                material_type='Transcript Full Text', transcript_id=self.transcript_id
+                material_type='Transcript Full Text',
+                transcript_id=self.transcript_id,
             ).order_by(sort)
             # use snippets to count "occurrences" of a match in per-transcript
             # search results
@@ -516,7 +517,7 @@ class AdvancedDocumentSearchForm(forms.Form):
         ],
         list,
     )
-    m = forms.CharField(required=False)
+    m = forms.CheckboxSelectMultiple()
     keywords = forms.CharField(
         required=False, widget=forms.TextInput(attrs={"class": "large"})
     )
@@ -627,9 +628,12 @@ class AdvancedDocumentSearchForm(forms.Form):
 
     def as_search_qs(self, data=None):
         # Allow search qs to be built both from form's data or any other data
-        if data is None:
-            data = self.cleaned_data
+        # if data is None:
+        #    data = self.cleaned_data
+        data = self.cleaned_data
 
+        print(" --- Data ---")
+        print(data)
         terms = []
         # free-form entries, need to properly handle empty spaces within field
         for term in (
@@ -674,16 +678,18 @@ class AdvancedDocumentSearchForm(forms.Form):
         # special treatment, uses `_code` suffix for field name
         for term in ('evidence', 'exhibit', 'book'):
             value = data.get(f'{term}_code')
+            print(f'>>> {term} {value}')
             if value:
                 terms.append(f'{term}:"{value}"')
 
-        m = _getlist(data, 'm')
+        m = _getlist(self.data, 'm')
         if m:
             types = "|".join(m)
             terms.append(f'type:"{types}"')
 
         # This assumes AND operation between search fields
         q = ' '.join(terms)
+
         return q
 
     @classmethod
