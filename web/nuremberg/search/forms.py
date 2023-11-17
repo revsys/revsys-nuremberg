@@ -15,7 +15,7 @@ from nuremberg.documents.models import (
     DocumentCase,
     DocumentEvidencePrefix,
     DocumentExhibitCode,
-    DocumentExhibitCodeName,
+    DocumentDefendant,
     DocumentGroupAuthor,
     DocumentLanguage,
     DocumentPersonalAuthor,
@@ -425,7 +425,7 @@ class AdvancedDocumentSearchForm(forms.Form):
             key=operator.itemgetter(1),
         )
         + sorted(
-            (i.name, i.name)
+            (i.short_name(), i.name)
             for i in DocumentGroupAuthor.objects.all()
             .filter(name__isnull=False)
             .exclude(name='')
@@ -434,14 +434,13 @@ class AdvancedDocumentSearchForm(forms.Form):
     )
     DEFENDANT_CHOICES = lazy(
         lambda: [CHOICE_EMPTY]
-        + [
-            (i, i)
-            for i in DocumentExhibitCodeName.objects.filter(name__isnull=False)
-            .exclude(name='')
-            .order_by('name')
-            .values_list('name', flat=True)
-            .distinct()
-        ],
+        + sorted(
+            (
+                (name, name)
+                for i in DocumentDefendant.objects.all()
+                if (name := i.full_name())
+            ),
+        ),
         list,
     )
     ISSUE_CHOICES = lazy(
