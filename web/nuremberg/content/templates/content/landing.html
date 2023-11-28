@@ -42,6 +42,7 @@
         papers from the trials of military and political leaders of Nazi Germany.
       </h2>
     </hgroup>
+    <a href="{% url "search:help" %}" class="search-help-link">Search Help</a>
     <form class="landing-search" action='{% url 'search:search' %}' method='GET'>
       {% include 'search/search-bar.html' %}
 
