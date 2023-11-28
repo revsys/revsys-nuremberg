@@ -19,7 +19,7 @@ let totalPages = null
 let pagePlaceholder = null
 let imageCSSRule = null
 let dragPosition = null
-
+let coverPage = true
 
 const goToPage = (page) => {
   images[currentPage - 1].$el.removeClass('current')
@@ -587,6 +587,92 @@ const doDrag = (e) => {
   dragPosition = newPosition
 }
 
+// PDF related functions
+
+const DownloadPDF = (images, fromPage, toPage) => {
+  var total = toPage - fromPage + 1;
+  var loaded = 0;
+
+  $('.pdf-loading').removeClass('hide');
+  $('.download-options').addClass('hide');
+  $('.pdf-loading .progress').text(loaded + "/" + total + " loaded");
+  /*
+    var imagesLoaded = viewportView.preloadRange(fromPage, toPage);
+    imagesLoaded.progress(function () {
+      loaded += 1;
+      $('.pdf-loading .progress').text(loaded + "/" + total + " loaded");
+    }) */
+
+  $('.pdf-loading .progress').text("Building PDF.");
+  // wait a bit to render the message before locking up the thread
+  setTimeout(function () { BuildPDF(images, fromPage, toPage) }, 100);
+};
+
+const BuildPDF = (images, fromPage, toPage) => {
+  var pdf = new jsPDF('p', 'in');
+  var res = 75;
+
+  if (coverPage) {
+    var weights = {
+      300: 'light',
+      400: 'normal',
+      500: 'medium',
+      600: 'bold',
+    }
+    var baseline = 1 * res;
+    pdf.text(0.5, baseline / res, "Harvard Law School Library - Nuremberg Trials Project");
+    baseline += 1 / 4 * res;
+    $('.document-info').children('h3,h5,h6,p,br').each(function (n, child) {
+      if (child.tagName === 'BR') {
+        baseline += 15;
+        return;
+      }
+
+      if (child.tagName === 'H3')
+        baseline += 20;
+
+      var $child = $(child);
+      baseline += parseFloat($child.css('margin-top'));
+      var fontFamily = $child.css('font-family').split(', ');
+      var fontWeight = $child.css('font-weight');
+      fontWeight = weights[fontWeight] || fontWeight;
+      var fontSize = parseFloat($child.css('font-size')) - 3;
+      var text = pdf
+        .setFontType(fontWeight)
+        .setFontSize(fontSize)
+        .setFont(fontFamily[fontFamily.length - 1])
+        .splitTextToSize(child.innerText, 7);
+
+      pdf.text(0.5, baseline / res, text);
+      baseline += (text.length + 1 / 2) * fontSize;
+    });
+    baseline += 15;
+    pdf.text(0.5, baseline / res, 'Pages ' + fromPage + ' to ' + toPage + ' included');
+  } else {
+    pdf.deletePage(1);
+  }
+
+  console.log("== IMAGES ==")
+  console.dir(images)
+  for (var i = fromPage - 1; i <= toPage - 1; i++) {
+    var image = images[i];
+    let url = image.cache.thumb
+    pdf.addPage(image.size.width / res, image.size.height / res);
+    pdf.addImage(url, 'JPEG', 0, 0, image.size.width / res, image.size.height / res);
+
+  }
+
+  if (toPage === fromPage) {
+    var pageLabel = ' page ' + toPage;
+  } else {
+    pageLabel = ' pages ' + fromPage + '-' + toPage;
+  }
+  pdf.save('HLSL Nuremberg Document #' + documentID + pageLabel + '.pdf');
+
+  $('.download-pdf').removeClass('hide');
+  $('.pdf-loading').addClass('hide');
+};
+
 // Main entry point
 const main = () => {
 
@@ -675,6 +761,30 @@ const main = () => {
 
   recalculateVisible()
   setFirstVisible(images[0])
+
+  // PDF button
+  $('.download-pdf').on('click', function () {
+    $('.download-pdf').addClass('hide');
+    $('.download-options').removeClass('hide');
+    $('.download-options input[name=from-page]').val(1);
+    $('.download-options input[name=to-page]').val(totalPages);
+  });
+  $('.do-download').on('click', function () {
+    var fromPage = parseInt($('.download-options input[name=from-page]').val());
+    var toPage = parseInt($('.download-options input[name=to-page]').val());
+    if (toPage < fromPage) {
+      var t = toPage;
+      toPage = fromPage;
+      fromPage = t;
+    }
+    if (fromPage > totalPages || toPage > totalPages || fromPage < 1 || toPage < 1) {
+      $('.download-options input[name=from-page]').val(1);
+      $('.download-options input[name=to-page]').val(totalPages);
+      return;
+    }
+
+    DownloadPDF(images, fromPage, toPage);
+  });
 }
 
 document.addEventListener('DOMContentLoaded', main)
