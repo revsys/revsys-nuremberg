@@ -130,14 +130,14 @@
     <div class="column trial-links">
       <a class="button tag-button" href="{% url 'content:'|add:case.code_name %}">Overview</a>
       <a class="button tag-button" href="/search/?q=trial:{{ case.code_name }}&m=document">Documents</a>
-      <a class="button tag-button" href="/transcripts/{{ case.transcript.id }}?seq=1">Transcripts</a>
+      <a class="button tag-button" href="/transcripts/{{ case.transcript.id }}?seq=1">Transcript</a>
       <a class="button tag-button" href="{% url 'content:'|add:case.code_name %}#persons">Defendants</a>
     </div>
     <div class="column trial-summary">
       <p class="module"><strong>{{ case.alias }}</strong> {{ case.description }}</p>
-      <h2>Content Warning</h2>
+      <h3 class="content-warning">Content Warning</h3>
       <p class="module">
-        Please be advised that this collection contains materials which contain
+        Please be advised that this collection contains materials with
         language and images graphically rendering acts of genocide, violation of
         human rights, and violence of war.
       </p>
