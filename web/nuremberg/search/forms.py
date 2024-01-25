@@ -13,9 +13,9 @@ from nuremberg.documents.models import (
     EXHIBIT_CODE_RE,
     DocumentActivity,
     DocumentCase,
+    DocumentDefendant,
     DocumentEvidencePrefix,
     DocumentExhibitCode,
-    DocumentDefendant,
     DocumentGroupAuthor,
     DocumentLanguage,
     DocumentPersonalAuthor,
@@ -521,19 +521,42 @@ class AdvancedDocumentSearchForm(forms.Form):
         required=False, widget=forms.TextInput(attrs={"class": "large"})
     )
     title = forms.CharField(
-        required=False, widget=forms.TextInput(attrs={"class": "large"})
+        required=False,
+        widget=forms.TextInput(attrs={"class": "large"}),
+        help_text="The literal title as given on the document; many documents have no literal title.",
     )
     notes = forms.CharField(
-        required=False, widget=forms.TextInput(attrs={"class": "large"})
+        required=False,
+        widget=forms.TextInput(attrs={"class": "large"}),
+        help_text="Clarifying information is provided if the document is difficult to identify or categorize, or if a major error in the text has been corrected.",
     )
-    author = forms.MultipleChoiceField(required=False, choices=AUTHOR_CHOICES)
-    defendant = forms.ChoiceField(required=False, choices=DEFENDANT_CHOICES)
+    author = forms.MultipleChoiceField(
+        required=False,
+        choices=AUTHOR_CHOICES,
+        help_text="Personal author: the author's name, with a title or other identifying information if available. This information is usually drawn from the document itself, but often other documents provide additional information. Group author: provided if the document was produced by an agency or group or another collective source (e.g., laws published in the official state gazette).",
+    )
+    defendant = forms.ChoiceField(
+        required=False,
+        choices=DEFENDANT_CHOICES,
+        help_text="Applies to case files only; indicates which defendants are involved or relevant to the subjects covered by the document.",
+    )
     issue = forms.ChoiceField(
-        label=_('Trial Issues'), required=False, choices=ISSUE_CHOICES
+        label=_('Trial Issues'),
+        required=False,
+        choices=ISSUE_CHOICES,
+        help_text="Subjects of trial documents; applies to case files only; indicates the subject areas of the document that are relevant for the trial. Other subjects are not indicated.",
     )
     trial = forms.ChoiceField(required=False, choices=TRIAL_CHOICES)
-    language = forms.ChoiceField(required=False, choices=LANGUAGE_CHOICES)
-    source = forms.ChoiceField(required=False, choices=SOURCE_CHOICES)
+    language = forms.ChoiceField(
+        required=False,
+        choices=LANGUAGE_CHOICES,
+        help_text="Language(s) in which the document is written.",
+    )
+    source = forms.ChoiceField(
+        required=False,
+        choices=SOURCE_CHOICES,
+        help_text="For trial documents, these are the case files of a particular trial; for non-trial documents, the particular evidence set (or other material) to which the document belongs.",
+    )
 
     year_range = YearRangeField(
         label=_('Document Creation Year Range'), required=False

@@ -24,6 +24,7 @@ export default defineConfig({
         vanillasearch: path.resolve(__dirname, './src/vanilla/search.js'),
         vanillatranscripts: path.resolve(__dirname, './src/vanilla/transcript.js'),
         vanilladocuments: path.resolve(__dirname, './src/vanilla/documents.js'),
+        advancedsearch: path.resolve(__dirname, './src/vanilla/advancedSearch.js'),
       },
       output: {
         chunkFileNames: undefined,
