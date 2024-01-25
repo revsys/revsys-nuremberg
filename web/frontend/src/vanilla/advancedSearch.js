@@ -9,7 +9,7 @@ const handleHover = (helpLabels) => {
         const content_id = item.dataset.content_id
         const content = document.getElementById(content_id)
         const instance = createPopper(item, content, {
-            placement: 'left',
+            placement: 'right',
             modifiers: [
                 {
                     name: 'offset',
