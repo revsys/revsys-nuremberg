@@ -2,6 +2,14 @@
   "_popper-c02d395e.js": {
     "file": "popper-c02d395e.js"
   },
+  "src/vanilla/advancedSearch.js": {
+    "file": "advancedsearch-f339cf41.js",
+    "imports": [
+      "_popper-c02d395e.js"
+    ],
+    "isEntry": true,
+    "src": "src/vanilla/advancedSearch.js"
+  },
   "src/vanilla/authorHover.js": {
     "file": "author-b51903f6.js",
     "imports": [
