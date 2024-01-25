@@ -28,7 +28,7 @@
 .select2-container .select2-selection--single .select2-selection__rendered {
     display: block;
     padding-left: 8px;
-    padding-right: 20px;
+    padding-right: 15px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -40,7 +40,7 @@
 }
 .select2-container[dir="rtl"] .select2-selection--single .select2-selection__rendered {
     padding-right: 8px;
-    padding-left: 20px;
+    padding-left: 15px;
 }
 .select2-container .select2-selection--multiple {
     box-sizing: border-box;
@@ -86,7 +86,7 @@
 .select2-container .select2-selection--single .select2-selection__rendered {
     display: block;
     padding-left: 8px;
-    padding-right: 20px;
+    padding-right: 15px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -98,7 +98,7 @@
 }
 .select2-container[dir="rtl"] .select2-selection--single .select2-selection__rendered {
     padding-right: 8px;
-    padding-left: 20px;
+    padding-left: 15px;
 }
 .select2-container .select2-selection--multiple {
     box-sizing: border-box;
@@ -234,7 +234,7 @@
     float: right;
     font-weight: bold;
     height: 26px;
-    margin-right: 20px;
+    margin-right: 15px;
     padding-right: 0px;
 }
 .select2-container--default .select2-selection--single .select2-selection__placeholder {
@@ -245,7 +245,7 @@
     position: absolute;
     top: 1px;
     right: 1px;
-    width: 20px;
+    width: 15px;
 }
 .select2-container--default .select2-selection--single .select2-selection__arrow b {
     border-color: #888 transparent transparent transparent;
@@ -292,7 +292,7 @@
 .select2-container--default .select2-selection--multiple .select2-selection__clear {
     cursor: pointer;
     font-weight: bold;
-    height: 20px;
+    height: 15px;
     margin-right: 10px;
     margin-top: 5px;
     position: absolute;
@@ -308,7 +308,7 @@
     margin-left: 5px;
     margin-top: 5px;
     padding: 0;
-    padding-left: 20px;
+    padding-left: 15px;
     position: relative;
     max-width: 100%;
     overflow: hidden;
@@ -467,7 +467,7 @@
     float: right;
     font-weight: bold;
     height: 26px;
-    margin-right: 20px;
+    margin-right: 15px;
 }
 .select2-container--classic .select2-selection--single .select2-selection__placeholder {
     color: #999;
@@ -482,7 +482,7 @@
     position: absolute;
     top: 1px;
     right: 1px;
-    width: 20px;
+    width: 15px;
     background-image: -webkit-linear-gradient(top, #eee 50%, #ccc 100%);
     background-image: -o-linear-gradient(top, #eee 50%, #ccc 100%);
     background-image: linear-gradient(to bottom, #eee 50%, #ccc 100%);
@@ -763,7 +763,7 @@
     float: right;
     font-weight: bold;
     height: 26px;
-    margin-right: 20px;
+    margin-right: 15px;
     padding-right: 0px;
 }
 .select2-container--default .select2-selection--single .select2-selection__placeholder {
@@ -774,7 +774,7 @@
     position: absolute;
     top: 1px;
     right: 1px;
-    width: 20px;
+    width: 15px;
 }
 .select2-container--default .select2-selection--single .select2-selection__arrow b {
     border-color: #888 transparent transparent transparent;
@@ -821,7 +821,7 @@
 .select2-container--default .select2-selection--multiple .select2-selection__clear {
     cursor: pointer;
     font-weight: bold;
-    height: 20px;
+    height: 15px;
     margin-right: 10px;
     margin-top: 5px;
     position: absolute;
@@ -837,7 +837,7 @@
     margin-left: 5px;
     margin-top: 5px;
     padding: 0;
-    padding-left: 20px;
+    padding-left: 15px;
     position: relative;
     max-width: 100%;
     overflow: hidden;
@@ -994,7 +994,7 @@
     float: right;
     font-weight: bold;
     height: 26px;
-    margin-right: 20px;
+    margin-right: 15px;
 }
 .select2-container--classic .select2-selection--single .select2-selection__placeholder {
     color: #999;
@@ -1009,7 +1009,7 @@
     position: absolute;
     top: 1px;
     right: 1px;
-    width: 20px;
+    width: 15px;
     background-image: -webkit-linear-gradient(top, #eee 50%, #ccc 100%);
     background-image: -o-linear-gradient(top, #eee 50%, #ccc 100%);
     background-image: linear-gradient(to bottom, #eee 50%, #ccc 100%);
@@ -1214,6 +1214,22 @@ ul.select2-results__options li {
 {% endblock extra_head_js %}
 
 {% block content %}
+<svg style="display: none" class="label" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50" width="50px" height="50px">
+    <defs>
+        <symbol id="i-icon" viewBox="0 0 50 50">
+            <path d="M 25 2 C 12.309295 2 2 12.309295 2 25 C 2 37.690705 12.309295 48 25 48 C 37.690705 48 48 37.690705 48 25 C 48 12.309295 37.690705 2 25 2 z M 25 4 C 36.609824 4 46 13.390176 46 25 C 46 36.609824 36.609824 46 25 46 C 13.390176 46 4 36.609824 4 25 C 4 13.390176 13.390176 4 25 4 z M 25 11 A 3 3 0 0 0 22 14 A 3 3 0 0 0 25 17 A 3 3 0 0 0 28 14 A 3 3 0 0 0 25 11 z M 21 21 L 21 23 L 22 23 L 23 23 L 23 36 L 22 36 L 21 36 L 21 38 L 22 38 L 23 38 L 27 38 L 28 38 L 29 38 L 29 36 L 28 36 L 27 36 L 27 21 L 26 21 L 22 21 L 21 21 z"/>
+        </symbol>
+    </defs>
+    <use href="#i-icon" />
+</svg>
+
+<style>
+    svg.label {
+        width: 12px;
+        height: 12px;
+    }
+</style>
+
 <section id="search" role="search" aria-label="Search the archive" class="theme-beige thin">
   <h1 class="h4">Search the archive &mdash; Advanced</h1>
   <div class="full-width">
@@ -1251,7 +1267,23 @@ ul.select2-results__options li {
         {% for field in form %}
           {% if field.name != 'evidence' and field.name != 'exhibit' and field.name != 'book' and field.name != 'm' and '_' not in field.name %}
           <div class="{% if field.errors %}has-error{% endif %}">
-          <p>{{ field.label_tag }} {{ field }}</p>
+          <p>
+            <label for="id_{{ field.name }}" {% if field.help_text %}class="help-label" data-content_id="adv-help-{{ field.name }}"{% endif %}>
+                {{ field.label }}
+                {% if field.help_text %}
+                <svg class="label"><use href="#i-icon" /></svg>
+                {% endif %}
+            </label>
+
+            {{ field }}
+
+            {% if field.help_text %}
+                <div class="advanced-search-label-help" id="adv-help-{{ field.name}}">
+                    {{ field.help_text }}
+                </div>
+            {% endif %}
+          </p>
+
           {% for error in field.errors %}
           <p><small class="has-error">{{ error }}</small></p>
           {% endfor %}
@@ -1260,28 +1292,65 @@ ul.select2-results__options li {
         {% endfor %}
 
           <div class="{% if form.evidence.errors %}has-error{% endif %}">
-          <p>{{ form.evidence.label_tag }} {{ form.evidence }} {{ form.evidence_num }} {{ form.evidence_suffix }}</p>
+          <p>
+            <label for="id_{{ form.evidence.name }}" class="help-label" data-content_id="adv-help-{{ form.evidence.name }}">
+                {{ form.evidence.label }}
+                <svg class="label"><use href="#i-icon" /></svg>
+            </label>
+            {{ form.evidence }}
+            {{ form.evidence_num }}
+            {{ form.evidence_suffix }}
+            <div class="advanced-search-label-help" id="adv-help-{{ form.evidence.name}}">
+                If the document was drawn from the coded collections of war crimes evidence assembled for the Trials (e.g., NO or PS), the code letters and number are given. Consists of document series designator (1-4 letters) and document number within series and occasionally a suffix.
+            </div>
+          </p>
           {% for error in form.evidence.errors %}
           <p><small class="has-error">{{ error }}</small></p>
           {% endfor %}
           </div>
 
           <div class="{% if form.exhibit.errors %}has-error{% endif %}">
-          <p>{{ form.exhibit.label_tag }} {{ form.exhibit }} {{ form.exhibit_num }}</p>
+          <p>
+            <label for="id_{{ form.exhibit.name }}" class="help-label" data-content_id="adv-help-{{ form.exhibit.name }}">
+                {{ form.exhibit.label }}
+                <svg class="label"><use href="#i-icon" /></svg>
+            </label>
+            {{ form.exhibit }}
+            {{ form.exhibit_num }}
+            <div class="advanced-search-label-help" id="adv-help-{{ form.exhibit.name}}">
+                Pertains to a document introduced into evidence in a given trial by either the prosecution or defense team. If a prosecution document, only the exhibit number for the given document in the given trial is recorded; if a defense document, the defendant's last name and exhibit number for the doccument within that defendant's defense documents are given.
+            </div>
+            </p>
           {% for error in form.exhibit.errors %}
           <p><small class="has-error">{{ error }}</small></p>
           {% endfor %}
           </div>
 
           <div class="{% if form.book.errors %}has-error{% endif %}">
-          <p>{{ form.book.label_tag }} {{ form.book }} {{ form.book_num }}</p>
+          <p>
+            <label for="id_{{ form.book.name }}" class="help-label" data-content_id="adv-help-{{ form.book.name }}">
+
+                {{ form.book.label }}
+                <svg class="label"><use href="#i-icon" /></svg>
+            </label>
+            {{ form.book }}
+            {{ form.book_num }}
+            <div class="advanced-search-label-help" id="adv-help-{{ form.book.name}}">
+                Trial exhibits were usually stored for convenience in document books containing from 10-40 documents each. Prosecution document books are numbered sequentially for a given trial. Defense document books are numbered sequentially for each defendant in a given trial.
+            </div>
+          </p>
           {% for error in form.book.errors %}
           <p><small class="has-error">{{ error }}</small></p>
           {% endfor %}
           </div>
 
           <div class="{% if form.year_range.errors %}has-error{% endif %}">
-          <p>{{ form.year_range.label_tag }} {{ form.year_range }}</p>
+          <p>
+            <label for="id_{{ form.year_range.name }}">
+                {{ form.year_range.label }}
+            </label>
+            {{ form.year_range }}
+          </p>
           {% for error in form.year_range.errors %}
           <p><small class="has-error">{{ error }}</small></p>
           {% endfor %}
