@@ -333,6 +333,8 @@ class FieldedSearchForm(SearchForm):
         else:
             field_query.append('ignored')
 
+        print("SQS")
+        print(sqs.query)
         return sqs
 
 
@@ -516,6 +518,11 @@ class AdvancedDocumentSearchForm(forms.Form):
         ],
         list,
     )
+    AND_OR_OR_CHOICES = (
+        ('and', 'all'),
+        ('or', 'any'),
+    )
+
     m = forms.CheckboxSelectMultiple()
     keywords = forms.CharField(
         required=False, widget=forms.TextInput(attrs={"class": "large"})
@@ -535,16 +542,26 @@ class AdvancedDocumentSearchForm(forms.Form):
         choices=AUTHOR_CHOICES,
         help_text="Personal author: the author's name, with a title or other identifying information if available. This information is usually drawn from the document itself, but often other documents provide additional information. Group author: provided if the document was produced by an agency or group or another collective source (e.g., laws published in the official state gazette).",
     )
-    defendant = forms.MultipleChoiceField(
+    author_and_or_or = forms.MultipleChoiceField(
         required=False,
-        choices=DEFENDANT_CHOICES,
-        help_text="Applies to case files only; indicates which defendants are involved or relevant to the subjects covered by the document.",
+        choices=AND_OR_OR_CHOICES,
+        help_text="Whether to AND or OR these selections",
     )
     issue = forms.MultipleChoiceField(
         label=_('Trial Issues'),
         required=False,
         choices=ISSUE_CHOICES,
         help_text="Subjects of trial documents; applies to case files only; indicates the subject areas of the document that are relevant for the trial. Other subjects are not indicated.",
+    )
+    issue_and_or_or = forms.MultipleChoiceField(
+        required=False,
+        choices=AND_OR_OR_CHOICES,
+        help_text="Whether to AND or OR these selections",
+    )
+    defendant = forms.MultipleChoiceField(
+        required=False,
+        choices=DEFENDANT_CHOICES,
+        help_text="Applies to case files only; indicates which defendants are involved or relevant to the subjects covered by the document.",
     )
     trial = forms.MultipleChoiceField(required=False, choices=TRIAL_CHOICES)
     language = forms.MultipleChoiceField(
@@ -617,9 +634,9 @@ class AdvancedDocumentSearchForm(forms.Form):
             )
         elif evidence:
             suffix = cleaned_data.get('evidence_suffix', '')
-            cleaned_data[
-                'evidence_code'
-            ] = f'{evidence}-{evidence_num}{suffix}'
+            cleaned_data['evidence_code'] = (
+                f'{evidence}-{evidence_num}{suffix}'
+            )
 
         exhibit = cleaned_data.get('exhibit')
         exhibit_num = cleaned_data.get('exhibit_num')
@@ -674,8 +691,30 @@ class AdvancedDocumentSearchForm(forms.Form):
         # choice field entries
         for term in (
             'author',
-            'defendant',
             'issue',
+        ):
+            values = _getlist(data, term)
+            if values:
+                # Determine if the user wants an AND or OR search here from
+                # the select boxes next to these fields which are named after
+                # the field
+                option_name = f"{term}_and_or_or"
+                print(f"OPTION NAME: {option_name}")
+                print(f"OPTION VALUE: {data.get(option_name)}")
+                if data.get(option_name) == 'and':
+                    terms.extend(
+                        f'{term}:"{value}"' for value in values if value
+                    )
+                else:
+                    items = [value for value in values if value]
+                    new_values = "|".join(items)
+                    terms.append(f'{term}:"{new_values}"')
+                    print("TERMS")
+                    print(terms)
+
+        # single choice field entries
+        for term in (
+            'defendant',
             'trial',
             'language',
             'source',
