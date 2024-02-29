@@ -1205,24 +1205,28 @@ ul.select2-results__options li {
         placeholder: 'Choose one or more...',
       });
 
-      $('#id_defendant').select2({
-        placeholder: 'Choose one or more...',
-      });
-
       $('#id_issue').select2({
         placeholder: 'Choose one or more...',
       });
 
+      $('#id_defendant').select2({
+        placeholder: 'Choose one...',
+        multiple: false,
+      });
+
       $('#id_trial').select2({
-        placeholder: 'Choose one or more...',
+        placeholder: 'Choose one...',
+        multiple: false,
       });
 
       $('#id_language').select2({
-        placeholder: 'Choose one or more...',
+        placeholder: 'Choose one...',
+        multiple: false,
       });
 
       $('#id_source').select2({
-        placeholder: 'Choose one or more...',
+        placeholder: 'Choose one...',
+        multiple: false,
       });
 
       // clear the selection when button pressed
@@ -1252,7 +1256,7 @@ ul.select2-results__options li {
 
 <section id="search" role="search" aria-label="Search the archive" class="theme-beige thin">
   <h1 class="h4">Search the archive &mdash; Advanced</h1>
-  <div class="full-width">
+  <div class="full-width" style="height: 100%">
     <div class="advanced-search-help">
 
       {% for message in messages %}
@@ -1264,6 +1268,7 @@ ul.select2-results__options li {
       {% endfor %}
 
       <form class="advanced-search" role="search" aria-label="advanced search" action="{% url 'search:advanced' %}" method="POST">
+        <h3>Main Search Criteria</h3>
         <p>{% trans 'Match all entered search terms below' %}</p>
         <p style="margin-top: 10px; margin-bottom: 10px">
           <label style="margin-right: 50px;">Search Type:</label>
@@ -1285,9 +1290,15 @@ ul.select2-results__options li {
         </label>
         </p>
         {% for field in form %}
+          {% if field.name == "author" %}
+          <h3>The options below here are AND or ORed</h3>
+          {% endif %}
+          {% if field.name == "defendant" %}
+          <h3>The options below here are ORed</h3>
+          {% endif %}
           {% if field.name != 'evidence' and field.name != 'exhibit' and field.name != 'book' and field.name != 'm' and '_' not in field.name %}
           <div class="{% if field.errors %}has-error{% endif %}">
-          <p>
+          <p style="display: inline-flex">
             <label for="id_{{ field.name }}" {% if field.help_text %}class="help-label" data-content_id="adv-help-{{ field.name }}"{% endif %}>
                 {{ field.label }}
                 {% if field.help_text %}
@@ -1295,6 +1306,19 @@ ul.select2-results__options li {
                 {% endif %}
             </label>
 
+            {% if field.name == "author" %}
+            <select name="author_and_or_or" id="author_and_or_or">
+                <option value="and" checked>Match all</option>
+                <option value="or">Match any</option>
+            </select>
+            {% endif %}
+
+            {% if field.name == "issue" %}
+            <select name="issue_and_or_or" id="issue_and_or_or">
+                <option value="and" checked>Match all</option>
+                <option value="or">Match any</option>
+            </select>
+            {% endif %}
             {{ field }}
 
             {% if field.help_text %}
@@ -1311,6 +1335,9 @@ ul.select2-results__options li {
           {% endif %}
         {% endfor %}
 
+          <div style="margin-top: 50px">
+            <h3>Additional Options</h3>
+          </div>
           <div class="{% if form.evidence.errors %}has-error{% endif %}">
           <p>
             <label for="id_{{ form.evidence.name }}" class="help-label" data-content_id="adv-help-{{ form.evidence.name }}">
@@ -1375,11 +1402,10 @@ ul.select2-results__options li {
           <p><small class="has-error">{{ error }}</small></p>
           {% endfor %}
 
-          <div class="advanced-search-button-group">
+          <div style="float: right">
             <button class="button search-button" type="submit">Advanced Search</button>
             <button class="button search-button" type="reset" id="clear-button">Clear</button>
           </div>
-
       </form>
 
     </div>
