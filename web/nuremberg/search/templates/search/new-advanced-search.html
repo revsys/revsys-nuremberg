@@ -1210,23 +1210,19 @@ ul.select2-results__options li {
       });
 
       $('#id_defendant').select2({
-        placeholder: 'Choose one...',
-        multiple: false,
+        placeholder: 'Match any...',
       });
 
       $('#id_trial').select2({
-        placeholder: 'Choose one...',
-        multiple: false,
+        placeholder: 'Match any...',
       });
 
       $('#id_language').select2({
-        placeholder: 'Choose one...',
-        multiple: false,
+        placeholder: 'Match any...',
       });
 
       $('#id_source').select2({
-        placeholder: 'Choose one...',
-        multiple: false,
+        placeholder: 'Match any...',
       });
 
       // clear the selection when button pressed
@@ -1256,6 +1252,7 @@ ul.select2-results__options li {
 
 <section id="search" role="search" aria-label="Search the archive" class="theme-beige thin">
   <h1 class="h4">Search the archive &mdash; Advanced</h1>
+  <a href="{% url 'search:help' %}" style="float: right;">Search Help</a>
   <div class="full-width" style="height: 100%">
     <div class="advanced-search-help">
 
@@ -1268,7 +1265,6 @@ ul.select2-results__options li {
       {% endfor %}
 
       <form class="advanced-search" role="search" aria-label="advanced search" action="{% url 'search:advanced' %}" method="POST">
-        <h3>Main Search Criteria</h3>
         <p>{% trans 'Match all entered search terms below' %}</p>
         <p style="margin-top: 10px; margin-bottom: 10px">
           <label style="margin-right: 50px;">Search Type:</label>
@@ -1290,12 +1286,6 @@ ul.select2-results__options li {
         </label>
         </p>
         {% for field in form %}
-          {% if field.name == "author" %}
-          <h3>The options below here are AND or ORed</h3>
-          {% endif %}
-          {% if field.name == "defendant" %}
-          <h3>The options below here are ORed</h3>
-          {% endif %}
           {% if field.name != 'evidence' and field.name != 'exhibit' and field.name != 'book' and field.name != 'm' and '_' not in field.name %}
           <div class="{% if field.errors %}has-error{% endif %}">
           <p style="display: inline-flex">
@@ -1335,9 +1325,6 @@ ul.select2-results__options li {
           {% endif %}
         {% endfor %}
 
-          <div style="margin-top: 50px">
-            <h3>Additional Options</h3>
-          </div>
           <div class="{% if form.evidence.errors %}has-error{% endif %}">
           <p>
             <label for="id_{{ form.evidence.name }}" class="help-label" data-content_id="adv-help-{{ form.evidence.name }}">
