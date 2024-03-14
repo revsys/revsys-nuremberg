@@ -10,7 +10,15 @@
 <section class="advanced-search-help">
   <h2>{% trans 'Search Syntax Help' %}</h2>
   <p>
-    Most advanced queries can be made naturally. For example, to find English-language documents about
+    Keyword queries entered into the search box are matched against all descriptive information
+    relating to documents as well as against all words in full-text documents and transcripts.
+  </p>
+  <p>
+    Documents and transcripts will be matched only if all entered keywords are matched.
+    All matches are case insensitive ("euthanasia" = "Euthanasia" and "Brandt" = "brandt" and "no-315" = "NO-315").
+  </p>
+  <p>
+    Most queries can be made naturally. For example, to find English-language documents about
     Erhard Milch relating to treatment of workers in 1944, search for:
   </p>
   <p>
@@ -18,8 +26,7 @@
     <a href="{% search_url 'workers Milch english 1944' %}" aria-labelledby="example-search-0">Search</a>
   </p>
   <p>
-    By default, documents that contain all keywords in any field are
-    found. Our data can sometimes be incomplete, so you should usually try a more general
+    Our data can sometimes be incomplete, so you should usually try a more general
     search first. The filtering options shown on the left will let you narrow down the results.
   </p>
   <p>
@@ -77,22 +84,67 @@
     <span class="example-search" id="example-search-9">experiments date:1944|unknown</span>
     <a href="{% search_url 'experiments date:1944|unknown' %}" aria-labelledby="example-search-9">Search</a>
   </p>
+  <br/>
   <p>
-    You can search within any field listed in the filters to the left. Valid field names are:
-  </p>
-  <p>
-    <strong>type</strong>,
-    <strong>trial</strong>,
-    <strong>author</strong>,
-    <strong>defendant</strong>,
-    <strong>date</strong>,
-    <strong>language</strong>,
-    <strong>source</strong>,
-    <strong>evidence</strong>,
-    <strong>exhibit</strong>,
-    <strong>issue</strong>,
-    <strong>hlsl</strong>,
-    and <strong>all</strong>
+    You may choose from the following fields when doing fielded search:
+    <ol class="list">
+      <li>
+        <strong>type</strong>:
+        type of document material (four options: "document image," "document full text," "transcript full text," "photograph")
+      </li>
+      <li>
+        <strong>author</strong>:
+        person or group author who authored the document text
+      </li>
+      <li>
+        <strong>title</strong>:
+        literal title as given on the document
+      </li>
+      <li>
+        <strong>trial</strong>:
+        trial in which a document was introduced into evidence or to which a transcript is related
+      </li>
+      <li>
+        <strong>defendant</strong>:
+        person being prosecuted in a given trial
+      </li>
+      <li>
+        <strong>date</strong>:
+        date a document was created
+      </li>
+      <li>
+        <strong>language</strong>:
+        language of the document text
+      </li>
+      <li>
+        <strong>source</strong>:
+        document category (such as "Case Files/English (US or UK)" or "IMT/NMT Typescript–English")
+      </li>
+      <li>
+        <strong>evidence</strong>:
+        document code for an evidence file document, such as "NO-35" or "PS-153"
+      </li>
+      <li>
+        <strong>exhibit</strong>:
+        trial exhibit number – for prosecution documents in a given trial, simply the sequence nunmber of
+        the exhibit in the trial in question (such as "13"; for defense documents in a given trial, the
+        defendant's name and sequence no. of the exhibit for that defendant's exhibits (such as "Schmidt 15")
+      </li>
+      <li>
+        <strong>book</strong>:
+        document book containing the trial exhibit in question – for prosecution documents in a given trial,
+        "Prosecution" + book number, such as "Prosecution 3"; for defense documents in a given trial,
+        defendant's name + book no., such as "Schmidt 3"
+      </li>
+      <li>
+        <strong>issue</strong>:
+        subject area of a trial exhibit relevant for a given trial
+      </li>
+      <li>
+        <strong>notes</strong>:
+        supplementary or clarifying information for a document
+      </li>
+    </ol>
   </p>
 </section>
 {% endblock %}
