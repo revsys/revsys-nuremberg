@@ -225,7 +225,7 @@
           </p>
         {% endif %}
         {% if exhibit_codes %}
-          {% if all_evidence_codes_not_empty %}
+          {% if not all_exhibit_codes_empty %}
             <p>
               <strong>Exhibit Code{{ exhibit_codes|length|pluralize }}:</strong>
               {% for code in exhibit_codes %}
