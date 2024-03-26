@@ -1,6 +1,6 @@
 # HLS Nuremberg Trials Project
 
-> This is a Django client for the digital archives of the Nuremberg Trials
+> This is a Django web site for the digital archives of the Nuremberg Trials
 > Project maintained by the Harvard Law Library.  It is intended as a
 > open-access web app for scholars, researchers, and members of the public,
 > exposing the digitized documents, full-text trial transcripts, and rich
@@ -28,7 +28,7 @@ To run with production settings, set appropriate `SECRET_KEY`,
 `ALLOWED_HOSTS`, and `HOST_NAME` env vars, and run:
 
 ```shell
-docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+docker compose up -d
 docker compose exec web python manage.py compress
 docker compose exec web python manage.py collectstatic
 ```
@@ -39,7 +39,7 @@ Then visit [localhost:8080](http://localhost:8080).
 When you are finished,
 
 ```shell
-docker compose -f docker-compose.yml -f docker-compose.prod.yml down
+docker compose down
 ```
 
 ## Project Structure
@@ -90,24 +90,11 @@ docker compose exec web pytest nuremberg/documents/browser_tests.py
 
 ## Project Settings
 
-> NOTE: An example configuration used for the demo site on Heroku is in the
-> [heroku](https://github.com/harvard-lil/nuremberg/tree/heroku) branch as
-> `staging.py`.
-
-Environment-specific Django settings live in the `nuremberg`/settings` directory
-and inherit from `nuremberg.settings.generic`. The settings module is configured
-by the `DJANGO_SETTINGS_MODULE` environment variable; the default value is
-`nuremberg.settings.dev`.
+The Django settings live in the `nuremberg/settings.py`.
 
 Secrets (usernames, passwords, security tokens, nonces, etc.) should not be
 placed in a settings file or committed into git. The proper place for these is
-an environment variable configured on the host and read via `os.environ`. If
-they must live in a `.py` file, they should be included in the environment
-settings file via an `import` statement and uploaded separately as part of the
-deployment process.
-
-(The only exception to this is the defaults used in the dev environment.)
-
+an environment variable configured on the host and read via `os.environ`.
 
 ## Data
 
@@ -242,12 +229,6 @@ deploying an updated schema, make sure you have generated and committed
 new `schema.xml` and `solrconfig.xml` files using `manage.py build_solr_schema
 --configure-dir=solr_conf`, and then run a complete reindexing.
 
-> WARNING: Be cautious when doing this in production-- although in general
-> reindexing will happen transparently and the site can continue to serve requests
-> while reindexing is in progress, certain schema changes will cause a
-> `SCHEMA-INDEX-MISMATCH` error that will cause search pages to crash until
-> reindexing completes.
-
 
 ## Transcripts
 
@@ -291,17 +272,3 @@ minor cosmetic features implemented in `search`.
 
 In production, all site javascript is compacted into a single minified blob by
 `compressor`. (The exception is the rarely-needed dependency `jsPDF`.)
-
-### In Production
-
-**NOTE:*** This information is incorrect for the new upcoming production environment in Kubernetes!!!!
-
-When deploying, you should run `docker compose exec web python manage.py compress` to bundle, minify and
-compress CSS and JS files, and `docker compose exec web python manage.py collectstatic` to move the remaining
-assets into `static/`. This folder should not be committed to git.
-
-For deployment to Heroku, these static files will be served by the WhiteNoise
-server. In other environments it may be appropriate to serve them directly with
-Nginx or Apache. If necessary, the output directory can be controlled with an
-environment-specific override of the `STATIC_ROOT` settings variable.
-
