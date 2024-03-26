@@ -8,7 +8,10 @@
 
 {% block content %}
 <section class="advanced-search-help">
-  <h2>{% trans 'Search Syntax Help' %}</h2>
+  <div>
+    <h2>{% trans 'Search Syntax Help' %}</h2>
+    <a href="{% url 'search:advanced' %}">Advanced Search Index</a>
+  </div>
   <p>
     Keyword queries entered into the search box are matched against all descriptive information
     relating to documents as well as against all words in full-text documents and transcripts.
