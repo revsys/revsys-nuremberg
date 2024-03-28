@@ -6,11 +6,24 @@
 
 {% block title %}{% trans 'Advanced Search Syntax Help' %}{% endblock %}
 
+{% block extra_head_css %}
+<style>
+  .help-header {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+  }
+  .help-link {
+    font-size: 14px;
+  }
+</style>
+{% endblock extra_head_css %}
+
 {% block content %}
 <section class="advanced-search-help">
-  <div>
+  <div class="help-header">
     <h2>{% trans 'Search Syntax Help' %}</h2>
-    <a href="{% url 'search:advanced' %}">Advanced Search Index</a>
+    <div><a href="{% url 'search:advanced' %}" class="help-link">Advanced Search Index</a></div>
   </div>
   <p>
     Keyword queries entered into the search box are matched against all descriptive information
