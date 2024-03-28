@@ -17,10 +17,24 @@ spec:
   tls:
   - hosts:
     - {{ .Values.publicFqdn }}
+    - nuremberg.law.harvard.edu
     secretName: {{.Values.publicFqdn}}-tls
   rules:
   -
     host: {{ .Values.publicFqdn }}
+    http:
+      paths:
+      -
+        path: /
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: {{.Values.Plug}}
+            port:
+              number: 80
+
+  -
+    host: nuremberg.law.harvard.edu
     http:
       paths:
       -
