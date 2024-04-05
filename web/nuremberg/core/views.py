@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 
 
 def render_error(
@@ -70,3 +70,10 @@ def handler500(request):  # pragma: no cover
         error, and we'll see if we can prevent it in the future.
         """,
     )
+
+
+def redirect_home(request):
+    """
+    Redirect /php/docs_swi.php?DI=1&text=overview to /
+    """
+    return redirect('/')
