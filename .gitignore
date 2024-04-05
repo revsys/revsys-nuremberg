@@ -21,3 +21,4 @@ dumps/old
 !.cache/keep
 .cache/
 .vscode/
+./web/coverage/
