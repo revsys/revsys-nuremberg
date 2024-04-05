@@ -4,6 +4,8 @@ from django.contrib import admin
 from django.http import HttpResponse
 from django.urls import include, re_path
 
+from .views import redirect_home
+
 urlpatterns = [
     re_path(r'^admin/', admin.site.urls),
     re_path(r'^transcripts/', include('nuremberg.transcripts.urls')),
@@ -17,7 +19,9 @@ urlpatterns = [
             "User-agent: *\nDisallow: /search/", content_type="text/plain"
         ),
     ),
+    re_path(r'^php', redirect_home),
 ]
+
 # This helper function works ONLY in debug mode and ONLY if the given prefix
 # is local (e.g. media/) and not a URL (e.g. http://media.example.com/).
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
