@@ -14,7 +14,7 @@ nameOverride: ""
 
 fullnameOverride: hlsnp
 
-replicaCount: 3
+replicaCount: 1
 
 initCommands:
   - name: migrate
