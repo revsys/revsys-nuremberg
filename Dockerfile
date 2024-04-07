@@ -1,37 +1,4 @@
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
-FROM rust:alpine as just-builder
-#.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
-
-ENV VERSION v0.9.4
-
-#RUN apt update; apt -y install git --no-install-recommends
-RUN apk add git musl-dev
-RUN git clone https://github.com/casey/just /just
-
-WORKDIR /just
-
-RUN git checkout ${VERSION}
-
-
-RUN RUSTFLAGS='-C target-feature=+crt-static' cargo build --release --target x86_64-unknown-linux-musl
-
-RUN cp target/*/release/just /bin/
-
-
-#.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
-FROM alpine as just
-#.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
-
-COPY --from=just-builder /bin/just /
-
-#ENTRYPOINT ["/bin/sh", "-c"]
-
-LABEL org.opencontainers.image.source https://github.com/revsys/revsys-nuremberg
-
-ENTRYPOINT  ["/bin/sh", "-c"]
-CMD ["install -v -m 0755 -t /dist /just && /just --version"]
-
-#.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
 FROM python:3.11-alpine as b2v
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
 ENV PYTHONDONTWRITEBYTECODE=true
@@ -50,7 +17,6 @@ RUN git config --system init.defaultBranch main
 ENTRYPOINT ["bump2version"]
 
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
-FROM registry.revsys.com/just as j
 FROM revolutionsystems/python:3.11-wee-lto-optimized as runner
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
 
@@ -58,8 +24,6 @@ ENV PYTHONDONTWRITEBYTECODE=true
 ENV PYTHONUNBUFFERED 1
 ENV PYTHON_PATH /code
 ENV PATH /.venv/bin:/node/bin:${PATH}
-
-COPY --from=j /just /usr/bin/just
 
 WORKDIR /code
 
