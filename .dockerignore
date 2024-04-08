@@ -8,3 +8,4 @@ docker-compose*
 chart/
 Dockerfile
 docker-compose*
+./venv/
