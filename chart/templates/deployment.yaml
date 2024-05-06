@@ -39,7 +39,6 @@ spec:
           image: {{.Values.image.repository}}:{{.Chart.AppVersion}}
           command: ["/.venv/bin/gunicorn"]
           args:
-            - --workers=3
             - --bind=unix:/run/gunicorn.sock
             - nuremberg.wsgi
           volumeMounts:
