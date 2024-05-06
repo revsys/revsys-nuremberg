@@ -41,15 +41,6 @@ service:
   type: ClusterIP
   port: 80
 
-
-resources:
-  requests:
-    cpu: 200m
-    memory: 256Mi
-  limits:
-    cpu: 200m
-    memory: 256Mi
-
 volumes:
   -
     name: tmp
