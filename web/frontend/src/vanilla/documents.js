@@ -622,7 +622,7 @@ const BuildPDF = (images, fromPage, toPage) => {
     var baseline = 1 * res;
     pdf.text(0.5, baseline / res, "Harvard Law School Library - Nuremberg Trials Project");
     baseline += 1 / 4 * res;
-    $('.document-info').children('h3,h5,h6,p,br').each(function (n, child) {
+    $('.document-details-block').children('h3,h5,h6,p,br').each(function (n, child) {
       if (child.tagName === 'BR') {
         baseline += 15;
         return;
