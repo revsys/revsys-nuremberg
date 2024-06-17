@@ -652,8 +652,6 @@ const BuildPDF = (images, fromPage, toPage) => {
     pdf.deletePage(1);
   }
 
-  console.log("== IMAGES ==")
-  console.dir(images)
   for (var i = fromPage - 1; i <= toPage - 1; i++) {
     var image = images[i];
     let url = image.cache.thumb

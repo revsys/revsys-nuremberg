@@ -1,17 +1,16 @@
 import DownloadQueue from './download-queue'
 
-const imageDefaults = {
-  scale: 1,
-  visible: false,
-  preload: false,
-  loader: null,
-  cache: {}
-}
-
-
 export default class Image {
   constructor(options) {
-    Object.assign(this, imageDefaults, options)
+    // Set some image defaults
+    Object.assign(this,
+      {
+        scale: 1,
+        visible: false,
+        preload: false,
+        loader: null,
+        cache: {}
+      }, options)
   }
 
   init() {
