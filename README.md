@@ -273,3 +273,4 @@ minor cosmetic features implemented in `search`.
 
 In production, all site javascript is compacted into a single minified blob by
 `compressor`. (The exception is the rarely-needed dependency `jsPDF`.)
+
