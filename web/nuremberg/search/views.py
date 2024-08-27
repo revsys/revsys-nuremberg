@@ -170,7 +170,7 @@ class Search(FacetedSearchView):
 class NewSearch(Search):
     """Temporarily duplicated search view for ViteJS integration"""
 
-    template_name = 'search/new-search.html'
+    template_name = 'search/search.html'
 
 
 @csrf_exempt
@@ -179,7 +179,7 @@ def advanced_search(request):
         form = AdvancedDocumentSearchForm()
         return render(
             request,
-            'search/new-advanced-search.html',
+            'search/advanced-search.html',
             {
                 "form": form,
             },
@@ -207,14 +207,12 @@ def advanced_search(request):
             # the error encoded as JSON. This will be rendered in the `search.html`
             # template as <script> blocks to allow for more fancy error showing,
             # in a potentail future improvement of the UI.
-            print("Form Errors!!!!!!!!!")
-            print(form.errors)
             for field, error in form.errors.items():
                 messages.error(request, error.as_json(), extra_tags=field)
 
             return render(
                 request,
-                'search/new-advanced-search.html',
+                'search/advanced-search.html',
                 {
                     "form": form,
                 },
