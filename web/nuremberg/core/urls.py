@@ -16,7 +16,7 @@ urlpatterns = [
     re_path(
         r'^robots.txt$',
         lambda r: HttpResponse(
-            "User-agent: *\nDisallow: /search/", content_type="text/plain"
+            "User-agent: *\nDisallow: /search/\n", content_type="text/plain"
         ),
     ),
     re_path(r'^php', redirect_home),
