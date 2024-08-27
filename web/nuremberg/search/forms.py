@@ -333,8 +333,6 @@ class FieldedSearchForm(SearchForm):
         else:
             field_query.append('ignored')
 
-        print("SQS")
-        print(sqs.query)
         return sqs
 
 
@@ -671,8 +669,6 @@ class AdvancedDocumentSearchForm(forms.Form):
         #    data = self.cleaned_data
         data = self.cleaned_data
 
-        print(" --- Data ---")
-        print(data)
         terms = []
         # free-form entries, need to properly handle empty spaces within field
         for term in (
@@ -699,8 +695,6 @@ class AdvancedDocumentSearchForm(forms.Form):
                 # the select boxes next to these fields which are named after
                 # the field
                 option_name = f"{term}_and_or_or"
-                print(f"OPTION NAME: {option_name}")
-                print(f"OPTION VALUE: {data.get(option_name)}")
                 if data.get(option_name) == 'and':
                     terms.extend(
                         f'{term}:"{value}"' for value in values if value
@@ -709,8 +703,6 @@ class AdvancedDocumentSearchForm(forms.Form):
                     items = [value for value in values if value]
                     new_values = "|".join(items)
                     terms.append(f'{term}:"{new_values}"')
-                    print("TERMS")
-                    print(terms)
 
         # single choice field entries
         for term in (
@@ -732,14 +724,11 @@ class AdvancedDocumentSearchForm(forms.Form):
                 ]
                 terms.append(f'date:{"|".join(years)}')
             except TypeError:
-                print("Year Range:")
-                print(year_range)
                 pass
 
         # special treatment, uses `_code` suffix for field name
         for term in ('evidence', 'exhibit', 'book'):
             value = data.get(f'{term}_code')
-            print(f'>>> {term} {value}')
             if value:
                 terms.append(f'{term}:"{value}"')
 
