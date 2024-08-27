@@ -5,6 +5,11 @@
 
 {% block body_class %}document-search{% endblock %}
 
+{% block extra_head_meta %}
+<meta name="robots" content="noindex">
+{% endblock extra_head_meta %}
+
+
 {% block extra_head_js %}
   <script type="module">
       import RefreshRuntime from 'http://localhost:5173/static/@react-refresh'
