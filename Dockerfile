@@ -80,6 +80,8 @@ COPY solr_conf /code/solr_conf
 RUN touch /code/nuremberg/__init__.py; \
     chown 1000 /code
 
+RUN ./manage.py compress
+
 USER 1000
 
 WORKDIR /code

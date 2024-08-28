@@ -148,6 +148,7 @@ COMPRESS_PRECOMPILERS = (('text/less', 'lessc {infile} {outfile}'),)
 COMPRESS_STORAGE = 'compressor.storage.OfflineManifestFileStorage'
 COMPRESS_OFFLINE = True
 COMPRESS_OFFLINE_MANIFEST = 'compress-manifest.json'
+COMPRESS_OUTPUT_DIR = os.path.join(BASE_DIR, 'core/static/')
 
 # whitenoise settings
 # https://warehouse.python.org/project/whitenoise/
