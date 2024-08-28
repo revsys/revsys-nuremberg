@@ -80,8 +80,6 @@ COPY solr_conf /code/solr_conf
 RUN touch /code/nuremberg/__init__.py; \
     chown 1000 /code
 
-RUN ./manage.py compress
-
 USER 1000
 
 WORKDIR /code
@@ -107,7 +105,6 @@ COPY justfile /code/
 RUN pip install pytest-github-report
 RUN python -m zipfile -e /code/data/nuremberg_prod_dump_latest.sqlite3.zip /tmp
 
-RUN ./manage.py compress
 RUN ./manage.py collectstatic; chmod -R 777 /code/static
 RUN ./manage.py migrate
 
