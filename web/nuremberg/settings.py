@@ -145,7 +145,9 @@ COMPRESS_CSS_FILTERS = [
 #
 COMPRESS_PRECOMPILERS = (('text/less', 'lessc {infile} {outfile}'),)
 
-COMPRESS_STORAGE = 'compressor.storage.GzipCompressorFileStorage'
+COMPRESS_STORAGE = 'compressor.storage.OfflineManifestFileStorage'
+COMPRESS_OFFLINE = True
+COMPRESS_OFFLINE_MANIFEST = 'compress-manifest.json'
 
 # whitenoise settings
 # https://warehouse.python.org/project/whitenoise/
@@ -244,6 +246,7 @@ if LOCAL_DEVELOPMENT:
     SECRET_KEY = 'supersecret'
     DEBUG = True
     COMPRESS_ENABLED = True
+    COMPRESS_FORCE = False
 
     CACHES = {
         'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}
