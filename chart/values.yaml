@@ -24,7 +24,7 @@ initCommands:
       zipfile.ZipFile('/code/data/nuremberg_prod_dump_latest.sqlite3.zip').extractall(path='/tmp')
       EOF
   - name: collectstatic
-    command: './manage.py collectstatic --noinput'
+    command: './manage.py compress --force && ./manage.py collectstatic --noinput'
 
 podSecurityContext:
   fsGroup: 1000

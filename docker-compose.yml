@@ -16,7 +16,7 @@ services:
       target: release
     tty: true
     working_dir: /code
-#    command: python manage.py runserver 0.0.0.0:8000
+    command: python manage.py runserver 0.0.0.0:8000
     ports:
       - "127.0.0.1:8000:8000"
     volumes:
@@ -26,10 +26,10 @@ services:
     environment:
       # let Django load Docker-specific settings conditionally
       - DOCKERIZED=True
-      - DEBUG=False
+      - DEBUG=True
       - SECRET_KEY=top-secret-1234
-      - LOCAL_DEVELOPMENT=False
-      - DJANGO_VITE_DEV_MODE=False
+      - LOCAL_DEVELOPMENT=True
+      - DJANGO_VITE_DEV_MODE=True
     depends_on:
       - solr
     stop_signal: SIGKILL
