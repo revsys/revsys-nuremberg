@@ -6,7 +6,7 @@ IMAGE_REGISTRY := 'registry.revsys.com/nuremberg'
 CACHE_REGISTRY := env_var_or_default('CACHE_REGISTRY', 'registry.revsys.com/cache/nuremberg')
 
 
-VERSION := 'v0.5.133-r9'
+VERSION := 'v0.5.133-r10'
 
 
 GITHUB_STEP_SUMMARY := env_var_or_default('GITHUB_STEP_SUMMARY', '')
