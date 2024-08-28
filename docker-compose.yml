@@ -15,21 +15,21 @@ services:
       context: .
       target: release
     tty: true
-    working_dir: /nuremberg
-    command: python manage.py runserver 0.0.0.0:8000
+    working_dir: /code
+#    command: python manage.py runserver 0.0.0.0:8000
     ports:
       - "127.0.0.1:8000:8000"
     volumes:
       # BIND MOUNTS
-      - ./web:/nuremberg
+      - ./web:/code
       - ./media:/media
     environment:
       # let Django load Docker-specific settings conditionally
       - DOCKERIZED=True
-      - DEBUG=True
+      - DEBUG=False
       - SECRET_KEY=top-secret-1234
-      - LOCAL_DEVELOPMENT=True
-      - DJANGO_VITE_DEV_MODE=True
+      - LOCAL_DEVELOPMENT=False
+      - DJANGO_VITE_DEV_MODE=False
     depends_on:
       - solr
     stop_signal: SIGKILL
