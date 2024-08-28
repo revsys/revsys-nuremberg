@@ -65,7 +65,7 @@ ENV PYTHONDONTWRITEBYTECODE=true
 ENV PYTHONUNBUFFERED 1
 ENV DJANGO_SETTINGS_MODULE nuremberg.settings
 ENV BASE_DIR=/code
-ENV IMAGE_VERSION v0.5.133-r13
+ENV IMAGE_VERSION v0.5.133-r14
 
 
 #RUN ln -s /node/node_modules/less/bin/lessc /bin/lessc
@@ -135,7 +135,7 @@ ENV SOLR_CORE nuremberg_dev
 COPY solr_conf /opt/solr-9.2.0/solr_conf
 
 
-ENV IMAGE_VERSION v0.5.133-r13-solr
+ENV IMAGE_VERSION v0.5.133-r14-solr
 
 
 RUN --mount=type=bind,source=./dist/var-solr.tgz,target=/mnt/var-solr.tgz \
