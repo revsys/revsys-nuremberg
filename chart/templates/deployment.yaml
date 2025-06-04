@@ -39,8 +39,7 @@ spec:
           image: {{.Values.image.repository}}:{{.Chart.AppVersion}}
           command: ["/.venv/bin/gunicorn"]
           args:
-            - --bind=unix:/run/gunicorn.sock
-            - nuremberg.wsgi
+{{ toYaml .Values.args | nindent 12 }}
           volumeMounts:
 {{ toYaml .Values.volumeMounts | indent 12 }}
           envFrom:

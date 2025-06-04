@@ -26,6 +26,11 @@ initCommands:
   - name: collectstatic
     command: './manage.py collectstatic --noinput'
 
+
+args:
+  - --bind=unix:/run/gunicorn.sock
+  - nuremberg.wsgi
+
 podSecurityContext:
   fsGroup: 1000
 
