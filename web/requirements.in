@@ -30,8 +30,9 @@ pillow
 django-vite
 
 # Web Server (non-development)
-gunicorn
+gunicorn[gevent]
 whitenoise
+
 
 # Development
 pip-tools
