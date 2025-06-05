@@ -53,7 +53,6 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'nuremberg.core.middlewares.crawler.BlockCrawlerMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.middleware.http.ConditionalGetMiddleware',
