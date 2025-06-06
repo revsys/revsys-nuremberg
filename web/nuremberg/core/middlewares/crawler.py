@@ -8,7 +8,7 @@ class BlockCrawlerMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        user_agent = request.META.get('HTTP_USER_AGENT', None)
+        user_agent = request.META.get("HTTP_USER_AGENT", None)
         request.is_crawler = False
 
         if user_agent:
@@ -18,7 +18,7 @@ class BlockCrawlerMiddleware:
 
         if request.is_crawler and request.path.startswith("/search/"):
             return HttpResponseForbidden(
-                'This address is removed from crawling. Check robots.txt'
+                "This address is removed from crawling. Check robots.txt"
             )
 
         return self.get_response(request)
