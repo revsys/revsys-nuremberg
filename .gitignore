@@ -17,6 +17,7 @@ dist/
 dumps/.*
 dumps/new
 dumps/old
+data/
 .bin/
 !.cache/keep
 .cache/
