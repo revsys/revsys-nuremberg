@@ -21,18 +21,26 @@ class ContentView(TemplateView):
 
 class LandingView(ContentView):
     template_name = "content/landing.html"
-    context = {
-        "query": "",
-        "case": DocumentCase.objects.get(tag_name="IMT"),
-        "reports": AnalystReport.objects.all(),
-    }
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            "query": "",
+            "case": DocumentCase.objects.get(tag_name="IMT"),
+            "reports": AnalystReport.objects.all(),
+        })
+        return context
 
 
 class TrialsView(ContentView):
     template_name = "content/trials.html"
-    context = {
-        "cases": DocumentCase.objects.all().order_by("id"),
-    }
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            "cases": DocumentCase.objects.all().order_by("id"),
+        })
+        return context
 
 
 class ReportDetailView(DetailView):
