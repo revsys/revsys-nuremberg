@@ -191,7 +191,7 @@ update-local-tags:
 
 
 # update the latest SQLite DB dump with the provided MySQL's dump
-update-db-dump mysqldump='' dump_name=`date --utc +%FT%T`:
+update-db-dump mysqldump='' dump_name=`date -u +%FT%T`:
     #!/usr/bin/env bash
     set -euxo pipefail
     # Convert the MySQL dump to SQLite format
