@@ -144,7 +144,8 @@ class Search(FacetedSearchView):
             for result in i.documents or []:
                 if authors_properties := (result.authors_properties or {}):
                     author_ids.update(
-                        ap["author"]["id"] for ap in authors_properties.get("person")
+                        ap["author"]["id"]
+                        for ap in authors_properties.get("person")
                     )
                 # Set the viewing mode accordingly (text/image)
                 if result.model_name.lower() in (
@@ -206,7 +207,9 @@ def advanced_search(request):
             # form toplevel
             messages.error(
                 request,
-                _("The provided advanced search terms are invalid or incomplete."),
+                _(
+                    "The provided advanced search terms are invalid or incomplete."
+                ),
             )
             # Lastly, for every form error, add an "overloaded" error message with
             # the error encoded as JSON. This will be rendered in the `search.html`

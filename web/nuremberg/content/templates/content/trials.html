@@ -23,7 +23,7 @@
     {% for case in cases %}
     <tr>
       <td class="trial-img">
-      {% if case.processed %}
+      {% if case.processed and case.image_caption %}
       {% with image_path='images/trials/'|add:case.image_path %}
       <img src="{% static image_path %}" alt="Photograph for trial {{ case.name }}" />
       <p>{{ case.image_caption }}</p>

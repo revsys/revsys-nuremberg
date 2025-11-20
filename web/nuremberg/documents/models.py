@@ -35,8 +35,11 @@ class Document(models.Model):
         "DocumentLanguage", db_column="DocLanguageID", on_delete=models.PROTECT
     )
     source = models.ForeignKey(
-        "DocumentSource", db_column="DocVersionID", on_delete=models.PROTECT,
-        null=True, blank=True
+        "DocumentSource",
+        db_column="DocVersionID",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
     )
 
     class Meta:
@@ -269,7 +272,8 @@ class DocumentImage(models.Model):
             filter = (
                 image
                 for image in images
-                if image.page_number == self.page_number and image.scale == scale
+                if image.page_number == self.page_number
+                and image.scale == scale
             )
             scaled = next(filter, None)
             if scaled:
@@ -307,7 +311,9 @@ class OldDocumentImage(models.Model):
     )
 
     page_number = models.IntegerField(db_column="PageSequenceNo")
-    physical_page_number = models.CharField(max_length=50, db_column="PhysicalPageNo")
+    physical_page_number = models.CharField(
+        max_length=50, db_column="PhysicalPageNo"
+    )
     physical_page_number_suffix = models.CharField(
         db_column="PhysicalPageNoSuffix", max_length=10, blank=True, null=True
     )
@@ -437,14 +443,19 @@ class DocumentDate(models.Model):
 
 class DocumentPersonalAuthorQuerySet(models.QuerySet):
     def metadata(self, **kwargs):
-        return [author.metadata(**kwargs) for author in self.select_related("extra")]
+        return [
+            author.metadata(**kwargs)
+            for author in self.select_related("extra")
+        ]
 
     def _metadata(self, **kwargs):
         # Given than ranks are not available via DB relationships (yet?), we
         # cache them all to avoid many queries when iterating over every author
         # property. This is total 3 queries! \o/
         ranks = dict(
-            PersonalAuthorPropertyRank.objects.all().values_list("name", "rank")
+            PersonalAuthorPropertyRank.objects.all().values_list(
+                "name", "rank"
+            )
         )
         return [
             author._metadata(ranks, **kwargs)
@@ -486,7 +497,9 @@ class DocumentPersonalAuthor(models.Model):
 
     @cached_property
     def name_and_title(self):
-        return ", ".join(j for j in (self.last_name, self.first_name, self.title) if j)
+        return ", ".join(
+            j for j in (self.last_name, self.first_name, self.title) if j
+        )
 
     def metadata(self, minimal=False, ranks=None, backfill=False):
         try:
@@ -495,7 +508,9 @@ class DocumentPersonalAuthor(models.Model):
             result = None
 
         if result is None:
-            result = self._metadata(ranks=ranks, max_properties=0 if minimal else None)
+            result = self._metadata(
+                ranks=ranks, max_properties=0 if minimal else None
+            )
             if backfill:
                 # Create the corresponding `extra` instance to backfill entries
                 # This is useful for future dump overwrites of the table for
@@ -542,7 +557,9 @@ class DocumentPersonalAuthor(models.Model):
 
         if ranks is None:  # reuse rank information between exploded properties
             ranks = dict(
-                PersonalAuthorPropertyRank.objects.all().values_list("name", "rank")
+                PersonalAuthorPropertyRank.objects.all().values_list(
+                    "name", "rank"
+                )
             )
 
         # Properties grouped by name, then by qualifier
@@ -682,7 +699,9 @@ class DocumentPersonalAuthor(models.Model):
                                     :max_qualifiers
                                 ],
                             }
-                            for value, qualifiers in props["prop_values"].items()
+                            for value, qualifiers in props[
+                                "prop_values"
+                            ].items()
                         ),
                         key=operator.itemgetter("value"),
                     )[:max_property_values],
@@ -698,7 +717,9 @@ class DocumentPersonalAuthor(models.Model):
 
 class DocumentsToPersonalAuthors(models.Model):
     id = models.AutoField(primary_key=True, db_column="PersonalAuthorsListID")
-    document = models.ForeignKey(Document, db_column="DocID", on_delete=models.CASCADE)
+    document = models.ForeignKey(
+        Document, db_column="DocID", on_delete=models.CASCADE
+    )
     author = models.ForeignKey(
         DocumentPersonalAuthor,
         db_column="PAuthNameID",
@@ -747,7 +768,9 @@ class DocumentGroupAuthor(models.Model):
 
 class DocumentsToGroupAuthors(models.Model):
     id = models.AutoField(primary_key=True, db_column="GroupAuthorsListID")
-    document = models.ForeignKey(Document, db_column="DocID", on_delete=models.CASCADE)
+    document = models.ForeignKey(
+        Document, db_column="DocID", on_delete=models.CASCADE
+    )
     author = models.ForeignKey(
         DocumentGroupAuthor, db_column="GANameID", on_delete=models.CASCADE
     )
@@ -786,7 +809,9 @@ class PersonalAuthorProperty(models.Model):
     personal_author_name = models.CharField(
         db_column="PersonalAuthorName", max_length=200
     )
-    honorific = models.CharField(db_column="Honorific", max_length=100, blank=True)
+    honorific = models.CharField(
+        db_column="Honorific", max_length=100, blank=True
+    )
     personal_author_description = models.CharField(
         db_column="PersonalAuthorDescription", max_length=1000
     )
@@ -804,7 +829,9 @@ class PersonalAuthorProperty(models.Model):
 
     def __str__(self):
         qualifier = (
-            f" ({self.qualifier}: {self.qualifier_value})" if self.qualifier else ""
+            f" ({self.qualifier}: {self.qualifier_value})"
+            if self.qualifier
+            else ""
         )
         return "Property {} for {}: {}{}".format(
             self.name,
@@ -825,18 +852,24 @@ class PersonalAuthorProperty(models.Model):
 
 
 class DocumentAuthorExtraManager(models.Manager):
-    def bulk_create_from_author_qs(self, author_qs, dry_run=False, force=False):
+    def bulk_create_from_author_qs(
+        self, author_qs, dry_run=False, force=False
+    ):
         items = [
             self.model.from_metadata(metadata, dry_run, force, save=False)
             for metadata in author_qs._metadata()
         ]
         return self.bulk_create(items)
 
-    def bulk_update_from_author_qs(self, author_qs, dry_run=False, force=False):
+    def bulk_update_from_author_qs(
+        self, author_qs, dry_run=False, force=False
+    ):
         items = []
         for author in author_qs.select_related("extra"):
             metadata = author._metadata()
-            author.extra.update_from_metadata(metadata, dry_run, force, save=False)
+            author.extra.update_from_metadata(
+                metadata, dry_run, force, save=False
+            )
             items.append(author.extra)
 
         return self.bulk_update(
@@ -875,7 +908,9 @@ class DocumentAuthorExtra(models.Model):
                 f"Would download {image_url=} to {image_path=}, but dry-run was set"
             )
         else:
-            download_and_store_image(image_url, image_path, AuthorStorage(), force)
+            download_and_store_image(
+                image_url, image_path, AuthorStorage(), force
+            )
 
         return image_path, image_alt
 
@@ -894,7 +929,9 @@ class DocumentAuthorExtra(models.Model):
             result.save()
         return result
 
-    def update_from_metadata(self, metadata, dry_run=False, force=False, save=True):
+    def update_from_metadata(
+        self, metadata, dry_run=False, force=False, save=True
+    ):
         logger.info(f"Updating DocumentAuthorExtra instance for {metadata=}")
         image_path, image_alt = self.process_image(metadata, dry_run, force)
         self.name = metadata["author"]["name"]
@@ -917,7 +954,9 @@ class DocumentAuthorExtra(models.Model):
         }
         if not minimal:
             image = (
-                {"url": self.image.url, "alt": self.image_alt} if self.image else None
+                {"url": self.image.url, "alt": self.image_alt}
+                if self.image
+                else None
             )
             result.update({"image": image, "properties": self.properties})
         return result
@@ -926,10 +965,18 @@ class DocumentAuthorExtra(models.Model):
 class DocumentCase(models.Model):
     id = models.AutoField(primary_key=True, db_column="CaseID")
     name = models.CharField(max_length=100, db_column="Case")
-    tag_name = models.CharField(db_column='TrialName', max_length=200, null=True, blank=True)
-    alias = models.CharField(db_column="TrialNameAlias", max_length=200, null=True, blank=True)
-    description = models.TextField(db_column="Description", null=True, blank=True)
-    image_caption = models.CharField(db_column="TrialImageCaption", max_length=500, null=True, blank=True)
+    tag_name = models.CharField(
+        db_column='TrialName', max_length=200, null=True, blank=True
+    )
+    alias = models.CharField(
+        db_column="TrialNameAlias", max_length=200, null=True, blank=True
+    )
+    description = models.TextField(
+        db_column="Description", null=True, blank=True
+    )
+    image_caption = models.CharField(
+        db_column="TrialImageCaption", max_length=500, null=True, blank=True
+    )
     notes = models.TextField(db_column="Note", null=True, blank=True)
 
     documents = models.ManyToManyField(
@@ -957,7 +1004,10 @@ class DocumentCase(models.Model):
     @cached_property
     def processed(self):
         # Notes may be NULL after migration - treat as processed if empty
-        return not self.notes or "currently being processed" not in self.notes.lower()
+        return (
+            not self.notes
+            or "currently being processed" not in self.notes.lower()
+        )
 
     def short_name(self):
         return self.name.split(" -")[0].replace(".", ":").replace(" 0", " ")
@@ -965,7 +1015,9 @@ class DocumentCase(models.Model):
 
 class DocumentsToCases(models.Model):
     id = models.AutoField(primary_key=True, db_column="CasesListID")
-    document = models.ForeignKey(Document, db_column="DocID", on_delete=models.CASCADE)
+    document = models.ForeignKey(
+        Document, db_column="DocID", on_delete=models.CASCADE
+    )
     case = models.ForeignKey(
         DocumentCase, db_column="DocCaseID", on_delete=models.CASCADE
     )
@@ -1059,13 +1111,21 @@ class DocumentExternalMetadata(models.Model):
     )
 
     summary = models.CharField(db_column="DocSummary", max_length=1000)
-    evidence_code_series = models.CharField(db_column="EFSeries", max_length=10)
+    evidence_code_series = models.CharField(
+        db_column="EFSeries", max_length=10
+    )
     evidence_code_num = models.CharField(db_column="EFCodeNum", max_length=10)
-    evidence_code_suffix = models.CharField(db_column="EFCodeNumSuffix", max_length=10)
+    evidence_code_suffix = models.CharField(
+        db_column="EFCodeNumSuffix", max_length=10
+    )
     exhibit_case = models.CharField(db_column="ExhibitCase", max_length=10)
-    exhibit_country = models.CharField(db_column="ExhibitCountry", max_length=100)
+    exhibit_country = models.CharField(
+        db_column="ExhibitCountry", max_length=100
+    )
     exhibit_side = models.CharField(db_column="ExhibitSide", max_length=100)
-    exhibit_defendant = models.CharField(db_column="ExhibitDefendant", max_length=100)
+    exhibit_defendant = models.CharField(
+        db_column="ExhibitDefendant", max_length=100
+    )
     exhibit_num = models.CharField(db_column="ExhibitNum", max_length=10)
 
     updated_at = models.DateTimeField(db_column="RecordUpdated")
@@ -1129,7 +1189,9 @@ class DocumentDefendant(models.Model):
 
 class DocumentsToDefendants(models.Model):
     id = models.AutoField(primary_key=True, db_column="DefendantsListID")
-    document = models.ForeignKey(Document, db_column="DocID", on_delete=models.CASCADE)
+    document = models.ForeignKey(
+        Document, db_column="DocID", on_delete=models.CASCADE
+    )
     defendant = models.ForeignKey(
         DocumentDefendant, db_column="DefNameID", on_delete=models.CASCADE
     )
@@ -1185,7 +1247,9 @@ class DocumentActivity(models.Model):
 
 class DocumentsToActivities(models.Model):
     id = models.AutoField(primary_key=True, db_column="ActivitiesListID")
-    document = models.ForeignKey(Document, db_column="DocID", on_delete=models.CASCADE)
+    document = models.ForeignKey(
+        Document, db_column="DocID", on_delete=models.CASCADE
+    )
     activity = models.ForeignKey(
         DocumentActivity, db_column="ActNameID", on_delete=models.CASCADE
     )
@@ -1242,7 +1306,9 @@ class DocumentEvidenceCode(models.Model):
             prefix_code = self.prefix.code if self.prefix else "NO_PREFIX"
         except DocumentEvidencePrefix.DoesNotExist:
             prefix_code = "NO_PREFIX"
-        return "{}-{}{}".format(prefix_code, self.number or "", self.suffix or "")
+        return "{}-{}{}".format(
+            prefix_code, self.number or "", self.suffix or ""
+        )
 
 
 class DefenseDocumentCodeName(models.Model):
@@ -1250,7 +1316,9 @@ class DefenseDocumentCodeName(models.Model):
     name = models.CharField(
         db_column="DefenseDocName", max_length=50, blank=True, null=True
     )
-    case = models.ForeignKey(DocumentCase, db_column="CaseID", on_delete=models.CASCADE)
+    case = models.ForeignKey(
+        DocumentCase, db_column="CaseID", on_delete=models.CASCADE
+    )
 
     class Meta:
         managed = False
@@ -1262,7 +1330,9 @@ class DefenseDocumentBookCodeName(models.Model):
     name = models.CharField(
         db_column="DefenseDocBkName", max_length=50, blank=True, null=True
     )
-    case = models.ForeignKey(DocumentCase, db_column="CaseID", on_delete=models.CASCADE)
+    case = models.ForeignKey(
+        DocumentCase, db_column="CaseID", on_delete=models.CASCADE
+    )
 
     class Meta:
         managed = False
@@ -1276,7 +1346,9 @@ class DocumentExhibitCodeName(models.Model):
     name = models.CharField(
         db_column="DefenseExhName", max_length=50, blank=True, null=True
     )  # Field name made lowercase.
-    case = models.ForeignKey(DocumentCase, db_column="CaseID", on_delete=models.CASCADE)
+    case = models.ForeignKey(
+        DocumentCase, db_column="CaseID", on_delete=models.CASCADE
+    )
 
     class Meta:
         managed = False
@@ -1319,7 +1391,9 @@ class DocumentExhibitCode(models.Model):
     defense_name_denormalized = models.CharField(
         db_column="DefExhName", max_length=50, blank=True, null=True
     )
-    defense_number = models.IntegerField(db_column="DefExhNo", blank=True, null=True)
+    defense_number = models.IntegerField(
+        db_column="DefExhNo", blank=True, null=True
+    )
     defense_suffix = models.CharField(
         db_column="DefExhNoSuffix", max_length=30, blank=True, null=True
     )
@@ -1390,7 +1464,9 @@ class DocumentExhibitCode(models.Model):
                 if self.defense_doc_book_name:
                     name = self.defense_doc_book_name.name
                 else:
-                    name = self.defense_doc_book_name_denormalized or "Defendant"
+                    name = (
+                        self.defense_doc_book_name_denormalized or "Defendant"
+                    )
             except DefenseDocumentBookCodeName.DoesNotExist:
                 name = self.defense_doc_book_name_denormalized or "Defendant"
             return f"{name} {self.defense_doc_book_number}"
@@ -1443,10 +1519,18 @@ class DocumentText(models.Model):
     title = models.CharField(db_column="Title", max_length=1000)
     evidence_code_tag = models.CharField(db_column="DocID", max_length=100)
     # could this be an FK to DocumentEvidencePrefix? (tblNMTCodes)
-    evidence_code_series = models.CharField(db_column="DocCodeSeries", max_length=100)
-    evidence_code_num = models.CharField(db_column="DocCodeNum", max_length=100)
-    hlsl_doc_id = models.IntegerField(db_column="HLSLDocID", null=True, blank=True)
-    source_citation = models.CharField(db_column="SourceCitation", max_length=500)
+    evidence_code_series = models.CharField(
+        db_column="DocCodeSeries", max_length=100
+    )
+    evidence_code_num = models.CharField(
+        db_column="DocCodeNum", max_length=100
+    )
+    hlsl_doc_id = models.IntegerField(
+        db_column="HLSLDocID", null=True, blank=True
+    )
+    source_citation = models.CharField(
+        db_column="SourceCitation", max_length=500
+    )
     load_timestamp = models.DateTimeField(db_column="LoadDateTime")
     text = models.TextField(db_column="DocText", blank=True, null=True)
     language = models.CharField(db_column="Language", max_length=100)
@@ -1505,7 +1589,9 @@ class DocumentText(models.Model):
         # Some texts have both `680—PS` and `680-PS` as apparent page separator
         secondary_tag = self.evidence_code_tag.replace("-", "—")
         return (
-            self.text.count(self.evidence_code_tag) + self.text.count(secondary_tag) + 1
+            self.text.count(self.evidence_code_tag)
+            + self.text.count(secondary_tag)
+            + 1
         )
 
     @cached_property

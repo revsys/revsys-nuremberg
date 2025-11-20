@@ -97,8 +97,12 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
     },
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
-    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
-    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
+    {
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"
+    },
 ]
 
 
@@ -172,7 +176,9 @@ LOGGING = {
             "style": "{",
         },
     },
-    "handlers": {"console": {"class": "logging.StreamHandler", "formatter": "verbose"}},
+    "handlers": {
+        "console": {"class": "logging.StreamHandler", "formatter": "verbose"}
+    },
     "loggers": {
         "django": {
             "handlers": ["console"],
@@ -191,7 +197,9 @@ CORS_ALLOW_ALL_ORIGINS = True
 # file storage using django-storages
 # https://django-storages.readthedocs.io/en/latest/backends/amazon-S3.html
 
-AUTHORS_BUCKET = env("AUTHORS_BUCKET", default="harvard-law-library-nuremberg-authors")
+AUTHORS_BUCKET = env(
+    "AUTHORS_BUCKET", default="harvard-law-library-nuremberg-authors"
+)
 DOCUMENTS_BUCKET = env(
     "DOCUMENTS_BUCKET", default="harvard-law-library-nuremberg-documents"
 )
@@ -207,7 +215,9 @@ if not LOCAL_DEVELOPMENT:
     # AWS_S3_ACCESS_KEY_ID = env('AWS_S3_ACCESS_KEY_ID')
     # AWS_S3_SECRET_ACCESS_KEY = env('AWS_S3_SECRET_ACCESS_KEY')
     AWS_S3_REGION_NAME = "sfo2"
-    AWS_S3_ENDPOINT_URL = f"https://{AWS_S3_REGION_NAME}.digitaloceanspaces.com"
+    AWS_S3_ENDPOINT_URL = (
+        f"https://{AWS_S3_REGION_NAME}.digitaloceanspaces.com"
+    )
 
 # Look for images in AWS S3
 # DOCUMENTS_URL = f'http://s3.amazonaws.com/nuremberg-documents/'
@@ -230,7 +240,9 @@ if LOCAL_DEVELOPMENT:
     COMPRESS_ENABLED = True
     COMPRESS_FORCE = False
 
-    CACHES = {"default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"}}
+    CACHES = {
+        "default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"}
+    }
 
     STATIC_PRECOMPILER_COMPILERS = (
         (
@@ -245,9 +257,7 @@ if LOCAL_DEVELOPMENT:
     # Absolute filesystem path to the directory that will hold user-uploaded files.
     MEDIA_ROOT = os.path.abspath(os.path.join(BASE_DIR, "media"))
     MEDIA_URL = "/media/"
-    MEDIA_URL = (
-        "https://sfo2.digitaloceanspaces.com/harvard-law-library-nuremberg-documents/"
-    )
+    MEDIA_URL = "https://sfo2.digitaloceanspaces.com/harvard-law-library-nuremberg-documents/"
     LOGGING["loggers"]["nuremberg"] = {
         "handlers": ["console"],
         "level": "INFO",

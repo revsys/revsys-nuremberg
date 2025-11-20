@@ -24,11 +24,13 @@ class LandingView(ContentView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context.update({
-            "query": "",
-            "case": DocumentCase.objects.get(tag_name="IMT"),
-            "reports": AnalystReport.objects.all(),
-        })
+        context.update(
+            {
+                "query": "",
+                "case": DocumentCase.objects.get(tag_name="IMT"),
+                "reports": AnalystReport.objects.all(),
+            }
+        )
         return context
 
 
@@ -37,9 +39,11 @@ class TrialsView(ContentView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context.update({
-            "cases": DocumentCase.objects.all().order_by("id"),
-        })
+        context.update(
+            {
+                "cases": DocumentCase.objects.all().order_by("id"),
+            }
+        )
         return context
 
 

@@ -85,14 +85,44 @@ urlpatterns = [
         name="nmt-4",
     ),
     path(
+        'nmt_5_intro',
+        ContentView.as_view(template_name='content/nmt_5_intro.html'),
+        name="nmt-5",
+    ),
+    path(
+        'nmt_6_intro',
+        ContentView.as_view(template_name='content/nmt_6_intro.html'),
+        name="nmt-6",
+    ),
+    path(
         'nmt_7_intro',
         ContentView.as_view(template_name='content/nmt_7_intro.html'),
         name="nmt-7",
     ),
     path(
+        'nmt_8_intro',
+        ContentView.as_view(template_name='content/nmt_8_intro.html'),
+        name="nmt-8",
+    ),
+    path(
         'nmt_9_intro',
         ContentView.as_view(template_name='content/nmt_9_intro.html'),
         name="nmt-9",
+    ),
+    path(
+        'nmt_10_intro',
+        ContentView.as_view(template_name='content/nmt_10_intro.html'),
+        name="nmt-10",
+    ),
+    path(
+        'nmt_11_intro',
+        ContentView.as_view(template_name='content/nmt_11_intro.html'),
+        name="nmt-11",
+    ),
+    path(
+        'nmt_12_intro',
+        ContentView.as_view(template_name='content/nmt_12_intro.html'),
+        name="nmt-12",
     ),
     path('reports/<int:pk>', ReportDetailView.as_view(), name='report-detail'),
 ]

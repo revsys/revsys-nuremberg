@@ -35,7 +35,9 @@ def test_search_page(query):
     assert search_bar
     assert search_bar.val() == ""
 
-    assert re.findall(r"Results 1-15 of \d+", page(SEARCH_SUMMARY_SELECTOR).text())
+    assert re.findall(
+        r"Results 1-15 of \d+", page(SEARCH_SUMMARY_SELECTOR).text()
+    )
     assert re.findall(r"Document \(\d+\)", page(".facet").text())
 
     page = follow_link(page(".facet p").with_text("Transcript").find("a"))
@@ -43,7 +45,9 @@ def test_search_page(query):
     assert "Results 1-7 of 7" in page(SEARCH_SUMMARY_SELECTOR).text()
     assert "Document" not in page(".facet").text()
     filter_link = (
-        page(".applied-filters").with_text("Material Type Transcript").find("a")
+        page(".applied-filters")
+        .with_text("Material Type Transcript")
+        .find("a")
     )
     assert filter_link
 
@@ -68,12 +72,18 @@ def test_facets(query):
     assert "NMT 2" in page(".applied-filters").with_text("Trial").text()
 
     # test removing facet
-    page = follow_link(page(".applied-filters").with_text("Trial NMT 2").find("a"))
+    page = follow_link(
+        page(".applied-filters").with_text("Trial NMT 2").find("a")
+    )
     assert re.findall(baseline, page(SEARCH_SUMMARY_SELECTOR).text())
 
     # test unknown facet
     page = follow_link(
-        page(".facet").with_text("Trial").find("p").with_text("Unknown").find("a")
+        page(".facet")
+        .with_text("Trial")
+        .find("p")
+        .with_text("Unknown")
+        .find("a")
     )
     assert re.findall(
         r"Results 1-15 of \d+ for polish workers in germany",
@@ -83,7 +93,11 @@ def test_facets(query):
 
     # test multiple facets
     page = follow_link(
-        page(".facet").with_text("Language").find("p").with_text("English").find("a")
+        page(".facet")
+        .with_text("Language")
+        .find("p")
+        .with_text("English")
+        .find("a")
     )
     assert re.findall(
         r"Results 1-15 of \d+ for polish workers in germany",
@@ -93,7 +107,11 @@ def test_facets(query):
     assert "English" in page(".applied-filters").with_text("Language").text()
 
     page = follow_link(
-        page(".facet").with_text("Source").find("p").with_text("Typescript").find("a")
+        page(".facet")
+        .with_text("Source")
+        .find("p")
+        .with_text("Typescript")
+        .find("a")
     )
     assert re.findall(
         r"Results 1-15 of \d+ for polish workers in germany",
@@ -165,7 +183,9 @@ def count_results(query):
         if count == 0:
             matches = re.findall(r"No results", results_count)
         else:
-            matches = re.findall(r"Results (\d+)-(\d+) of (\d+)", results_count)
+            matches = re.findall(
+                r"Results (\d+)-(\d+) of (\d+)", results_count
+            )
         assert len(matches) == 1
 
         if count == 0:
@@ -195,7 +215,9 @@ def test_field_search(count_results):
     count_results("workers -trial:(nmt 4)")
     count_results("workers evidence:NO-190", page_count=5)
     count_results("workers source:typescript language:german")
-    count_results("workers source:typescript language:german -author:Milch", 29)
+    count_results(
+        "workers source:typescript language:german -author:Milch", 29
+    )
     count_results("workers trial:(nmt 2 | nmt 4)")
 
     total = count_results("workers date:unknown")
@@ -322,7 +344,8 @@ def test_transcript_snippets(query):
     page = query("documents hlsl:2")
 
     assert (
-        "Results 1-1 of 1 for documents hlsl:2" in page(SEARCH_SUMMARY_SELECTOR).text()
+        "Results 1-1 of 1 for documents hlsl:2"
+        in page(SEARCH_SUMMARY_SELECTOR).text()
     )
     assert "1 result in this transcript" in page.text()
 
@@ -348,7 +371,9 @@ def test_transcript_snippets(query):
 def test_pagination(query):
     page = query("")
 
-    matches = re.findall(r"Results 1-15 of (\d+)", page(SEARCH_SUMMARY_SELECTOR).text())
+    matches = re.findall(
+        r"Results 1-15 of (\d+)", page(SEARCH_SUMMARY_SELECTOR).text()
+    )
     assert matches
 
     page = follow_link(page('[data-test="search-result-last-page"]'))
@@ -373,7 +398,9 @@ def test_sort(query):
     # test date sorts
     page = query("-date:none")
     page = go_to(
-        page.absolute_url(page("select option").with_text("Earliest Date").val())
+        page.absolute_url(
+            page("select option").with_text("Earliest Date").val()
+        )
     )
     earliest_date = "1793"
     latest_date = "18 March 1965"
@@ -391,7 +418,9 @@ def test_sort(query):
 
     # test page sorts
     page = query("")
-    page = go_to(page.absolute_url(page("select option").with_text("Most Pages").val()))
+    page = go_to(
+        page.absolute_url(page("select option").with_text("Most Pages").val())
+    )
     assert "492 pages" in page.text()
     last_page_link = page('[data-test="search-result-last-page"]')
     page = follow_link(last_page_link)
@@ -399,7 +428,9 @@ def test_sort(query):
 
     page = query("")
     page = go_to(
-        page.absolute_url(page("select option").with_text("Fewest Pages").val())
+        page.absolute_url(
+            page("select option").with_text("Fewest Pages").val()
+        )
     )
     assert "0 pages" in page.text()
     page = follow_link(page('[data-test="search-result-last-page"]'))
