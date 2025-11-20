@@ -25,7 +25,7 @@
       <td class="trial-img">
       {% if case.processed and case.image_caption %}
       {% with image_path='images/trials/'|add:case.image_path %}
-      <img src="{% static image_path %}" alt="Photograph for trial {{ case.name }}" />
+      <img src="{% static image_path %}" alt="Photograph for trial {{ case.name }}" style="max-width: 300px; height: auto;"/>
       <p>{{ case.image_caption }}</p>
       {% endwith %}
       {% endif %}
