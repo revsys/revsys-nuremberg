@@ -24,7 +24,7 @@ class DocumentIndex(indexes.SearchIndex, indexes.Indexable):
     )  # not really a facet, just an exact key
 
     slug = indexes.CharField(model_attr='slug', indexed=False)
-    title = indexes.CharField(model_attr='title', default='')
+    title = indexes.CharField(default='')
     literal_title = indexes.CharField(model_attr='literal_title', null=True)
     description = indexes.CharField(model_attr='description', null=True)
 
@@ -33,7 +33,7 @@ class DocumentIndex(indexes.SearchIndex, indexes.Indexable):
     )
     date = indexes.CharField(faceted=True, null=True)
     date_year = indexes.CharField(faceted=True, null=True)
-    date_sort = indexes.DateTimeField(model_attr='date', null=True)
+    date_sort = indexes.DateTimeField(null=True)
 
     language = indexes.CharField(
         model_attr='language__name', faceted=True, null=True
@@ -85,6 +85,10 @@ class DocumentIndex(indexes.SearchIndex, indexes.Indexable):
         # This can be changed to make grouping work on volume or something else.
         return 'Document_{}'.format(document.id)
 
+    def prepare_title(self, document):
+        """Use display_title property which provides fallback for missing titles."""
+        return document.display_title
+
     def prepare_authors(self, document):
         return [
             author.short_name() for author in document.group_authors.all()
@@ -111,6 +115,18 @@ class DocumentIndex(indexes.SearchIndex, indexes.Indexable):
         if date:
             return date.year
 
+    def prepare_date_sort(self, document):
+        """Convert document date to a valid datetime for SOLR sorting.
+
+        Returns None if the date components are invalid, which is acceptable
+        since the field is marked as null=True.
+        """
+        date_obj = document.date()
+        if date_obj:
+            # Use the as_date() method which safely parses year/month/day
+            return date_obj.as_date()
+        return None
+
     def prepare_defendants(self, document):
         return [
             defendant.full_name() for defendant in document.defendants.all()
@@ -123,7 +139,13 @@ class DocumentIndex(indexes.SearchIndex, indexes.Indexable):
         return [case.tag_name for case in document.cases.all()]
 
     def prepare_evidence_codes(self, document):
-        return [str(code) for code in document.evidence_codes.all()]
+        codes = []
+        for code in document.evidence_codes.all():
+            code_str = str(code)
+            # Filter out codes with broken foreign keys (will show as "NO_PREFIX-123")
+            if code_str and not code_str.startswith("NO_PREFIX"):
+                codes.append(code_str)
+        return codes
 
     def prepare_exhibit_codes(self, document):
         codes = []
@@ -158,15 +180,17 @@ class DocumentTextIndex(indexes.SearchIndex, indexes.Indexable):
 
     slug = indexes.CharField(model_attr='slug', indexed=False)
     # The title of the most relevant DocumentImage linked with this text
-    title = indexes.CharField(model_attr='document__title', default='')
+    title = indexes.CharField(default='')
     # The actual title of the document full text, which is usually less nice
     # (e.g. TRANSLATION OF DOCUMENT 2115-PS)
-    literal_title = indexes.CharField(model_attr='title', default='')
-    total_pages = indexes.IntegerField(model_attr='total_pages')
+    literal_title = indexes.CharField(default='')
+    total_pages = indexes.IntegerField(
+        model_attr='total_pages', default=0, null=True
+    )
 
     date = indexes.CharField(faceted=True, null=True)
     date_year = indexes.CharField(faceted=True, null=True)
-    date_sort = indexes.DateTimeField(model_attr='document__date', null=True)
+    date_sort = indexes.DateTimeField(null=True)
 
     source = indexes.CharField(model_attr='source_citation')
 
@@ -188,6 +212,16 @@ class DocumentTextIndex(indexes.SearchIndex, indexes.Indexable):
     def prepare_grouping_key(self, obj):
         # This is a hack to group transcripts but not other objects.
         return 'DocumentText_{}'.format(obj.id)
+
+    def prepare_title(self, obj):
+        """Use display_title from linked Document, if available."""
+        if obj.document:
+            return obj.document.display_title
+        return obj.display_title
+
+    def prepare_literal_title(self, obj):
+        """Use display_title property which provides fallback for missing titles."""
+        return obj.display_title
 
     def prepare_authors(self, obj):
         document = obj.document
@@ -219,6 +253,19 @@ class DocumentTextIndex(indexes.SearchIndex, indexes.Indexable):
         date = obj.document and obj.document.date()
         if date:
             return date.year
+
+    def prepare_date_sort(self, obj):
+        """Convert document date to a valid datetime for SOLR sorting.
+
+        Returns None if the date components are invalid, which is acceptable
+        since the field is marked as null=True.
+        """
+        if obj.document:
+            date_obj = obj.document.date()
+            if date_obj:
+                # Use the as_date() method which safely parses year/month/day
+                return date_obj.as_date()
+        return None
 
     def prepare_evidence_codes(self, obj):
         return [obj.evidence_code]

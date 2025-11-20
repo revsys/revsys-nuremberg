@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load search_url static cache image_url %}
 
-{% block title %} Photographs - {{document.title}} {% endblock %}
+{% block title %} Photographs - {{document.display_title}} {% endblock %}
 
 {% block body_class %}photographs{% endblock %}
 
@@ -31,7 +31,7 @@
       Photograph
     </h6>
     <h3 class="photograph-title">
-      {{document.title}}
+      {{document.display_title}}
     </h3>
     <p class="photograph-date">
       {{ document.year_taken|default:"Undated" }}

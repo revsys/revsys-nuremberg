@@ -3,9 +3,9 @@
 {# this is a sentinel value used to hide these terms from highlighting snippets #}
 <end of text>
 
-{{ object.title }}
+{{ object.display_title }}
 
-{{ object.document.title }}
+{% if object.document %}{{ object.document.display_title }}{% endif %}
 
 {{ object.material_type }}
 

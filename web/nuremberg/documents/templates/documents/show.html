@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load search_url static cache django_vite %}
 
-{% block title %} Document Viewer - {{document.title}} {% endblock %}
+{% block title %} Document Viewer - {{document.display_title}} {% endblock %}
 
 {% block body_class %}document-viewer{% endblock %}
 
@@ -122,7 +122,7 @@
   {% endblock %}
   <div class="sidebar-layout">
 
-    <h1 class="h2" aria-role="heading" aria-level="1">{{document.title}}</h1>
+    <h1 class="h2" aria-role="heading" aria-level="1">{{document.display_title}}</h1>
 
     <div class="sidebar-column document-info">
       <div class="material-icon small material-documents"></div>

@@ -46,11 +46,19 @@ class Command(BaseCommand):
         self.stdout.write('\n\n\n')
 
     def create_images(self, document_ids=None):
+        from nuremberg.documents.models import Document
+
         existing_images = DocumentImage.objects.filter(
             document_id=OuterRef('document_id')
         )
+        # Get all valid document IDs to avoid foreign key constraint failures
+        valid_doc_ids = Document.objects.values_list('id', flat=True)
+
         missing = (
-            OldDocumentImage.objects.exclude(
+            OldDocumentImage.objects.filter(
+                document_id__in=Subquery(valid_doc_ids)
+            )
+            .exclude(
                 page_number__in=Subquery(existing_images.values('page_number'))
             )
             .select_related('image_type')

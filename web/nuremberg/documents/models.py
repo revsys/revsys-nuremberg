@@ -35,7 +35,8 @@ class Document(models.Model):
         "DocumentLanguage", db_column="DocLanguageID", on_delete=models.PROTECT
     )
     source = models.ForeignKey(
-        "DocumentSource", db_column="DocVersionID", on_delete=models.PROTECT
+        "DocumentSource", db_column="DocVersionID", on_delete=models.PROTECT,
+        null=True, blank=True
     )
 
     class Meta:
@@ -43,7 +44,24 @@ class Document(models.Model):
         db_table = "tblDoc"
 
     def __str__(self):
-        return "#{0} - {1}".format(self.id, self.title)
+        return "#{0} - {1}".format(self.id, self.display_title)
+
+    @cached_property
+    def display_title(self):
+        """Return the best available title for display purposes.
+
+        Fallback order:
+        1. TitleDescriptive (the main descriptive title)
+        2. Title (the literal title from the document)
+        3. "Document #<id>" using the HLSL item number
+
+        This handles the ~17,000 vendor documents that lack TitleDescriptive.
+        """
+        if self.title:
+            return self.title
+        if self.literal_title:
+            return self.literal_title
+        return f"Document #{self.id}"
 
     @cached_property
     def full_text(self):
@@ -110,6 +128,10 @@ class Document(models.Model):
     def full_texts(self):
         """Fetch the DocumentText for this instance, if available.
 
+        This supports two linking methods:
+        1. NEW (16,334 texts): Direct DocID linking via HLSLDocID field
+        2. LEGACY (2,193 texts): Evidence File code linking via DocID field
+
         There is a one-to-many relationship between full-text docs and our
         documents described by metadata, deriving from the fact that each
         full-text doc -- with a few exceptions -- represents only one version
@@ -120,17 +142,24 @@ class Document(models.Model):
         "Evidence File code" or "EF code", e.g., PS-398 or NOKW-222).
 
         """
-        # ToDo: improve query by not needing the annotation and filtering.
-        # Consider using instead:
-        #   DocumentEvidenceCode.number
-        #   DocumentEvidenceCode.prefix.code
-        # (may need some extra prefetching for DocumentEvidencePrefix)
+        # NEW APPROACH: Check for direct DocID linking via HLSLDocID
+        # This is used for newer full-text documents (DocID >= 600000 typically)
+        direct_match = DocumentText.objects.filter(hlsl_doc_id=self.id)
+        if direct_match.exists():
+            return direct_match
 
+        # LEGACY APPROACH: Evidence File code linking
+        # This is used for older full-text documents (DocID < 600000 typically)
         # Do not use the plain `str` of DocumentEvidenceCode since for codes
         # with a suffix, the `str` representation will not match (like PS-343a)
-        evidence_codes = [
-            f"{e.prefix.code}-{e.number}" for e in self.evidence_codes.all()
-        ]
+        evidence_codes = []
+        for e in self.evidence_codes.all():
+            try:
+                if e.prefix:
+                    evidence_codes.append(f"{e.prefix.code}-{e.number}")
+            except DocumentEvidencePrefix.DoesNotExist:
+                # Skip evidence codes with broken foreign key references
+                pass
         result = DocumentText.objects.annotate(
             evidence_code=Concat(
                 "evidence_code_series", Value("-"), "evidence_code_num"
@@ -149,7 +178,14 @@ class Document(models.Model):
         """
         # Use the plain `str` of DocumentEvidenceCode which include suffixes
         # for those codes that have one.
-        evidence_codes = [str(e) for e in self.evidence_codes.all()]
+        evidence_codes = []
+        for e in self.evidence_codes.all():
+            try:
+                if e.prefix:
+                    evidence_codes.append(str(e))
+            except DocumentEvidencePrefix.DoesNotExist:
+                # Skip evidence codes with broken foreign key references
+                pass
         return (
             DocumentExternalMetadata.objects.select_related("source")
             .annotate(
@@ -693,6 +729,8 @@ class DocumentGroupAuthor(models.Model):
         return self.name if self.name is not None else "<None>"
 
     def short_name(self):
+        if self.name is None:
+            return ""
         return self.name.split(" (")[0]
 
     def metadata(self):
@@ -888,11 +926,11 @@ class DocumentAuthorExtra(models.Model):
 class DocumentCase(models.Model):
     id = models.AutoField(primary_key=True, db_column="CaseID")
     name = models.CharField(max_length=100, db_column="Case")
-    #    tag_name = models.CharField(db_column='TrialName', max_length=200)
-    alias = models.CharField(db_column="TrialNameAlias", max_length=200)
-    description = models.TextField(db_column="Description")
-    image_caption = models.CharField(db_column="TrialImageCaption", max_length=500)
-    notes = models.TextField(db_column="Note")
+    tag_name = models.CharField(db_column='TrialName', max_length=200, null=True, blank=True)
+    alias = models.CharField(db_column="TrialNameAlias", max_length=200, null=True, blank=True)
+    description = models.TextField(db_column="Description", null=True, blank=True)
+    image_caption = models.CharField(db_column="TrialImageCaption", max_length=500, null=True, blank=True)
+    notes = models.TextField(db_column="Note", null=True, blank=True)
 
     documents = models.ManyToManyField(
         Document,
@@ -918,7 +956,8 @@ class DocumentCase(models.Model):
 
     @cached_property
     def processed(self):
-        return "currently being processed" not in self.notes.lower()
+        # Notes may be NULL after migration - treat as processed if empty
+        return not self.notes or "currently being processed" not in self.notes.lower()
 
     def short_name(self):
         return self.name.split(" -")[0].replace(".", ":").replace(" 0", " ")
@@ -956,7 +995,6 @@ class DocumentCitation(models.Model):
     transcript_page_number_suffix = models.TextField(
         db_column="EngTransPageNoSuffix", null=True
     )
-    transcript_seq_number = models.IntegerField(db_column="TranscriptCitationSeqNo")
 
     class Meta:
         managed = False
@@ -969,7 +1007,6 @@ class DocumentCitation(models.Model):
         )
         if self.transcript_page_number_suffix:
             result += f"-{self.transcript_page_number_suffix}"
-        result += f" ({self.transcript_seq_number})"
         return result
 
     @cached_property
@@ -979,18 +1016,13 @@ class DocumentCitation(models.Model):
         except DocumentCase.DoesNotExist:
             transcript = None
         result = None
-        if transcript is not None:
-            qs = None
-            if self.transcript_seq_number is None and self.transcript_page_number:
-                qs = {"page": self.transcript_page_number}
-            elif self.transcript_seq_number:
-                qs = {"seq": self.transcript_seq_number}
-            if qs:
-                result = (
-                    reverse("transcripts:show", args=(transcript.id,))
-                    + "?"
-                    + urlencode(qs)
-                )
+        if transcript is not None and self.transcript_page_number:
+            qs = {"page": self.transcript_page_number}
+            result = (
+                reverse("transcripts:show", args=(transcript.id,))
+                + "?"
+                + urlencode(qs)
+            )
         return result
 
     @cached_property
@@ -1206,7 +1238,11 @@ class DocumentEvidenceCode(models.Model):
         db_table = "tblNMTList"
 
     def __str__(self):
-        return "{}-{}{}".format(self.prefix.code, self.number, self.suffix or "")
+        try:
+            prefix_code = self.prefix.code if self.prefix else "NO_PREFIX"
+        except DocumentEvidencePrefix.DoesNotExist:
+            prefix_code = "NO_PREFIX"
+        return "{}-{}{}".format(prefix_code, self.number or "", self.suffix or "")
 
 
 class DefenseDocumentCodeName(models.Model):
@@ -1332,9 +1368,12 @@ class DocumentExhibitCode(models.Model):
                 self.prosecution_number, self.prosecution_suffix or ""
             )
         if self.defense_number:
-            if self.defense_name:
-                name = self.defense_name.name
-            else:
+            try:
+                if self.defense_name:
+                    name = self.defense_name.name
+                else:
+                    name = self.defense_name_denormalized or "Defendant"
+            except DocumentExhibitCodeName.DoesNotExist:
                 name = self.defense_name_denormalized or "Defendant"
             return "{} {}{}".format(
                 name, self.defense_number, self.defense_suffix or ""
@@ -1347,18 +1386,24 @@ class DocumentExhibitCode(models.Model):
             return f"Prosecution {self.prosecution_doc_book_number}"
 
         if self.defense_doc_book_number:
-            if self.defense_doc_book_name:
-                name = self.defense_doc_book_name.name
-            else:
+            try:
+                if self.defense_doc_book_name:
+                    name = self.defense_doc_book_name.name
+                else:
+                    name = self.defense_doc_book_name_denormalized or "Defendant"
+            except DefenseDocumentBookCodeName.DoesNotExist:
                 name = self.defense_doc_book_name_denormalized or "Defendant"
             return f"{name} {self.defense_doc_book_number}"
 
     @cached_property
     def defense_doc_code(self):
         if self.defense_doc_number:
-            if self.defense_doc_name:
-                name = self.defense_doc_name.name
-            else:
+            try:
+                if self.defense_doc_name:
+                    name = self.defense_doc_name.name
+                else:
+                    name = self.defense_doc_name_denormalized or "Defendant"
+            except DefenseDocumentName.DoesNotExist:
                 name = self.defense_doc_name_denormalized or "Defendant"
             return f"{name} {self.defense_doc_number}"
 
@@ -1400,6 +1445,7 @@ class DocumentText(models.Model):
     # could this be an FK to DocumentEvidencePrefix? (tblNMTCodes)
     evidence_code_series = models.CharField(db_column="DocCodeSeries", max_length=100)
     evidence_code_num = models.CharField(db_column="DocCodeNum", max_length=100)
+    hlsl_doc_id = models.IntegerField(db_column="HLSLDocID", null=True, blank=True)
     source_citation = models.CharField(db_column="SourceCitation", max_length=500)
     load_timestamp = models.DateTimeField(db_column="LoadDateTime")
     text = models.TextField(db_column="DocText", blank=True, null=True)
@@ -1412,7 +1458,22 @@ class DocumentText(models.Model):
         db_table = "tblNurembergFullTexts"
 
     def __str__(self):
-        return f"{self.title}"
+        return f"{self.display_title}"
+
+    @cached_property
+    def display_title(self):
+        """Return the best available title for display purposes.
+
+        Fallback order:
+        1. Title (the document text title)
+        2. "Document #<hlsl_doc_id>" if linked to a document
+        3. "Document #<id>" using the DocumentText record ID
+        """
+        if self.title:
+            return self.title
+        if self.hlsl_doc_id:
+            return f"Document #{self.hlsl_doc_id}"
+        return f"Document #{self.id}"
 
     @cached_property
     def evidence_code(self):
@@ -1437,6 +1498,10 @@ class DocumentText(models.Model):
         if not self.text:
             return 0
 
+        # For NEW full texts without evidence codes, we can't count page separators
+        if not self.evidence_code_tag:
+            return 0
+
         # Some texts have both `680—PS` and `680-PS` as apparent page separator
         secondary_tag = self.evidence_code_tag.replace("-", "—")
         return (
@@ -1449,6 +1514,10 @@ class DocumentText(models.Model):
 
     def documents(self):
         """Fetch the most relevant Document for this DocumentText.
+
+        Uses a dual linking strategy:
+        1. NEW method (16,334 texts): Direct HLSLDocID → Document.id matching
+        2. LEGACY method (2,193 texts): Evidence File code matching
 
         As there can be multiple versions available for this metadata, we would
         like to use the metadata from the highest-ranked item from the
@@ -1483,11 +1552,18 @@ class DocumentText(models.Model):
             NMT 2
 
         """
+        # NEW method: Try direct HLSLDocID linking first
+        if self.hlsl_doc_id:
+            direct_match = Document.objects.filter(id=self.hlsl_doc_id)
+            if direct_match.exists():
+                return direct_match
+
+        # LEGACY method: Fall back to evidence code matching
         # Ensure that the evidence code number is an int to avoid ValueError
         # exceptions when filtering below.
         try:
             evidence_code_number = int(self.evidence_code_num)
-        except ValueError:
+        except (ValueError, TypeError):
             logger.info(
                 "DocumentText: Can not search for related documents for text "
                 "%s and evidence code %s (number: %s, series: %s)",

@@ -38,6 +38,14 @@ class Photograph(models.Model):
     def title(self):
         return self.title_regex.match(self.inscription).group(2)
 
+    def display_title(self):
+        """Return the title with fallback for parsing errors."""
+        try:
+            return self.title()
+        except (AttributeError, IndexError):
+            # If regex parsing fails, return a fallback
+            return self.inscription or "Title not available"
+
     def description(self):
         return '\n'.join(self.inscription.split(' / ')[1:])
 
