@@ -1,5 +1,5 @@
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
-FROM python:3.11-alpine as b2v
+FROM python:3.11-alpine AS b2v
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
 ENV PYTHONDONTWRITEBYTECODE=true
 ENV PYTHONUNBUFFERED 1
@@ -43,11 +43,9 @@ RUN python -m venv /.venv; \
 
 RUN apt update; apt -y install curl
 
-#RUN  tar -xzC /node --strip-components=1 -f <( curl -sL https://nodejs.org/dist/v18.12.1/node-v18.12.1-linux-x64.tar.gz )
 WORKDIR /node
 RUN curl -sL https://deb.nodesource.com/setup_18.x | bash - \
-    && apt-get install -y nodejs \
-    && npm install -g less
+    && apt-get install -y nodejs 
 
 RUN --mount=type=cache,target=/root/.cache pip install -U pip
 
@@ -68,16 +66,15 @@ ENV BASE_DIR=/code
 ENV IMAGE_VERSION v0.5.134-r6
 
 
-#RUN ln -s /node/node_modules/less/bin/lessc /bin/lessc
-
-COPY dumps/nuremberg_prod_dump_latest.sqlite3.zip /code/data/
-
 COPY web/nuremberg /code/nuremberg
 COPY web/frontend /code/frontend
 COPY web/manage.py /code
 COPY solr_conf /code/solr_conf
 
-RUN touch /code/nuremberg/__init__.py; \
+RUN mkdir -p /code/data && \
+    curl -L -o /code/data/nuremberg_prod_dump_latest.sqlite3.zip \
+    https://harvard-law-library-nuremberg-data.sfo3.digitaloceanspaces.com/nuremberg_prod_latest.sqlite3.zip && \
+    touch /code/nuremberg/__init__.py && \
     chown 1000 /code
 
 USER 1000

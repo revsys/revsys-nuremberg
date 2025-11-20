@@ -6,7 +6,7 @@ IMAGE_REGISTRY := 'registry.revsys.com/nuremberg'
 CACHE_REGISTRY := env_var_or_default('CACHE_REGISTRY', 'registry.revsys.com/cache/nuremberg')
 
 
-VERSION := 'v0.5.134-r6'
+VERSION := 'v0.5.134-r5'
 
 
 GITHUB_STEP_SUMMARY := env_var_or_default('GITHUB_STEP_SUMMARY', '')
@@ -189,6 +189,15 @@ _figlet args='':
 update-local-tags:
     git fetch --tags --force
 
+
+get-database:
+    @echo "Downloading nuremberg_prod_dump_latest.sqlite3.zip from S3..."
+    curl -L -o nuremberg_prod_dump_latest.sqlite3.zip \
+    https://harvard-law-library-nuremberg-data.sfo3.digitaloceanspaces.com/nuremberg_prod_latest.sqlite3.zip 
+    @echo "Unzipping archive and moving into place..."
+    unzip nuremberg_prod_dump_latest.sqlite3.zip && mv nuremberg_dev.db web/nuremberg_dev.db 
+    @echo "Finished, database size is:"     
+    ls -lh web/nuremberg_dev.db 
 
 # update the latest SQLite DB dump with the provided MySQL's dump
 update-db-dump mysqldump='' dump_name=`date -u +%FT%T`:
