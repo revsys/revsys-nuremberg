@@ -41,19 +41,22 @@ jobs:
         name: check for new dump
         id: check-dumps
         run: |
-          lastUpdate=$( git log -1 --format=%H -- dumps/nuremberg_prod_dump_latest.sqlite3.zip )
-          head=$( git rev-parse HEAD )
+          # lastUpdate=$( git log -1 --format=%H -- dumps/nuremberg_prod_dump_latest.sqlite3.zip )
+          # head=$( git rev-parse HEAD )
 
-          [[ -n "${lastUpdate}" ]] && \
-            [[ "${head}" == "${lastUpdate}" ]] && echo "change-detected=true" >> $GITHUB_OUTPUT || \
-            echo "change-detected=false" >> $GITHUB_OUTPUT
+          # Force change detected for now, need to revist 
+          echo "change-detected=true" >> $GITHUB_OUTPUT  
 
-          echo "${head} (head) vs. ${lastUpdate} (lastUpdate)"
-
-          echo "## solr-check"
-          [[ "${head}" == "${lastUpdate}" ]] &&
-             echo " * found new data" >> $GITHUB_STEP_SUMMARY || \
-             echo " * no new data" >> $GITHUB_STEP_SUMMARY
+          # [[ -n "${lastUpdate}" ]] && \
+          #   [[ "${head}" == "${lastUpdate}" ]] && echo "change-detected=true" >> $GITHUB_OUTPUT || \
+          #   echo "change-detected=false" >> $GITHUB_OUTPUT
+          #
+          # echo "${head} (head) vs. ${lastUpdate} (lastUpdate)"
+          #
+          # echo "## solr-check"
+          # [[ "${head}" == "${lastUpdate}" ]] &&
+          #    echo " * found new data" >> $GITHUB_STEP_SUMMARY || \
+          #    echo " * no new data" >> $GITHUB_STEP_SUMMARY
 
   run:
     runs-on: ubuntu-latest
