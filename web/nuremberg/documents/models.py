@@ -346,7 +346,15 @@ class OldDocumentImage(models.Model):
     @cached_property
     def filename(self):
         # There are entries in tblImagesList with FileName ending in `\r`
-        return f"{self.base_filename.strip()}.{self.fileformat.strip()}"
+        base = self.base_filename.strip()
+        ext = self.fileformat.strip()
+
+        # Check if base_filename already ends with the extension
+        # (Cases 5, 8, 10 have .jpg already in base_filename)
+        if base.lower().endswith(f'.{ext.lower()}'):
+            return base
+        else:
+            return f"{base}.{ext}"
 
 
 class DocumentImageType(models.Model):
