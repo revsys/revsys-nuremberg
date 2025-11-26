@@ -10,6 +10,14 @@
 
 ## Setup
 
+Grab the latest production database: 
+
+```shell
+just get-database 
+```
+
+NOTE: This requires the `just` command line runner from [Just Homepage](https://just.systems) 
+
 The client uses [Docker/Docker Compose](https://docs.docker.com/compose/). In
 the host computer, run:
 
