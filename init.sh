@@ -25,15 +25,15 @@ DOCKER_COMPOSE_EXEC="$DOCKER_COMPOSE exec -T"
 echo "Setting up sqlite"
 
 # the compressed database file is already a part of the release and tester images.
-if [[ -z "${SOLR_BUILD}" ]] ;
-then
-	$DOCKER_COMPOSE cp -L dumps/nuremberg_prod_dump_latest.sqlite3.zip ${web}:/tmp/ || exit 1
-	$DOCKER_COMPOSE_EXEC --user 0 ${web} chown ${UID} /tmp/*zip
-	$DOCKER_COMPOSE_EXEC --user $UID ${web} python -m zipfile -e /tmp/nuremberg_prod_dump_latest.sqlite3.zip /nuremberg/
-else
-	$DOCKER_COMPOSE_EXEC --user $UID ${web} python -m zipfile -e /code/data/nuremberg_prod_dump_latest.sqlite3.zip /nuremberg/
-fi
-
+# if [[ -z "${SOLR_BUILD}" ]] ;
+# then
+# 	$DOCKER_COMPOSE cp -L dumps/nuremberg_prod_dump_latest.sqlite3.zip ${web}:/tmp/ || exit 1
+# 	$DOCKER_COMPOSE_EXEC --user 0 ${web} chown ${UID} /tmp/*zip
+# 	$DOCKER_COMPOSE_EXEC --user $UID ${web} python -m zipfile -e /tmp/nuremberg_prod_dump_latest.sqlite3.zip /nuremberg/
+# else
+# 	$DOCKER_COMPOSE_EXEC --user $UID ${web} python -m zipfile -e /code/data/nuremberg_prod_dump_latest.sqlite3.zip /nuremberg/
+# fi
+#
 $DOCKER_COMPOSE_EXEC --user ${UID} ${web} ./manage.py makemigrations -v1
 $DOCKER_COMPOSE_EXEC --user ${UID} ${web} ./manage.py migrate -v1
 
