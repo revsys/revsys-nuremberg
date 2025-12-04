@@ -26,11 +26,10 @@
 {% block tools_overlay %}{% endblock %}
 
 {% block page_selection %}
-  <form class="go-to-page" action="" method="GET">
-    <input type="hidden" name="seq" value="{{ seq }}" />
+  <form class="go-to-seq" action="" method="GET">
     <label>
-      Go to page:
-      <input type="number" name="page" value="{{ current_page.page_number|default:"" }}"/>
+      Go to page sequence number:
+      <input type="number" name="seq" value="{{ seq }}" min="1" max="{{ total_pages }}"/>
     </label>
     <button class="go-button">Go</button>
   </form>

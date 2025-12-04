@@ -1,31 +1,28 @@
 import logging
 import re
 from datetime import datetime
-from lxml import etree
 
 from django.db import models
 from django.utils.functional import cached_property
 from django.utils.text import slugify
-
+from lxml import etree
 from nuremberg.core.storages import TranscriptStorage
-from nuremberg.documents.models import DocumentCase, DocumentActivity
-from .xml import TranscriptPageJoiner
+from nuremberg.documents.models import DocumentActivity, DocumentCase
 
+from .xml import TranscriptPageJoiner
 
 logger = logging.getLogger(__name__)
 
 
 class Transcript(models.Model):
     case = models.OneToOneField(
-        DocumentCase, related_name='transcript', on_delete=models.PROTECT
+        DocumentCase, related_name="transcript", on_delete=models.PROTECT
     )
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    activities = models.ManyToManyField(
-        DocumentActivity, related_name='transcripts'
-    )
+    activities = models.ManyToManyField(DocumentActivity, related_name="transcripts")
 
     def __str__(self):
         return self.title
@@ -41,13 +38,13 @@ class Transcript(models.Model):
         return self.pages.count()
 
     def dates(self):
-        return self.pages.order_by().values_list('date', flat=True).distinct()
+        return self.pages.order_by().values_list("date", flat=True).distinct()
 
     def get_seq_from_page_date(self, page_date, seq_number):
         # find the seq number for provided date
         # assume dates are valid since they come from selection
-        page_date = datetime.strptime(page_date, '%Y-%m-%d')
-        page = self.pages.filter(date=page_date).order_by('seq_number').first()
+        page_date = datetime.strptime(page_date, "%Y-%m-%d")
+        page = self.pages.filter(date=page_date).order_by("seq_number").first()
         if page:
             return page.seq_number
         return seq_number
@@ -58,9 +55,9 @@ class Transcript(models.Model):
         page = (
             self.pages.filter(page_number=page_number)
             .extra(
-                select={'distance': "ABS(seq_number - %s)"},
+                select={"distance": "ABS(seq_number - %s)"},
                 select_params=(seq_number,),
-                order_by=('distance',),
+                order_by=("distance",),
             )
             .first()
         )
@@ -70,7 +67,7 @@ class Transcript(models.Model):
             # guesstimate
             page = (
                 self.pages.filter(page_number__lte=page_number)
-                .order_by('-page_number')
+                .order_by("-page_number")
                 .first()
             )
             if page:
@@ -81,14 +78,14 @@ class Transcript(models.Model):
 
 class TranscriptVolume(models.Model):
     transcript = models.ForeignKey(
-        Transcript, related_name='volumes', on_delete=models.PROTECT
+        Transcript, related_name="volumes", on_delete=models.PROTECT
     )
 
-    volume_number = models.IntegerField()
+    volume_number = models.BigIntegerField()
     description = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return 'Transcript volume {}'.format(self.volume_number)
+        return "Transcript volume {}".format(self.volume_number)
 
 
 # class TranscriptPageQuerySet(models.QuerySet):
@@ -102,39 +99,37 @@ class TranscriptPage(models.Model):
     # objects = TranscriptPageQuerySet.as_manager()
 
     transcript = models.ForeignKey(
-        Transcript, related_name='pages', on_delete=models.PROTECT
+        Transcript, related_name="pages", on_delete=models.PROTECT
     )
     volume = models.ForeignKey(
-        TranscriptVolume, related_name='pages', on_delete=models.PROTECT
+        TranscriptVolume, related_name="pages", on_delete=models.PROTECT
     )
     updated_at = models.DateTimeField(auto_now=True)
 
-    seq_number = models.IntegerField(db_index=True)
-    volume_seq_number = models.IntegerField(db_index=True)
+    seq_number = models.BigIntegerField(db_index=True)
+    volume_seq_number = models.BigIntegerField(db_index=True)
 
     date = models.DateTimeField(db_index=True, blank=True, null=True)
-    page_number = models.IntegerField(blank=True, null=True)
+    page_number = models.BigIntegerField(blank=True, null=True)
     page_label = models.CharField(max_length=10, blank=True, null=True)
 
     xml = models.TextField()
-    image = models.ImageField(
-        null=True, blank=True, storage=TranscriptStorage()
-    )
+    image = models.ImageField(null=True, blank=True, storage=TranscriptStorage())
 
     class Meta:
         unique_together = (
-            ('transcript', 'seq_number'),
-            ('volume', 'volume_seq_number'),
+            ("transcript", "seq_number"),
+            ("volume", "volume_seq_number"),
         )
         index_together = (
-            ('transcript', 'seq_number'),
-            ('transcript', 'page_number'),
-            ('transcript', 'date'),
-            ('volume', 'volume_seq_number'),
+            ("transcript", "seq_number"),
+            ("transcript", "page_number"),
+            ("transcript", "date"),
+            ("volume", "volume_seq_number"),
         )
 
     def __str__(self):
-        return 'Transcript id {} page {} volume {}'.format(
+        return "Transcript id {} page {} volume {}".format(
             self.transcript.id, self.page_number, self.volume.volume_number
         )
 
@@ -143,59 +138,63 @@ class TranscriptPage(models.Model):
         return self.image.url if self.image else None
 
     def xml_tree(self):
-        return etree.fromstring(self.xml.encode('utf8'))
+        return etree.fromstring(self.xml.encode("utf8"))
 
     def populate_from_xml(self):
         for event, element in etree.iterwalk(self.xml_tree()):
-            if event != 'end':
+            if event != "end":
                 continue
-            if element.tag == 'seqNo':
+            if element.tag == "seqNo":
                 self.seq_number = int(element.text)
-            elif element.tag == 'sessionDate':
+            elif element.tag == "sessionDate":
                 try:
-                    self.date = datetime.strptime(element.get('n'), '%Y-%m-%d')
+                    self.date = datetime.strptime(element.get("n"), "%Y-%m-%d")
                 except:
                     self.date = None
-            elif element.tag == 'pageNum':
-                self.page_label = element.get('n')
-                page_int = re.sub(r'[^\d]', '', self.page_label)
+            elif element.tag == "pageNum":
+                self.page_label = element.get("n")
+                page_int = re.sub(r"[^\d]", "", self.page_label)
                 if page_int:
-                    self.page_number = int(page_int)
+                    page_number_value = int(page_int)
+                    # BigIntegerField max is 2^63-1
+                    BIGINT_MAX = 9223372036854775807
+                    if page_number_value > BIGINT_MAX:
+                        self.page_number = -1
+                        logger.warning(
+                            f"Page number {page_number_value} exceeds BigIntegerField max. "
+                            f"Set to -1. page_label={self.page_label}"
+                        )
+                    else:
+                        self.page_number = page_number_value
                 else:
                     self.page_number = None
 
     def text(self):
         # TODO: this blob won't allow exact phrase matches across transcript pages.
         # It might be extended a few words into either adjacent page to allow that.
-        text = ''
-        for event, element in etree.iterwalk(
-            self.xml_tree(), events=('start', 'end')
-        ):
-            if element.tag == 'p':
-                if len(element) and element[0].tag == 'runningHead':
+        text = ""
+        for event, element in etree.iterwalk(self.xml_tree(), events=("start", "end")):
+            if element.tag == "p":
+                if len(element) and element[0].tag == "runningHead":
                     continue
-                if event == 'start':
+                if event == "start":
                     if element.text:
                         if len(
                             element.text
-                        ) < 20 and TranscriptPageJoiner.ignore_p.match(
-                            element.text
-                        ):
+                        ) < 20 and TranscriptPageJoiner.ignore_p.match(element.text):
                             continue
                         text += element.text
                 else:
-                    text += '\n\n'
-            elif event == 'end' and element.tag == 'spkr':
+                    text += "\n\n"
+            elif event == "end" and element.tag == "spkr":
                 if element.text:
-                    text += '<span class="speaker">{}</span> '.format(
-                        element.text
-                    )
+                    text += '<span class="speaker">{}</span> '.format(element.text)
                 if element.tail:
                     text += element.tail
-            elif event == 'end' and element.tag in (
-                'evidenceFileDoc',
-                'exhibitDocDef',
-                'exhibitDocPros',
+            elif event == "end" and element.tag in (
+                "evidenceFileDoc",
+                "exhibitDocDef",
+                "exhibitDocPros",
             ):
                 if element.text:
                     text += element.text
@@ -206,20 +205,20 @@ class TranscriptPage(models.Model):
     def extract_evidence_codes(self):
         codes = []
         for event, element in etree.iterwalk(self.xml_tree()):
-            if element.tag == 'evidenceFileDoc':
-                codes.append(element.get('n'))
+            if element.tag == "evidenceFileDoc":
+                codes.append(element.get("n"))
         return codes
 
     def extract_exhibit_codes(self):
         codes = []
         for event, element in etree.iterwalk(self.xml_tree()):
-            if element.tag == 'exhibitDocPros':
-                codes.append('Prosecution {}'.format(element.get('n')))
-            elif element.tag == 'exhibitDocDef':
+            if element.tag == "exhibitDocPros":
+                codes.append("Prosecution {}".format(element.get("n")))
+            elif element.tag == "exhibitDocDef":
                 codes.append(
-                    '{} {}'.format(
-                        element.get('def') or 'Unknown Defendant',
-                        element.get('n'),
+                    "{} {}".format(
+                        element.get("def") or "Unknown Defendant",
+                        element.get("n"),
                     )
                 )
         return codes

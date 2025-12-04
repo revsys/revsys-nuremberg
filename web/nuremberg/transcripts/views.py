@@ -41,11 +41,7 @@ class Show(View):
 
         query = request.GET.get('q')
         seq_number = int(request.GET.get('seq', 1))
-        page_number = int(request.GET.get('page', 0))
-        if page_number:
-            seq_number = transcript.get_seq_from_page_number(
-                page_number, seq_number
-            )
+        # Note: 'page' parameter no longer supported, only 'seq'
 
         page_date = request.GET.get('date')
         if page_date:

@@ -10,7 +10,6 @@ modulejs.define('transcript-viewer', function () {
   var $text = $viewport.find('.transcript-text');
   var currentSeq = $text.data('seq');
   var currentDate;
-  var currentPage;
   var count = $text.data('page-count');
   var totalPages = $text.data('total-pages');
   var fromSeq = $text.data('from-seq');
@@ -72,14 +71,6 @@ modulejs.define('transcript-viewer', function () {
       history.replaceState(undefined, undefined, location.pathname + location.search.replace(/seq=\d+/, 'seq='+seq))
     }
   };
-  var goToPage = function (page) {
-    var $page = $('.page[data-page="'+page+'"]');
-    if ($page.length) {
-      goToSeq($page.data('seq'));
-      return true;
-    }
-    return false;
-  };
   var goToDate = function (date) {
     var $page = $('.page[data-date="'+date+'"]');
     if ($page.length) {
@@ -114,19 +105,29 @@ modulejs.define('transcript-viewer', function () {
       loadFromScratch({seq: totalPages});
     }
   });
-  $('form.go-to-page').on('submit', function (e) {
+  $('form.go-to-seq').on('submit', function (e) {
     e.preventDefault();
 
-    var $input = $(this).find('input[name=page]')
-    var page = $input.val();
-    if (page < 1)
-      return $input.val(1);
-    if (page > totalPages)
-      return $input.val(totalPages);
-    var $page = $('.page[data-page="'+page+'"]');
+    var $input = $(this).find('input[name=seq]')
+    var seq = parseInt($input.val());
 
-    if (!goToPage(page))
-      loadFromScratch({page: page});
+    if (isNaN(seq) || seq < 1) {
+      seq = 1;
+      $input.val(seq);
+      return;
+    }
+    if (seq > totalPages) {
+      seq = totalPages;
+      $input.val(seq);
+      return;
+    }
+
+    var $page = $('.page[data-seq="'+seq+'"]');
+    if ($page.length) {
+      goToSeq(seq);
+    } else {
+      loadFromScratch({seq: seq});
+    }
   });
   $('select.select-date').on('change', function () {
     var date = $(this).val();
@@ -279,7 +280,6 @@ modulejs.define('transcript-viewer', function () {
     } while ($page.length == 0)
 
     currentSeq = $page.data('seq');
-    currentPage = $page.data('page');
     currentDate = $page.data('date');
 
     if (currentSeq && history && history.replaceState) {
@@ -289,8 +289,8 @@ modulejs.define('transcript-viewer', function () {
     if (currentDate)
       $('select.select-date').val(currentDate);
 
-    if (currentPage)
-      $('form.go-to-page input[name=page]').val(currentPage);
+    // Update seq input to show current position
+    $('form.go-to-seq input[name=seq]').val(currentSeq);
   };
 
   $viewport.on('scroll', _.throttle(handleScroll, 300));

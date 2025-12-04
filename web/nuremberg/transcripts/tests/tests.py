@@ -159,29 +159,28 @@ def test_go_to_date(seq):
     assert page('.page-handle').with_text('29 JANUARY 1947')
 
 
-def test_go_to_page(seq):
+def test_go_to_seq(seq):
+    """Test navigation using sequence numbers directly."""
     page = seq(500)
-    assert page('.page-handle').with_text('PAGE 482')
+    assert page('.page-handle').with_text('HLSL SEQ. NO. 500')
 
+    # Navigate to seq 4820
     page = go_to(
         page('form')
-        .with_text('Go to page:')
-        .find('input[type=number]')
+        .with_text('Go to page sequence number:')
+        .find('input[name=seq]')
         .submit_value(4820)
     )
-    assert page('.page-handle').with_text('PAGE 4,820')
+    assert page('.page-handle').with_text('HLSL SEQ. NO. 4820')
 
-    # test guesstimation: page 5000 is unlabeled
+    # Navigate to seq 5000
     page = go_to(
         page('form')
-        .with_text('Go to page:')
-        .find('input[type=number]')
+        .with_text('Go to page sequence number:')
+        .find('input[name=seq]')
         .submit_value(5000)
     )
-    assert not page('.page-handle').with_text('PAGE 5,000')
-
-    assert page('.page-handle').with_text('PAGE 4,999')
-    assert page('.page-handle').with_text('PAGE 5,001')
+    assert page('.page-handle').with_text('HLSL SEQ. NO. 5000')
 
 
 @pytest.mark.skip(reason="no longer valid after HLSL refactor")
@@ -290,3 +289,23 @@ def test_xml_import():
     )
     assert transcript_page.extract_evidence_codes() == ['NO-416', 'NO-417']
     assert transcript_page.extract_exhibit_codes() == ['Prosecution 22']
+
+
+def test_page_number_overflow():
+    """Test that extremely large page numbers are handled gracefully."""
+    abspath = os.path.dirname(os.path.abspath(__file__))
+
+    # Test ingesting a file with overflow page number
+    call_command(
+        'ingest_transcript_xml',
+        os.path.join(abspath, 'overflow/NRMB-NMT01-01_99999_0.xml'),
+    )
+
+    transcript_page = TranscriptPage.objects.get(
+        transcript_id=1, volume_id=1, volume_seq_number=99999
+    )
+
+    # Page number should be -1 as sentinel value
+    assert transcript_page.page_number == -1
+    # page_label should preserve original value
+    assert transcript_page.page_label == "99999999999999999999"
