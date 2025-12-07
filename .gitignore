@@ -22,4 +22,6 @@ data/
 !.cache/keep
 .cache/
 .vscode/
-./web/coverage/
+./web/coverage/   
+.envrc 
+.local-env
