@@ -63,7 +63,7 @@ ENV PYTHONDONTWRITEBYTECODE=true
 ENV PYTHONUNBUFFERED 1
 ENV DJANGO_SETTINGS_MODULE nuremberg.settings
 ENV BASE_DIR=/code
-ENV IMAGE_VERSION v0.5.139-r2
+ENV IMAGE_VERSION v0.5.140
 
 
 COPY web/nuremberg /code/nuremberg
@@ -131,7 +131,7 @@ ENV SOLR_CORE nuremberg_dev
 COPY solr_conf /opt/solr-9.2.0/solr_conf
 
 
-ENV IMAGE_VERSION v0.5.139-r2-solr
+ENV IMAGE_VERSION v0.5.140-solr
 
 
 RUN --mount=type=bind,source=./dist/var-solr.tgz,target=/mnt/var-solr.tgz \
