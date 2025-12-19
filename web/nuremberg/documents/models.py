@@ -1194,6 +1194,13 @@ class DocumentDefendant(models.Model):
         else:
             return self.first_name or self.last_name or "Unknown"
 
+    def full_name_last_first(self):
+        """Returns name in 'Last, First' format for forms and displays."""
+        if self.first_name and self.last_name:
+            return "{}, {}".format(self.last_name, self.first_name)
+        else:
+            return self.first_name or self.last_name or "Unknown"
+
 
 class DocumentsToDefendants(models.Model):
     id = models.AutoField(primary_key=True, db_column="DefendantsListID")

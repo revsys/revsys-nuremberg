@@ -438,7 +438,7 @@ class AdvancedDocumentSearchForm(forms.Form):
             (
                 (name, name)
                 for i in DocumentDefendant.objects.all()
-                if (name := i.full_name())
+                if (name := i.full_name_last_first())
             ),
         ),
         list,
