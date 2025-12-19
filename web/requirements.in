@@ -18,6 +18,7 @@ lxml
 django-haystack
 pysolr
 requests
+rich
 
 # Assets
 boto3

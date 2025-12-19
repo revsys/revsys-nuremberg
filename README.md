@@ -199,6 +199,15 @@ indexing configuration is in the
 
 ### Starting fresh
 
+**NOTE**: Be careful doing this as we've made some post generation customization 
+to the Solr configuration.  This shouldn't be necessary as `solr_conf/schema.xml` 
+should already exist for you and be accurate. 
+
+#### If you really need to rebuild it... 
+
+Copy the existing to the side so you can compare and re-add any customizations
+that should be retained (likely all of them). 
+
 To build a brand new Solr schema, run:
 
 ```shell
@@ -208,6 +217,7 @@ docker compose run --rm web python manage.py build_solr_schema --configure-dir=s
 This will generate both `schema.xml` and `solrconfig.xml` under the `solr_conf`
 directory. To use the updated config files, run `docker compose down -v` to dispose
 of the existing solr container and `docker compose up -d` to start a fresh one.
+
 
 ### Reindexing
 
