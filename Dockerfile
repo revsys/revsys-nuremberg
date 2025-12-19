@@ -28,7 +28,7 @@ ENV PATH /.venv/bin:/node/bin:${PATH}
 WORKDIR /code
 
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
-FROM runner as builder
+FROM runner AS builder
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
 
 
@@ -56,7 +56,7 @@ RUN --mount=type=bind,source=web/requirements.txt,target=/requirements.txt \
 WORKDIR /code
 
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
-FROM builder as release
+FROM builder AS release
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
 
 ENV PYTHONDONTWRITEBYTECODE=true
@@ -84,7 +84,7 @@ WORKDIR /code
 CMD ["/.venv/bin/gunicorn", "-b", ":8000", "nuremberg.wsgi:application"]
 
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
-FROM release as tester
+FROM release AS tester
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
 
 USER 0
@@ -109,7 +109,7 @@ RUN ./manage.py migrate
 ENTRYPOINT ["pytest"]
 
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
-FROM alpine as cacher
+FROM alpine AS cacher
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
 
 RUN apk add --no-cache rsync; mkdir /.cache
@@ -123,7 +123,7 @@ ENTRYPOINT ["/bin/sh", "-c"]
 CMD ["rsync -varHpDtSl --exclude=/.cache/keep /.cache/* /mnt/. || true"]
 
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
-FROM solr:9.2.0 as solr
+FROM solr:9.2.0 AS solr
 #.--.---.-.-.-.-.----.-..-.---..-------.-.--.-.-..-.-.-.-.-.-..--.-
 
 ENV SOLR_CORE nuremberg_dev
