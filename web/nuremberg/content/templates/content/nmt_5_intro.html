@@ -3,120 +3,133 @@
 
 {% block title %}Case 5: The Flick Case{% endblock %}
 
-{% block body_class %}approaches{% endblock %}
+{% block body_class %}about{% endblock %}
+
+{% block header %}
+  {{ block.super }}
+  <nav aria-label="Topics for NMT-5" class="sub-nav horizontal">
+    <li>
+      <a href="#summary">Summary</a>
+    </li>
+    <li>
+      <a href="#indictment">Indictment</a>
+    </li>
+    <li>
+      <a href="#chronology">Chronology</a>
+    </li>
+    <li>
+      <a href="#persons">Persons Involved</a>
+    </li>
+  </nav>
+{% endblock %}
 
 {% block content %}
+<div id="content"></div>
 <section class="theme-light">
-    <div class="partial-width">
-        <nav class="sub-nav horizontal">
-            <li>
-                <a href="#summary">Summary</a>
-            </li>
-            <li>
-                <a href="#indictment">Indictment</a>
-            </li>
-            <li>
-                <a href="#chronology">Chronology</a>
-            </li>
-            <li>
-                <a href="#persons">Persons Involved</a>
-            </li>
-        </nav>
-    </div>
+  <div>
+    <h1>NMT Case 5</h1>
+    <h2>USA vs. Friedrich Flick, et al.</h2>
+  </div>
 </section>
 
 <section class="theme-light">
-    <div class="partial-width">
-        <h1>NMT Case 5</h1>
-        <h2>USA vs. Friedrich Flick, et al.</h2>
+  <div class="anchor" id="summary"></div>
+  <h2>Summary</h2>
+  <p>
+    Trial V, <i>The United States of America vs. Friedrich Flick, et al</i>, also known as the "Flick Trial," took place between April and December 1947. Six defendants were charged: Friedrich Flick, Konrad Kaletsch, Otto Steinbrinck, Odilo Burkart, Hermann Terberger, and Bernhard Weiss. The trial transcript exceeds 8500 pages. The defendants were charged with crimes against peace, war crimes, and crimes against humanity. The prosecution attempted to prove that the six defendants were parties to the planning, preparation, initiation and waging of aggressive wars by the Third Reich. The prosecution also sought to demonstrate that they participated in the plunder and spoliation of property in countries invaded by Germany as well as in the deportation and enslavement of millions of civilians from such occupied countries.
+  </p>
 
-        <p id="summary" class="introduction">
-            Trial V, <i>The United States of America vs. Friedrich Flick, et al</i>, also known as the "Flick Trial," took place between April and December 1947. Six defendants were charged: Friedrich Flick, Konrad Kaletsch, Otto Steinbrinck, Odilo Burkart, Hermann Terberger, and Bernhard Weiss. The trial transcript exceeds 8500 pages. The defendants were charged with crimes against peace, war crimes, and crimes against humanity. The prosecution attempted to prove that the six defendants were parties to the planning, preparation, initiation and waging of aggressive wars by the Third Reich. The prosecution also sought to demonstrate that they participated in the plunder and spoliation of property in countries invaded by Germany as well as in the deportation and enslavement of millions of civilians from such occupied countries.
-        </p>
+  <p>
+    The case against the defendants rested primarily on documents recording the activities of the Flick Concern and the four other firms headed or controlled by Friedrich Flick from the 1930s through 1944. The defendants held executive positions in these firms, and Flick was the major shareholder of them all. Flick and his firms profited considerably from the aggressive Nazi military actions of the Third Reich. This included participation in the "Aryanization" process (confiscation of Jewish property) as well as exploitation of slave labor during the war, primarily from concentration camps. The defendants were also accused of making large contributions to Himmler.
+  </p>
+</section>
 
-        <p>
-            The case against the defendants rested primarily on documents recording the activities of the Flick Concern and the four other firms headed or controlled by Friedrich Flick from the 1930s through 1944. The defendants held executive positions in these firms, and Flick was the major shareholder of them all. Flick and his firms profited considerably from the aggressive Nazi military actions of the Third Reich. This included participation in the "Aryanization" process (confiscation of Jewish property) as well as exploitation of slave labor during the war, primarily from concentration camps. The defendants were also accused of making large contributions to Himmler.
-        </p>
+<section class="theme-light">
+  <div class="anchor" id="indictment"></div>
+  <h2>Indictment</h2>
 
-        <h3 id="indictment">Indictment</h3>
+  <p><strong>Count One: Planning, Preparation, Initiation, and Waging of Wars of Aggression and Invasions of Other Countries.</strong></p>
+  <ul>
+    <li>Defendants were parties to planning, preparation, initiation and waging of aggressive wars and invasions of other countries</li>
+    <li>Defendants made important financial and industrial contributions to build-up of the German armed forces</li>
+  </ul>
 
-        <p><strong>Count One: Planning, Preparation, Initiation, and Waging of Wars of Aggression and Invasions of Other Countries.</strong></p>
-        <ul>
-            <li>Defendants were parties to planning, preparation, initiation and waging of aggressive wars and invasions of other countries</li>
-            <li>Defendants made important financial and industrial contributions to build-up of the German armed forces</li>
-        </ul>
+  <p><strong>Count Two: Plunder and Spoliation</strong></p>
+  <ul>
+    <li>Acquisition of firms and manufacturing facilities taken from Jews and non-Germans through force, intimidation, threats</li>
+    <li>Appropriating capital goods, raw materials, finished goods</li>
+    <li>All carried out as part of German plan to economically and industrially strengthen Germany</li>
+  </ul>
 
-        <p><strong>Count Two: Plunder and Spoliation</strong></p>
-        <ul>
-            <li>Acquisition of firms and manufacturing facilities taken from Jews and non-Germans through force, intimidation, threats</li>
-            <li>Appropriating capital goods, raw materials, finished goods</li>
-            <li>All carried out as part of German plan to economically and industrially strengthen Germany</li>
-        </ul>
+  <p><strong>Count Three: Deportation to Slave Labor</strong></p>
+  <ul>
+    <li>Deporting persons to Germany for forced labor</li>
+    <li>Deportation for forced labor of persons from concentration camps</li>
+  </ul>
 
-        <p><strong>Count Three: Deportation to Slave Labor</strong></p>
-        <ul>
-            <li>Deporting persons to Germany for forced labor</li>
-            <li>Deportation for forced labor of persons from concentration camps</li>
-        </ul>
+  <p><strong>Count Four: Membership in the SS (Count dismissed during trial)</strong></p>
 
-        <p><strong>Count Four: Membership in the SS (Count dismissed during trial)</strong></p>
+  <p><strong>Count Five: Common Plan or Conspiracy (Count dismissed during trial)</strong></p>
+</section>
 
-        <p><strong>Count Five: Common Plan or Conspiracy (Count dismissed during trial)</strong></p>
+<section class="theme-light">
+  <div class="anchor" id="chronology"></div>
+  <h2>Chronology Overview</h2>
+  <ul>
+    <li>Indictment filed 18 February 1947</li>
+    <li>Arraignment 19 April 1947</li>
+    <li>Prosecution opening statement 19 April 1947</li>
+    <li>Defense opening statement 22 September 1947</li>
+    <li>Closing statements 19-20 November 1947</li>
+    <li>Judgment and Sentences 22 December 1947</li>
+  </ul>
+</section>
 
-        <h3 id="chronology">Chronology Overview</h3>
-        <ul>
-            <li>Indictment filed 18 February 1947</li>
-            <li>Arraignment 19 April 1947</li>
-            <li>Prosecution opening statement 19 April 1947</li>
-            <li>Defense opening statement 22 September 1947</li>
-            <li>Closing statements 19-20 November 1947</li>
-            <li>Judgment and Sentences 22 December 1947</li>
-        </ul>
+<section class="theme-light">
+  <div class="anchor" id="persons"></div>
+  <h2>Persons Involved</h2>
 
-        <h3 id="persons">Persons Involved</h3>
+  <h3>Military Tribunal IV</h3>
+  <ul>
+    <li>Charles B. Sears, Presiding Judge</li>
+    <li>Frank N. Richman, Judge</li>
+    <li>William C. Christianson, Judge</li>
+  </ul>
 
-        <h4>Military Tribunal IV</h4>
-        <ul>
-            <li>Charles B. Sears, Presiding Judge</li>
-            <li>Frank N. Richman, Judge</li>
-            <li>William C. Christianson, Judge</li>
-        </ul>
+  <h3>Prosecution</h3>
+  <ul>
+    <li>Brigadier General Telford Taylor, Chief of Counsel for War Crimes</li>
+    <li>Charles W. Manderson and Joseph Kaufman, Deputy Chief Counsel</li>
+    <li>Paul Bitt, Daniel Margolius, and James Wilkins, Associate Counsel</li>
+    <li>Fred Niebergall, Assistant Counsel</li>
+  </ul>
 
-        <h4>Prosecution</h4>
-        <ul>
-            <li>Brigadier General Telford Taylor, Chief of Counsel for War Crimes</li>
-            <li>Charles W. Manderson and Joseph Kaufman, Deputy Chief Counsel</li>
-            <li>Paul Bitt, Daniel Margolius, and James Wilkins, Associate Counsel</li>
-            <li>Fred Niebergall, Assistant Counsel</li>
-        </ul>
+  <h3>Defendants</h3>
+  <ul>
+    <li>Friedrich Flick</li>
+    <li>Konrad Kaletsch</li>
+    <li>Otto Steinbrinck</li>
+    <li>Odilo Burkart</li>
+    <li>Hermann Terberger</li>
+    <li>Bernhard Weiss</li>
+  </ul>
 
-        <h4>Defendants</h4>
-        <ul>
-            <li>Friedrich Flick</li>
-            <li>Konrad Kaletsch</li>
-            <li>Otto Steinbrinck</li>
-            <li>Odilo Burkart</li>
-            <li>Hermann Terberger</li>
-            <li>Bernhard Weiss</li>
-        </ul>
+  <h3>Defense Counsel</h3>
+  <ul>
+    <li>Dr. Rudolf Dix (Friedrich Flick)</li>
+    <li>Dr. Robert Kuhn (Konrad Kaletsch)</li>
+    <li>Dr. Hans Hollmann (Otto Steinbrinck)</li>
+    <li>Dr. Erich Wedekind (Odilo Burkart)</li>
+    <li>Dr. Erwin Stein (Hermann Terberger)</li>
+    <li>Dr. Egon Kubuschok (Bernhard Weiss)</li>
+  </ul>
 
-        <h4>Defense Counsel</h4>
-        <ul>
-            <li>Dr. Rudolf Dix (Friedrich Flick)</li>
-            <li>Dr. Robert Kuhn (Konrad Kaletsch)</li>
-            <li>Dr. Hans Hollmann (Otto Steinbrinck)</li>
-            <li>Dr. Erich Wedekind (Odilo Burkart)</li>
-            <li>Dr. Erwin Stein (Hermann Terberger)</li>
-            <li>Dr. Egon Kubuschok (Bernhard Weiss)</li>
-        </ul>
-
-        <h3>Judgment/Sentences</h3>
-        <p><strong>Friedrich Flick:</strong> Guilty, counts 2 and 3; seven years</p>
-        <p><strong>Otto Steinbrinck:</strong> Guilty, counts 2 and 3; five years</p>
-        <p><strong>Odilo Burkart:</strong> Guilty, count 3; two years</p>
-        <p><strong>Konrad Kaletsch:</strong> Acquitted</p>
-        <p><strong>Hermann Terberger:</strong> Acquitted</p>
-        <p><strong>Bernhard Weiss:</strong> Acquitted</p>
-    </div>
+  <h3>Judgment/Sentences</h3>
+  <p><strong>Friedrich Flick:</strong> Guilty, counts 2 and 3; seven years</p>
+  <p><strong>Otto Steinbrinck:</strong> Guilty, counts 2 and 3; five years</p>
+  <p><strong>Odilo Burkart:</strong> Guilty, count 3; two years</p>
+  <p><strong>Konrad Kaletsch:</strong> Acquitted</p>
+  <p><strong>Hermann Terberger:</strong> Acquitted</p>
+  <p><strong>Bernhard Weiss:</strong> Acquitted</p>
 </section>
 {% endblock %}
