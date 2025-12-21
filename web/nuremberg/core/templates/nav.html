@@ -20,6 +20,10 @@
       {% if request.resolver_match.url_name == 'documents' %}class="active"{% endif %}
       >  Documents </a> </li>
 
+    <li> <a href="{% url 'content:resources' %}"
+      {% if request.resolver_match.url_name == 'resources' %}class="active"{% endif %}
+      >  Further Resources </a> </li>
+
     <li class="has-menu"> <a tabindex="0" role="button" href="#" data-toggle="dropdown"
       {% if request.resolver_match.url_name == 'about' %}class="active"{% endif %}
       aria-haspopup="true" aria-label="About dropdown"> About the Project </a>
