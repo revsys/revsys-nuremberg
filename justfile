@@ -211,12 +211,5 @@ update-db-dump mysqldump='' dump_name=`date -u +%FT%T`:
     zip -j -FS dumps/nuremberg_prod_dump_{{ dump_name }}.sqlite3.zip web/nuremberg_dev.db
     ln -fs nuremberg_prod_dump_{{ dump_name }}.sqlite3.zip dumps/nuremberg_prod_dump_latest.sqlite3.zip
     # ToDo: run commands such as update of author metadata or document images
-    git add dumps/nuremberg_prod_dump_{{ dump_name }}.sqlite3.zip
 
 
-# Rebuild the symlink to the latest dump to force Solr to rebuild
-force-solr-regen:
-    cd dumps
-    git rm nuremberg_prod_dump_latest.sqlite3.zip
-    ln -s nuremberg_prod_dump_2023-02-23T21:04:25.sqlite3.zip nuremberg_prod_dump_latest.sqlite3.zip
-    git add nuremberg_prod_dump_latest.sqlite3.zip
