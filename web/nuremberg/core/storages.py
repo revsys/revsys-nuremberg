@@ -46,17 +46,38 @@ from django.utils.module_loading import import_string
 
 SettingsStorage = import_string(settings.DEFAULT_FILE_STORAGE)
 
+# Base URL for DigitalOcean Spaces
+S3_BASE_URL = "https://sfo2.digitaloceanspaces.com"
+
 
 class AuthorStorage(SettingsStorage):
     bucket_name = settings.AUTHORS_BUCKET
     default_acl = 'public-read'
+
+    def url(self, name):
+        """Generate URL with correct bucket name for local development."""
+        if settings.LOCAL_DEVELOPMENT:
+            return f"{S3_BASE_URL}/{self.bucket_name}/{name}"
+        return super().url(name)
 
 
 class DocumentStorage(SettingsStorage):
     bucket_name = settings.DOCUMENTS_BUCKET
     default_acl = 'public-read'
 
+    def url(self, name):
+        """Generate URL with correct bucket name for local development."""
+        if settings.LOCAL_DEVELOPMENT:
+            return f"{S3_BASE_URL}/{self.bucket_name}/{name}"
+        return super().url(name)
+
 
 class TranscriptStorage(SettingsStorage):
     bucket_name = settings.TRANSCRIPTS_BUCKET
     default_acl = 'public-read'
+
+    def url(self, name):
+        """Generate URL with correct bucket name for local development."""
+        if settings.LOCAL_DEVELOPMENT:
+            return f"{S3_BASE_URL}/{self.bucket_name}/{name}"
+        return super().url(name)
