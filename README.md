@@ -190,6 +190,44 @@ and then after result output inspection, do an actual run by removing the
 `--dry-run` switch.
 
 
+### Verifying and fixing image filenames
+
+The deployed S3 bucket stores images with a flat structure (all files in a single
+directory with unique filenames), while the source data may reference images with
+directory hierarchies or filename variations (leading zeros, jpg vs jpeg, etc.).
+
+The `verify_and_fix_images` command verifies all image references against the
+Digital Ocean Spaces bucket and can fix the database to use the correct flat
+filenames. It handles both document images and transcript images.
+
+First, do a dry run to see what changes would be made:
+
+```shell
+just verify-images --dry-run
+```
+
+To check only a specific image type:
+
+```shell
+just verify-images --dry-run --image-type documents
+just verify-images --dry-run --image-type transcripts
+```
+
+After reviewing the output, apply the fixes:
+
+```shell
+just verify-images --apply-fixes
+```
+
+The command will create log files:
+- `verify_images_YYYY-MM-DD_HH-MM-SS.json` - Full JSON log of all checks and fixes
+- `missing_images_YYYY-MM-DD_HH-MM-SS.csv` - CSV list of images that couldn't be found
+
+Additional options:
+- `--max-workers N` - Number of parallel workers (default: 30)
+- `--batch-size N` - Process in batches of N records (default: 1000)
+
+
 ## Solr
 
 Solr indexes are defined in relevant `search_indexes.py` files, and additional
