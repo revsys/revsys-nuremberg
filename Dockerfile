@@ -131,7 +131,7 @@ ENV SOLR_CORE nuremberg_dev
 COPY solr_conf /opt/solr-9.2.0/solr_conf
 
 
-ENV IMAGE_VERSION v0.5.141-r12-solr
+ENV IMAGE_VERSION v0.5.142-solr
 
 
 RUN --mount=type=bind,source=./dist/var-solr.tgz,target=/mnt/var-solr.tgz \
