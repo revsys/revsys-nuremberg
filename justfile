@@ -189,6 +189,18 @@ _figlet args='':
 update-local-tags:
     git fetch --tags --force
 
+# create properly named database zips for deployment
+# Ensures the zip contains 'nuremberg_dev.db' internally (required by init.sh and get-database)
+create-database-zips dump_name=`date -u +%FT%T`:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    [[ -f web/nuremberg_dev.db ]] || { echo "ERROR: web/nuremberg_dev.db not found. Run 'just get-database' first."; exit 1; }
+    echo "Creating deployment zips from web/nuremberg_dev.db..."
+    zip -j -FS dumps/nuremberg_prod_dump_{{ dump_name }}.sqlite3.zip web/nuremberg_dev.db
+    cp dumps/nuremberg_prod_dump_{{ dump_name }}.sqlite3.zip dumps/nuremberg_prod_dump_latest.sqlite3.zip
+    echo "Done. Files created:"
+    ls -lh dumps/nuremberg_prod_dump_{{ dump_name }}.sqlite3.zip dumps/nuremberg_prod_dump_latest.sqlite3.zip
+    echo "Internal filename in zip: $(python3 -m zipfile -l dumps/nuremberg_prod_dump_{{ dump_name }}.sqlite3.zip | grep -v 'Name\|---' | awk '{print $NF}')"
 
 get-database:
     @echo "Downloading nuremberg_prod_dump_latest.sqlite3.zip from S3..."
