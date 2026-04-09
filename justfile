@@ -191,7 +191,7 @@ update-local-tags:
 
 # create properly named database zips for deployment
 # Ensures the zip contains 'nuremberg_dev.db' internally (required by init.sh and get-database)
-create-database-zips dump_name=`date -u +%FT%T`:
+create-database-zips dump_name=`date -u +%Y-%m-%d`:
     #!/usr/bin/env bash
     set -euo pipefail
     [[ -f web/nuremberg_dev.db ]] || { echo "ERROR: web/nuremberg_dev.db not found. Run 'just get-database' first."; exit 1; }
