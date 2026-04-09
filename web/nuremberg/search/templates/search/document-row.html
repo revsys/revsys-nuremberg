@@ -178,8 +178,10 @@
   <td class="type-col">
     <div class="document-type-icon type-{{result.material_type|slugify}}">
     {{result.material_type}}</div>
-    {% if result.material_type == 'Document' %}
-      <p class="total-pages">{{result.total_pages}} page{{result.total_pages|pluralize}}</p>
+  </td>
+  <td class="pages-col">
+    {% if result.material_type == 'Document Image' or result.material_type == 'Document Full Text' %}
+      {% if result.total_pages %}{{result.total_pages}}{% endif %}
     {% endif %}
   </td>
 </tr>
