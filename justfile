@@ -203,7 +203,7 @@ create-database-zips dump_name=`date -u +%Y-%m-%d`:
 get-database:
     @echo "Downloading nuremberg_prod_dump_latest.sqlite3.zip from S3..."
     curl -L -o nuremberg_prod_dump_latest.sqlite3.zip \
-    https://harvard-law-library-nuremberg-data.sfo3.digitaloceanspaces.com/nuremberg_prod_latest.sqlite3.zip
+    https://harvard-law-library-nuremberg-data.sfo3.digitaloceanspaces.com/nuremberg_prod_dump_latest.sqlite3.zip
     @echo "Unzipping archive and moving into place..."
     unzip nuremberg_prod_dump_latest.sqlite3.zip && mv nuremberg_dev.db web/nuremberg_dev.db
     @echo "Finished, database size is:"

@@ -31,7 +31,7 @@ then
 	$DOCKER_COMPOSE_EXEC --user 0 ${web} chown ${UID} /tmp/*zip
 	$DOCKER_COMPOSE_EXEC --user $UID ${web} python -m zipfile -e /tmp/nuremberg_prod_dump_latest.sqlite3.zip /nuremberg/
 else
-	$DOCKER_COMPOSE_EXEC --user $UID ${web} python -m zipfile -e /code/data/nuremberg_prod_dump_latest.sqlite3.zip /nuremberg/
+	$DOCKER_COMPOSE_EXEC --user $UID ${web} python -m zipfile -e /code/data/nuremberg_prod_dump_latest.sqlite3.zip /nuremberg/ || exit 1
 fi
 
 $DOCKER_COMPOSE_EXEC --user ${UID} ${web} ./manage.py makemigrations -v1

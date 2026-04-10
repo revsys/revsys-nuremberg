@@ -76,8 +76,9 @@ COPY solr_conf /code/solr_conf
 #  is the only way to get a fresh download when the bucket content changes)
 ARG DB_CACHE_BUST=2026-04-09
 RUN mkdir -p /code/data && \
-    curl -L -o /code/data/nuremberg_prod_dump_latest.sqlite3.zip \
-    https://harvard-law-library-nuremberg-data.sfo3.digitaloceanspaces.com/nuremberg_prod_latest.sqlite3.zip && \
+    curl -fL -o /code/data/nuremberg_prod_dump_latest.sqlite3.zip \
+    https://harvard-law-library-nuremberg-data.sfo3.digitaloceanspaces.com/nuremberg_prod_dump_latest.sqlite3.zip && \
+    python -c "import zipfile; z=zipfile.ZipFile('/code/data/nuremberg_prod_dump_latest.sqlite3.zip'); assert 'nuremberg_dev.db' in z.namelist(), f'Bad zip contents: {z.namelist()}'" && \
     touch /code/nuremberg/__init__.py && \
     chown 1000 /code
 
