@@ -31,14 +31,7 @@ then
 	$DOCKER_COMPOSE_EXEC --user 0 ${web} chown ${UID} /tmp/*zip
 	$DOCKER_COMPOSE_EXEC --user $UID ${web} python -m zipfile -e /tmp/nuremberg_prod_dump_latest.sqlite3.zip /nuremberg/
 else
-	# Download fresh from the bucket rather than using the zip baked into the image.
-	# The baked-in zip is served from Docker layer cache and will be stale if the
-	# bucket was updated after the image was last built.
-	$DOCKER_COMPOSE_EXEC --user $UID ${web} bash -c "
-		curl -fL -o /tmp/nuremberg_prod_dump_latest.sqlite3.zip \
-			https://harvard-law-library-nuremberg-data.sfo3.digitaloceanspaces.com/nuremberg_prod_latest.sqlite3.zip && \
-		python -m zipfile -e /tmp/nuremberg_prod_dump_latest.sqlite3.zip /nuremberg/
-	"
+	$DOCKER_COMPOSE_EXEC --user $UID ${web} python -m zipfile -e /code/data/nuremberg_prod_dump_latest.sqlite3.zip /nuremberg/
 fi
 
 $DOCKER_COMPOSE_EXEC --user ${UID} ${web} ./manage.py makemigrations -v1
