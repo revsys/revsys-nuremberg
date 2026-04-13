@@ -1245,6 +1245,63 @@ ul.select2-selection__rendered {
   margin-top: 3px;
   margin-bottom: 2px;
 }
+
+/* --- uniform field heights on the advanced search form ---
+   Text inputs (Title, Notes, Keywords) render at 37px
+   (15px content + 10px*2 padding + 1px*2 border, content-box).
+   Match select2 multi-select containers and regular <select>s
+   to the same 37px outer height. */
+.advanced-search .select2-container--default .select2-selection--multiple {
+  min-height: 37px !important;
+  padding-top: 2px !important;
+  padding-left: 5px !important;
+}
+.advanced-search select {
+  height: 37px !important;
+  box-sizing: border-box;
+  line-height: 35px;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 10px;
+}
+
+/* --- uniform left inset for all advanced-search fields ---
+   Text inputs already have padding: 10px.  Match the select2
+   tag pills, placeholder, and search cursor to the same 10px
+   left offset.  Regular <select>s get 10px above. */
+.advanced-search .select2-container--default .select2-selection--multiple .select2-selection__choice {
+  margin-left: 5px !important;
+}
+.advanced-search .select2-container .select2-search--inline .select2-search__field {
+  margin-left: 5px !important;
+}
+.advanced-search .select2-container--default .select2-selection--multiple .select2-selection__rendered .select2-search--inline:first-child .select2-search__field {
+  margin-left: 5px !important;
+}
+
+/* --- uniform horizontal gaps between adjacent fields on the same row --- */
+form.advanced-search p > select,
+form.advanced-search p > input[type="text"],
+form.advanced-search p > input[type="number"],
+form.advanced-search p > .select2-container {
+  margin-right: 8px;
+}
+form.advanced-search p > select:last-child,
+form.advanced-search p > input[type="text"]:last-child,
+form.advanced-search p > input[type="number"]:last-child,
+form.advanced-search p > .select2-container:last-child {
+  margin-right: 0;
+}
+
+/* --- year-range "to" separator --- */
+.year-range-separator {
+  display: inline-block;
+  padding: 0 8px;
+  vertical-align: middle;
+}
+form.advanced-search input[type="number"][name^="year_range"] {
+  margin-right: 0;
+}
   </style>
   <script>
     $(document).ready(function() {
