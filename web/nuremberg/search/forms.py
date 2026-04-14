@@ -243,6 +243,21 @@ class FieldedSearchForm(SearchForm):
             field_queries.append([sections.popleft(), sections.popleft()])
         return (auto_query, field_queries)
 
+    def _prepare_wildcard_value(self, value, sqs):
+        """Prepare a field value containing wildcards (* or ?) for Solr.
+
+        Strips surrounding quotes or parentheses (search syntax, not
+        literal), then sanitises each token via sqs.query.clean() which
+        escapes all RESERVED_CHARACTERS *except* * and ?.
+        """
+        value = value.strip()
+        if value.startswith('"') and value.endswith('"'):
+            value = value[1:-1]
+        elif value.startswith('(') and value.endswith(')'):
+            value = value[1:-1]
+        tokens = value.split()
+        return ' '.join(sqs.query.clean(t) for t in tokens)
+
     def parse_query_keywords(self, full_query):
         """Parser that extracts single field keyword queries
 
@@ -251,7 +266,7 @@ class FieldedSearchForm(SearchForm):
 
         """
         sections = re.split(
-            r'((?:\-?\w+)\s*\:\s*(?:"[^"]+"|\([^:]+\)|[\w\-\+\.\|]+))',
+            r'((?:\-?\w+)\s*\:\s*(?:"[^"]+"|\([^:]+\)|[\w\-\+\.\|\*\?]+))',
             full_query,
         )
         auto_query = sections[0]
@@ -318,11 +333,20 @@ class FieldedSearchForm(SearchForm):
                     ):
                         self.highlight_query += ' ' + value
                     # NOTE: field_key is whitelisted above
-                    query_list.append(
-                        '{}:({})'.format(
-                            field_key, AutoQuery(value).prepare(sqs.query)
+                    if '*' in value or '?' in value:
+                        prepared = self._prepare_wildcard_value(
+                            value, sqs
                         )
-                    )
+                        query_list.append(
+                            '{}:({})'.format(field_key, prepared)
+                        )
+                    else:
+                        query_list.append(
+                            '{}:({})'.format(
+                                field_key,
+                                AutoQuery(value).prepare(sqs.query),
+                            )
+                        )
             raw_query = '({})'.format(' OR '.join(query_list))
             if exclude:
                 field_query.append('excluded')

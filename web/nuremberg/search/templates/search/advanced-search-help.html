@@ -100,6 +100,32 @@
     <span class="example-search" id="example-search-9">experiments date:1944|unknown</span>
     <a href="{% search_url 'experiments date:1944|unknown' %}" aria-labelledby="example-search-9">Search</a>
   </p>
+  <p>
+    You can use <strong>wildcard characters</strong> to match partial words.
+    Use <strong>*</strong> to match one or more characters, or <strong>?</strong> to match exactly one character:
+  </p>
+  <p>
+    <span class="example-search" id="example-search-10">author:goer*</span>
+    <a href="{% search_url 'author:goer*' %}" aria-labelledby="example-search-10">Search</a>
+    &mdash; matches Goering, Goerdeler, etc.
+  </p>
+  <p>
+    <span class="example-search" id="example-search-11">author:g?ering</span>
+    <a href="{% search_url 'author:g?ering' %}" aria-labelledby="example-search-11">Search</a>
+    &mdash; matches Goering but not Gering
+  </p>
+  <p>
+    <span class="example-search" id="example-search-12">source:case*</span>
+    <a href="{% search_url 'source:case*' %}" aria-labelledby="example-search-12">Search</a>
+    &mdash; matches all Case Files sources
+  </p>
+  <p>
+    Wildcards also work in general keyword searches (without a field prefix) and can be combined with the OR operator:
+  </p>
+  <p>
+    <span class="example-search" id="example-search-13">author:goer*|himml*</span>
+    <a href="{% search_url 'author:goer*|himml*' %}" aria-labelledby="example-search-13">Search</a>
+  </p>
   <br/>
   <p>
     You may choose from the following fields when doing fielded search:
