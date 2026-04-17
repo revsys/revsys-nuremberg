@@ -267,6 +267,12 @@
           {{hlsl_item_id|default:'Unknown'}}
         </p>
 
+        {% if document.source %}
+        <p>
+          <strong>Source of Text:</strong> {{ document.source.name }}
+        </p>
+        {% endif %}
+
         {% if document.description %}
         <p>
           <strong>Notes:</strong>{{ document.description }}
