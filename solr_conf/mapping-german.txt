@@ -1,0 +1,18 @@
+# German character normalization for Solr's MappingCharFilterFactory.
+#
+# Applied to BOTH index and query analyzers of text_en. Because the same
+# transformation runs on both sides, "Müller" indexed as "mueller" matches
+# a query for "Müller" or "Mueller" (both normalized to "mueller"), and
+# "Straße" matches a query for "Strasse" or "Straße".
+#
+# ß is mapped symmetrically to "ss" (the pragmatic choice — see commit
+# message and CLAUDE.md). The asymmetric variant requires app-layer query
+# rewriting and is not implemented here.
+
+"ä" => "ae"
+"Ä" => "Ae"
+"ö" => "oe"
+"Ö" => "Oe"
+"ü" => "ue"
+"Ü" => "Ue"
+"ß" => "ss"

@@ -280,11 +280,19 @@ form.advanced-search {
 }
 
 .material-col {
-  width: 59%;
+  width: 55%;
 }
 
 .author-col {
   width: 22%;
+}
+
+.pages-col {
+  width: 5%;
+  text-align: right;
+  white-space: nowrap;
+  .sans-serif(normal, 14px, 20px);
+  color: @gray;
 }
 
 .search-results table {
@@ -390,7 +398,8 @@ p.snippets {
 }
 
 @media (max-width: @screen-xs-min) {
-  .type-col {
+  .type-col,
+  .pages-col {
     display: none;
   }
 

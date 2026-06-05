@@ -136,7 +136,7 @@ const toggleExpand = (viewport) => {
 
 const scaleRatio = (thisScale) => {
   let s = thisScale || scale;
-  return Math.min(10, Math.max(1, Math.floor(1 / s)));
+  return Math.min(20, Math.max(1, Math.floor(1 / s)));
 }
 
 const pageScale = (scale) => {
@@ -427,7 +427,7 @@ const zoomOut = () => {
   let viewport = $("div.viewport-content")
   let newScale = scale * viewScale;
   if (newScale <= 1) {
-    newScale = 1 / Math.min(10, scaleRatio(newScale) + 1);
+    newScale = 1 / Math.min(20, scaleRatio(newScale) + 1);
     zoomToPage(_.find(images, function (img) { return img === firstVisible }), newScale);
   } else {
     newScale = 1 / 1.5 * viewScale;
@@ -472,8 +472,12 @@ const zoomToPage = (page, thisScale) => {
   if (scaleDelta < 1) {
     // zoom out
 
-    // Don't let pages become smaller than necessary to fit all in the viewport
-    if (scale < 1 / totalPages || $('.document-image-layout').height() <= viewport[0].clientHeight) {
+    // Don't let pages become smaller than necessary to fit all in the viewport.
+    // (Previously also bailed when the laid-out content already fit the viewport
+    // height, but that prevented further "grid view" zoom-out levels in
+    // Chrome/Firefox — Safari happened to keep working only because of differing
+    // inline-block height measurement. The scale floor is the principled limit.)
+    if (scale < 1 / totalPages) {
       scale = previousScale
       return
     }
@@ -702,6 +706,24 @@ const main = () => {
   scrollToolButton.addEventListener('click', () => { setTool(viewport, 'scroll') })
   expandToolButton.addEventListener('click', () => { toggleExpand(viewport) })
 
+  // Keyboard zoom shortcuts: +/= zooms in, -/_ zooms out. These call the
+  // existing zoomIn/zoomOut functions, which branch between continuous
+  // (viewScale) zoom and column-based (zoomToPage) zoom, so they reliably
+  // produce the multi-column "grid view" once you pass single-page.
+  document.addEventListener('keydown', (e) => {
+    // Don't hijack typing in form fields.
+    let tag = e.target && e.target.tagName
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
+    if (e.metaKey || e.ctrlKey || e.altKey) return
+    if (e.key === '-' || e.key === '_') {
+      e.preventDefault()
+      zoomOut()
+    } else if (e.key === '+' || e.key === '=') {
+      e.preventDefault()
+      zoomIn()
+    }
+  })
+
   // Handle images
   let page_images = viewport.find('.document-image')
   page_images.each((i, image) => {
@@ -711,7 +733,6 @@ const main = () => {
       $el: container,
       page: container.data('page'),
       alt: container.data('alt'),
-      crossorigin: "anonymous",
       urls: {
         full: container.data('full-url'),
         screen: container.data('screen-url'),
@@ -737,15 +758,17 @@ const main = () => {
     setTool(viewport, 'scroll')
   }
 
-  let stylesheet = document.styleSheets[0]
-  let rules = ('cssRules' in stylesheet) ? stylesheet.cssRules : stylesheet.rules
-
-  stylesheet.insertRule("body.document-viewer #document-viewport .document-image { width: 100% !important; height: auto !important; }", 0)
-
-  imageCSSRule = rules[0]
-  if (imageCSSRule && imageCSSRule.cssRules) {
-    imageCSSRule = imageCSSRule.cssRules[0]
-  }
+  // Create our own stylesheet so we know exactly which rule we're mutating.
+  // (Previously this used document.styleSheets[0], which in production may be
+  // a Vite-bundled or cross-origin sheet whose first rule isn't ours — making
+  // pageScale() a silent no-op and breaking multi-column zoom-out.)
+  let styleEl = document.createElement('style')
+  document.head.appendChild(styleEl)
+  styleEl.sheet.insertRule(
+    "body.document-viewer #document-viewport .document-image { width: 100% !important; height: auto !important; }",
+    0
+  )
+  imageCSSRule = styleEl.sheet.cssRules[0]
 
   pagePlaceholder = $('<div></div>').css({
     display: 'inline-block',

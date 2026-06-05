@@ -304,8 +304,12 @@ modulejs.define('DocumentViewport', ['Images', 'DraggingMixin', 'DownloadQueue']
       if (scaleDelta < 1) {
         // zoom out
 
-        // Don't let pages become smaller than necessary to fit all in the viewport
-        if (this.model.attributes.scale < 1/this.model.attributes.totalPages || $('.document-image-layout').height() <= this.$viewport[0].clientHeight) {
+        // Don't let pages become smaller than necessary to fit all in the viewport.
+        // (Previously also bailed when the laid-out content already fit the viewport height,
+        // but that prevented further "grid view" zoom-out levels in Chrome/Firefox — Safari
+        // happened to keep working only because of differing inline-block height measurement.
+        // The scale floor below is the principled limit and applies uniformly across browsers.)
+        if (this.model.attributes.scale < 1/this.model.attributes.totalPages) {
           this.model.attributes.scale = this.model.previous('scale');
           return;
         }
@@ -475,7 +479,7 @@ modulejs.define('DocumentViewport', ['Images', 'DraggingMixin', 'DownloadQueue']
     scaleRatio: function (scale) {
       // return the current or provided scale as a number of visible columns
       scale = scale || this.model.attributes.scale;
-      return Math.min(10, Math.max(1, Math.floor(1/scale)));
+      return Math.min(20, Math.max(1, Math.floor(1/scale)));
     },
 
     zoomIn: function () {
@@ -498,7 +502,7 @@ modulejs.define('DocumentViewport', ['Images', 'DraggingMixin', 'DownloadQueue']
       var scale = this.model.attributes.scale * this.model.attributes.viewScale;
       if (scale <= 1) {
         var firstVisible = this.model.attributes.firstVisible;
-        scale = 1/Math.min(10, this.scaleRatio(scale) + 1);
+        scale = 1/Math.min(20, this.scaleRatio(scale) + 1);
         this.zoomToPage(_.find(this.imageViews, function (view) {return view.model === firstVisible}), scale);
       } else {
         scale = 1/1.5 * this.model.attributes.viewScale;

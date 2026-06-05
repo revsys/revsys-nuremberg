@@ -421,6 +421,10 @@
     <fieldType name="text_en" class="solr.TextField" positionIncrementGap="100">
         <analyzer type="index">
             <charFilter class="solr.HTMLStripCharFilterFactory"/>
+            <!-- German character normalization: ä→ae, ö→oe, ü→ue, ß→ss.
+                 Applied at both index and query time so umlauted and
+                 transliterated forms match each other interchangeably. -->
+            <charFilter class="solr.MappingCharFilterFactory" mapping="mapping-german.txt"/>
             <tokenizer class="solr.StandardTokenizerFactory"/>
             <!-- in this example, we will only use synonyms at query time
             <filter class="solr.SynonymFilterFactory" synonyms="index_synonyms.txt" ignoreCase="true" expand="false"/>
@@ -448,6 +452,8 @@
             <filter class="solr.PorterStemFilterFactory"/>
         </analyzer>
         <analyzer type="query">
+            <!-- German character normalization (see index analyzer above). -->
+            <charFilter class="solr.MappingCharFilterFactory" mapping="mapping-german.txt"/>
             <tokenizer class="solr.StandardTokenizerFactory"/>
             <filter class="solr.SynonymGraphFilterFactory" synonyms="synonyms.txt"
              format="solr" ignoreCase="false" expand="true"
